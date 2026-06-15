@@ -84,11 +84,19 @@ def apply_results_payload(conn: sqlite3.Connection, payload: dict[str, Any]) -> 
         home = m["homeTeam"]["name"]
         away = m["awayTeam"]["name"]
         ft = m["score"]["fullTime"]
+        # Seeded fixtures use an arbitrary home/away order (itertools.combinations), so
+        # match the pair order-independently and store scores in the seeded orientation.
         cur = conn.execute(
             "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
             "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
             (ft["home"], ft["away"], home, away),
         )
+        if cur.rowcount == 0:
+            cur = conn.execute(
+                "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
+                "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
+                (ft["away"], ft["home"], away, home),
+            )
         updated += cur.rowcount
     conn.commit()
     if updated:
