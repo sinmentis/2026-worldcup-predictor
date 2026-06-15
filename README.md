@@ -84,7 +84,19 @@ uv run worldcup fetch-results
 uv run worldcup predict <match_id>
 uv run worldcup simulate --n 50000 --seed 123
 uv run worldcup evaluate
+uv run worldcup backtest --fit-calibration   # walk-forward skill/calibration + fit the calibrator
 ```
+
+### Model calibration and backtest
+
+`worldcup backtest` runs a walk-forward, no-look-ahead evaluation: for each refit window the
+goal model is trained only on matches before that window and used to predict it, yielding
+out-of-sample predictions. It reports RPS/Brier/log-loss versus a flat baseline plus a
+reliability curve and ECE (calibration error). With `--fit-calibration` it fits a small
+parametric calibrator (draw multiplier + temperature) that minimises out-of-sample RPS and
+stores it in `tuning_params`; `predict` then applies it to the 1X2 (identity until fitted).
+Host nations (USA/Mexico/Canada) get a modest expected-goals bump (`config.HOST_ADVANTAGE`)
+since World Cup matches strip out home advantage.
 
 `load-history` can also load a local CSV:
 
