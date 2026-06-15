@@ -103,11 +103,34 @@ Review pending items with:
 
 ```bash
 uv run worldcup intel-pending
-uv run worldcup intel-approve <id>
-uv run worldcup intel-reject <id>
+uv run worldcup intel-approve <ref>
+uv run worldcup intel-reject <ref>
 ```
 
+`intel-pending` prints a `ref` for each item: `ps:<id>` for a player status, `ts:<id>` for a
+team signal. Pass that `ref` to approve/reject (a bare number is still treated as a player id).
+
 Statuses expire at the team's next scheduled match when that date is known. If no kickoff is set, the default expiry is 14 days.
+
+### Team-level signals (broadened intel)
+
+Player availability is only one kind of off-pitch signal. The `team_signal` store captures
+qualitative, between-the-lines team signals in both directions across five categories:
+`tactical`, `morale`, `motivation`, `fatigue`, and `form`. The MCP tool is `upsert_team_signal`;
+it records only forward-looking or beyond-the-result signals (not match recaps, which are
+ingested as results). One signal is kept per `(team, category)`.
+
+These signals are deliberately soft, and strengthen swings are capped smaller than weaken swings:
+
+| Tier | `weaken` | `strengthen` |
+| --- | ---: | ---: |
+| `major` | 0.88 | 1.06 |
+| `moderate` | 0.93 | 1.04 |
+| `minor` | 0.97 | 1.02 |
+
+They share the same trust gate, credibility rules, expiry, and pending review queue as player
+statuses, and feed the same per-team delta in `apply_intel` (legacy events + player statuses +
+team signals), bounded by the existing `ADJUST_CLAMP`.
 
 ## MCP server
 
@@ -136,7 +159,7 @@ In GitHub Copilot CLI, add the same server command with `/mcp add` and point it 
 uv --directory /home/shunlyu/work/worldcup-predictor run worldcup-mcp
 ```
 
-The MCP tools include group standings, upcoming matches, result recording, match prediction, structured intel recording, and tournament simulation.
+The MCP tools include group standings, upcoming matches, result recording, match prediction, structured intel recording (player statuses and team-level signals), pending-intel review, and tournament simulation.
 
 ## Deployment templates
 
