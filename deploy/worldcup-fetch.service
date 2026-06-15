@@ -1,0 +1,10 @@
+[Unit]
+Description=WorldCup Predictor result fetch
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=shunlyu
+WorkingDirectory=/home/shunlyu/work/worldcup-predictor
+ExecStart=/home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-results
