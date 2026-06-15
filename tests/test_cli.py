@@ -32,3 +32,25 @@ def test_fetch_news_command_wired(tmp_path, monkeypatch):
     res = runner.invoke(app, ["fetch-news"])
     assert res.exit_code == 0
     assert "0" in res.stdout
+
+
+def test_intel_pending_and_approve(tmp_path, monkeypatch):
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli.db"))
+    runner.invoke(app, ["init-db"])
+    from worldcup_predictor import db, engine
+
+    conn = db.connect(tmp_path / "cli.db")
+    engine.upsert_player_status(
+        conn,
+        team="France",
+        player="X",
+        tier="key",
+        status="out",
+        confidence=0.9,
+        source_url="https://a",
+    )
+    res = runner.invoke(app, ["intel-pending"])
+    assert res.exit_code == 0
+    assert "France" in res.stdout
+    sid = engine.list_pending_intel(conn)[0]["id"]
+    assert runner.invoke(app, ["intel-approve", str(sid)]).exit_code == 0

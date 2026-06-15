@@ -73,6 +73,31 @@ def fetch_news() -> None:
     typer.echo(f"Stored {n} new articles.")
 
 
+@app.command("intel-pending")
+def intel_pending() -> None:
+    """List player-status items awaiting approval."""
+    conn = _conn()
+    for r in engine.list_pending_intel(conn):
+        typer.echo(
+            f"[{r['id']}] {r['team']} - {r['player']} {r['status']} ({r['tier']}) "
+            f"cred={r['credibility']:.2f} sources={r['sources']}"
+        )
+
+
+@app.command("intel-approve")
+def intel_approve(status_id: int) -> None:
+    """Approve a pending player-status item."""
+    engine.approve_intel(_conn(), status_id)
+    typer.echo(f"Approved {status_id}.")
+
+
+@app.command("intel-reject")
+def intel_reject(status_id: int) -> None:
+    """Reject (delete) a player-status item."""
+    engine.reject_intel(_conn(), status_id)
+    typer.echo(f"Rejected {status_id}.")
+
+
 @app.command()
 def predict(match_id: int) -> None:
     """Predict a single fixture and persist it."""
