@@ -4,29 +4,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>2026 世界杯预测</title>
-  <link rel="stylesheet" href="/static/bracket.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <header><h1>2026 世界杯预测系统</h1>
+  <header>
+    <div class="brand">
+      <h1>2026 世界杯预测</h1>
+      <span class="sub">AI 驱动 · 实时同步 · 链下情报加权</span>
+    </div>
     <nav>
-      <button onclick="showTab('forecast')">夺冠预测</button>
-      <button onclick="showTab('groups')">小组赛</button>
-      <button onclick="showTab('knockout')">淘汰赛</button>
+      <button data-tab="upcoming" class="active">即将开赛</button>
+      <button data-tab="forecast">夺冠预测</button>
+      <button data-tab="accuracy">战绩对比</button>
+      <button data-tab="groups">小组积分</button>
+      <button data-tab="knockout">淘汰赛</button>
       <span id="status">实时</span>
     </nav>
   </header>
-  <section id="forecast-tab"><div id="forecast"></div></section>
-  <section id="groups-tab" hidden><div id="group-grid"></div></section>
-  <section id="knockout-tab" hidden>
-    <div class="bracket">
-      <div class="round" id="R32"><h3>32强</h3></div>
-      <div class="round" id="R16"><h3>16强</h3></div>
-      <div class="round" id="QF"><h3>八强</h3></div>
-      <div class="round" id="SF"><h3>四强</h3></div>
-      <div class="round" id="FINAL"><h3>决赛</h3></div>
-    </div>
-  </section>
-  <dialog id="match-modal"><article id="match-detail"></article>
+
+  <main>
+    <section id="upcoming-tab"><div id="upcoming"></div></section>
+    <section id="forecast-tab" hidden><div id="forecast"></div></section>
+    <section id="accuracy-tab" hidden><div id="accuracy"></div></section>
+    <section id="groups-tab" hidden>
+      <h2>小组积分榜</h2>
+      <div id="group-grid"></div>
+    </section>
+    <section id="knockout-tab" hidden>
+      <h2>淘汰赛对阵 <small>（基于蒙特卡洛模拟的推演）</small></h2>
+      <div class="bracket">
+        <div class="round" id="R32"><h3>32强</h3></div>
+        <div class="round" id="R16"><h3>16强</h3></div>
+        <div class="round" id="QF"><h3>八强</h3></div>
+        <div class="round" id="SF"><h3>四强</h3></div>
+        <div class="round" id="FINAL"><h3>决赛</h3></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="match-modal">
+    <article id="match-detail"></article>
     <button onclick="document.getElementById('match-modal').close()">关闭</button>
   </dialog>
   <script src="/static/app.js"></script>

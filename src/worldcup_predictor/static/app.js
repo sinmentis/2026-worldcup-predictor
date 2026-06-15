@@ -1,6 +1,8 @@
+"use strict";
+
 const GROUPS = "ABCDEFGHIJKL".split("");
 
-// Chinese display names for the 48 finalists (canonical English -> Chinese).
+// Canonical English -> Chinese display names for the 48 finalists.
 const ZH = {
   "Mexico": "墨西哥", "South Africa": "南非", "South Korea": "韩国", "Czech Republic": "捷克",
   "Canada": "加拿大", "Switzerland": "瑞士", "Bosnia and Herzegovina": "波黑", "Qatar": "卡塔尔",
@@ -16,73 +18,195 @@ const ZH = {
   "England": "英格兰", "Croatia": "克罗地亚", "Ghana": "加纳", "Panama": "巴拿马",
 };
 
+// Flag emoji per team. England/Scotland use subdivision emoji; others ISO regional indicators.
+const FLAG = {
+  "Mexico": "🇲🇽", "South Africa": "🇿🇦", "South Korea": "🇰🇷", "Czech Republic": "🇨🇿",
+  "Canada": "🇨🇦", "Switzerland": "🇨🇭", "Bosnia and Herzegovina": "🇧🇦", "Qatar": "🇶🇦",
+  "Brazil": "🇧🇷", "Morocco": "🇲🇦", "Scotland": "🏴\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", "Haiti": "🇭🇹",
+  "United States": "🇺🇸", "Australia": "🇦🇺", "Paraguay": "🇵🇾", "Turkey": "🇹🇷",
+  "Germany": "🇩🇪", "Ecuador": "🇪🇨", "Ivory Coast": "🇨🇮", "Curacao": "🇨🇼",
+  "Netherlands": "🇳🇱", "Japan": "🇯🇵", "Sweden": "🇸🇪", "Tunisia": "🇹🇳",
+  "Belgium": "🇧🇪", "Egypt": "🇪🇬", "Iran": "🇮🇷", "New Zealand": "🇳🇿",
+  "Spain": "🇪🇸", "Uruguay": "🇺🇾", "Saudi Arabia": "🇸🇦", "Cape Verde": "🇨🇻",
+  "France": "🇫🇷", "Senegal": "🇸🇳", "Norway": "🇳🇴", "Iraq": "🇮🇶",
+  "Argentina": "🇦🇷", "Algeria": "🇩🇿", "Austria": "🇦🇹", "Jordan": "🇯🇴",
+  "Portugal": "🇵🇹", "Colombia": "🇨🇴", "DR Congo": "🇨🇩", "Uzbekistan": "🇺🇿",
+  "England": "🏴\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "Croatia": "🇭🇷", "Ghana": "🇬🇭", "Panama": "🇵🇦",
+};
+
+const STAGES = { group: "小组赛", R32: "32强", R16: "16强", QF: "八强", SF: "四强", "3RD": "季军赛", FINAL: "决赛" };
+
 function esc(v) {
   return String(v ?? "").replace(/[&<>"']/g, (c) => (
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
   ));
 }
-
-// Show a team name in Chinese when known, else the (escaped) original; null -> 待定.
 function zh(name) {
   if (name == null || name === "") return "待定";
   return esc(ZH[name] || name);
 }
-
+function flag(name) { return FLAG[name] || "🏳️"; }
 function pct(x) { return (x * 100).toFixed(1) + "%"; }
+function pct0(x) { return Math.round(x * 100) + "%"; }
 
+// team cell: flag + zh name (+ small english). `away` reverses direction.
+function teamCell(name, side) {
+  return `<div class="side ${side || ""}"><span class="flag">${flag(name)}</span>
+    <span class="tname">${zh(name)}<span class="en">${esc(name)}</span></span></div>`;
+}
+
+function kickDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+}
+function dayKey(d) {
+  return d ? d.toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "short" }) : "时间待定";
+}
+function timeStr(d) {
+  return d ? d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "待定";
+}
+
+/* ---------------- upcoming ---------------- */
+async function loadUpcoming() {
+  const el = document.getElementById("upcoming");
+  const data = await (await fetch("/api/upcoming-predictions?limit=24")).json();
+  const ms = data.matches || [];
+  if (!ms.length) {
+    el.innerHTML = `<div class="empty">暂无已排程的比赛。请先执行 <code>worldcup fetch-fixtures</code> 同步赛程。</div>`;
+    return;
+  }
+  let html = `<div class="section-head">
+    <span class="pill">剩余 ${data.remaining} 场比赛</span>
+    <span class="muted">下面是最近的 ${ms.length} 场，含我们的预测</span>
+    <span class="muted" style="margin-left:auto">🟢主胜 · 🟡平 · 🔴客胜</span>
+  </div>`;
+
+  let lastDay = null;
+  for (const m of ms) {
+    const d = kickDate(m.kickoff);
+    const dk = dayKey(d);
+    if (dk !== lastDay) { html += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
+    const fac = (m.factors || []).map((f) => {
+      const dir = f.lambda_delta >= 0 ? "up" : "down";
+      const arrow = f.lambda_delta >= 0 ? "▲" : "▼";
+      return `<span class="chip ${dir}">${arrow} ${zh(f.team)} ${esc(f.description)}</span>`;
+    }).join("");
+    html += `<div class="match card" onclick="showDetail(${m.match_id})">
+      ${teamCell(m.home_team, "")}
+      <div class="mid">
+        <div class="kick">${esc(timeStr(d))}</div>
+        <span class="scoreline">${esc(m.ml_home)}-${esc(m.ml_away)}</span>
+        <div class="xg">预期 ${m.exp_home_goals.toFixed(2)} : ${m.exp_away_goals.toFixed(2)}</div>
+      </div>
+      ${teamCell(m.away_team, "away")}
+      <div class="probbar">
+        <span class="h" style="flex-basis:${m.p_home * 100}%" title="主胜">${pct0(m.p_home)}</span>
+        <span class="d" style="flex-basis:${m.p_draw * 100}%" title="平">${pct0(m.p_draw)}</span>
+        <span class="a" style="flex-basis:${m.p_away * 100}%" title="客胜">${pct0(m.p_away)}</span>
+      </div>
+      ${fac ? `<div class="factors">${fac}</div>` : ""}
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+/* ---------------- forecast ---------------- */
 async function loadForecast() {
   const el = document.getElementById("forecast");
   const rows = await (await fetch("/api/forecast")).json();
   if (!rows.length) {
-    el.innerHTML = "<p>尚未运行模拟。请先执行 <code>worldcup simulate</code> 生成夺冠预测。</p>";
+    el.innerHTML = `<div class="empty">尚未运行模拟。请执行 <code>worldcup simulate</code> 生成夺冠预测。</div>`;
     return;
   }
   const n = rows[0].n_iter;
-  el.innerHTML = `<h2>夺冠预测 <small>（${n} 次蒙特卡洛模拟）</small></h2>
-    <table class="forecast">
-      <thead><tr><th>#</th><th>队伍</th><th>夺冠</th><th>进决赛</th><th>四强</th><th>出线</th></tr></thead>
-      <tbody>${rows.map((r, i) => `<tr>
-        <td>${i + 1}</td><td>${zh(r.team)}</td>
-        <td><b>${pct(r.title_prob)}</b></td><td>${pct(r.final_prob)}</td>
-        <td>${pct(r.sf_prob)}</td><td>${pct(r.advance_prob)}</td></tr>`).join("")}
-      </tbody></table>`;
+  const max = rows[0].title_prob || 1;
+  const body = rows.map((r, i) => {
+    const cls = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
+    return `<div class="lb-row ${cls}">
+      <div class="rank">${i + 1}</div>
+      <div class="lb-team"><span class="flag">${flag(r.team)}</span>${zh(r.team)}</div>
+      <div class="track"><i style="width:${Math.max(3, (r.title_prob / max) * 100)}%"></i></div>
+      <div class="lb-pct">${pct(r.title_prob)}</div>
+    </div>`;
+  }).join("");
+  el.innerHTML = `<h2>夺冠预测 <small>（${n} 次蒙特卡洛模拟 · 进度条为相对夺冠概率）</small></h2>
+    <div class="card lb">${body}</div>`;
 }
 
+/* ---------------- accuracy ---------------- */
+async function loadAccuracy() {
+  const el = document.getElementById("accuracy");
+  const data = await (await fetch("/api/accuracy")).json();
+  const a = data.aggregate || { n: 0 };
+  if (!a.n) {
+    el.innerHTML = `<div class="empty">还没有已结束的比赛可对比。等比赛打完、结果同步后即可显示。</div>`;
+    return;
+  }
+  const PICK = ["主胜", "平局", "客胜"];
+  const beats = a.beats_baseline;
+  const tiles = `<div class="scoreboard">
+    <div class="card stat"><div class="v">${a.n}</div><div class="k">已对比场次</div></div>
+    <div class="card stat ${a.pick_hit_rate >= 0.5 ? "good" : "bad"}"><div class="v">${pct0(a.pick_hit_rate)}</div><div class="k">胜平负命中率</div></div>
+    <div class="card stat ${beats ? "good" : "bad"}"><div class="v">${a.model_rps.toFixed(3)}</div><div class="k">模型 RPS（越低越好）</div></div>
+    <div class="card stat"><div class="v">${a.baseline_rps.toFixed(3)}</div><div class="k">基准 RPS</div></div>
+    <div class="card stat"><div class="v">${pct0(a.exact_rate)}</div><div class="k">比分精确命中</div></div>
+  </div>`;
+  const verdict = `<div class="verdict ${beats ? "good" : "bad"}">
+    ${beats ? "✓ 我们的模型优于基准（RPS 更低）" : "✗ 模型暂未跑赢基准"} ·
+    平均每场比基准 ${(Math.abs(a.baseline_rps - a.model_rps)).toFixed(3)} ${beats ? "更准" : "更差"}
+  </div>`;
+  const list = (data.matches || []).map((m) => {
+    const correct = m.pick_correct;
+    return `<div class="res card" onclick="showDetail(${m.match_id})">
+      ${teamCell(m.home_team, "")}
+      <div class="vs">
+        <span class="final">${m.home_score} - ${m.away_score}</span>
+        <span class="pred">预测 ${esc(m.ml_home)}-${esc(m.ml_away)} · 押 ${PICK[m.pred_pick]}</span>
+      </div>
+      ${teamCell(m.away_team, "away")}
+      <div class="verdict-mark ${correct ? "ok" : "no"}">${correct ? "✓" : "✗"}</div>
+    </div>`;
+  }).join("");
+  el.innerHTML = `<h2>预测 vs 实际 <small>（与我们最初的预测对比）</small></h2>${tiles}${verdict}${list}`;
+}
+
+/* ---------------- groups ---------------- */
 async function loadGroups() {
   const grid = document.getElementById("group-grid");
-  grid.innerHTML = "";
-  await Promise.all(GROUPS.map(async (g) => {
+  const cards = await Promise.all(GROUPS.map(async (g) => {
     const rows = await (await fetch(`/api/groups/${g}/standings`)).json();
-    const div = document.createElement("div");
-    div.innerHTML = `<h3>${g} 组</h3><table>
-      <thead><tr><th>队伍</th><th>赛</th><th>胜</th><th>平</th><th>负</th><th>净胜</th><th>积分</th></tr></thead>
-      <tbody>${rows.map(r => `<tr><td>${zh(r.team)}</td><td>${r.played}</td><td>${r.won}</td>
-        <td>${r.drawn}</td><td>${r.lost}</td><td>${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join("")}
-      </tbody></table>`;
-    grid.appendChild(div);
+    const body = rows.map((r) => `<tr>
+      <td class="team"><span class="flag" style="font-size:18px">${flag(r.team)}</span>${zh(r.team)}</td>
+      <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td>
+      <td>${r.gd > 0 ? "+" + r.gd : r.gd}</td><td class="pts">${r.pts}</td></tr>`).join("");
+    return `<div class="card group-card"><h3><span class="badge">${g}</span> ${g} 组</h3>
+      <table><thead><tr><th>队伍</th><th>赛</th><th>胜</th><th>平</th><th>负</th><th>净</th><th>分</th></tr></thead>
+      <tbody>${body}</tbody></table></div>`;
   }));
+  grid.innerHTML = cards.join("");
 }
 
+/* ---------------- bracket ---------------- */
 async function loadBracket() {
   const data = await (await fetch("/api/knockout/bracket")).json();
   for (const stage of ["R32", "R16", "QF", "SF", "FINAL"]) {
     const el = document.getElementById(stage);
-    el.querySelectorAll(".match-card").forEach(n => n.remove());
-    (data[stage] || []).forEach(m => {
+    el.querySelectorAll(".match-card").forEach((n) => n.remove());
+    (data[stage] || []).forEach((m) => {
       const card = document.createElement("div");
       card.className = "match-card";
-      const winHome = m.home_score > m.away_score;
-      const winAway = m.away_score > m.home_score;
+      const wh = m.home_score > m.away_score, wa = m.away_score > m.home_score;
       card.innerHTML =
-        `<div class="${winHome ? "winner" : ""}">${zh(m.home_team)}</div>
-         <div>${m.home_score ?? "–"} : ${m.away_score ?? "–"}</div>
-         <div class="${winAway ? "winner" : ""}">${zh(m.away_team)}</div>`;
+        `<div class="${wh ? "winner" : ""}">${flag(m.home_team)} ${zh(m.home_team)}</div><div class="sc">${m.home_score ?? "–"}</div>
+         <div class="${wa ? "winner" : ""}">${flag(m.away_team)} ${zh(m.away_team)}</div><div class="sc">${m.away_score ?? "–"}</div>`;
       card.onclick = () => showDetail(m.id);
       el.appendChild(card);
     });
   }
 }
 
+/* ---------------- match modal ---------------- */
 async function showDetail(id) {
   if (!id) return;
   const res = await fetch(`/api/matches/${id}`);
@@ -90,24 +214,46 @@ async function showDetail(id) {
   const d = await res.json();
   if (!d.match) return;
   const p = d.prediction;
-  const stages = { group: "小组赛", R32: "32强", R16: "16强", QF: "八强", SF: "四强", "3RD": "季军赛", FINAL: "决赛" };
   document.getElementById("match-detail").innerHTML =
-    `<h3>${zh(d.match.home_team)} vs ${zh(d.match.away_team)}</h3>
-     <p>阶段：${esc(stages[d.match.stage] || d.match.stage)}</p>
-     ${p ? `<p>预测：胜 ${(p.p_home*100).toFixed(0)}% / 平 ${(p.p_draw*100).toFixed(0)}% / 负 ${(p.p_away*100).toFixed(0)}%</p>
-            <p>最可能比分：${esc(p.ml_home)}-${esc(p.ml_away)}</p>
-            ${p.reasoning ? `<p>关键因素：${esc(p.reasoning)}</p>` : ""}` : "<p>暂无预测。</p>"}`;
+    `<h3>${flag(d.match.home_team)} ${zh(d.match.home_team)} <span class="muted">vs</span> ${zh(d.match.away_team)} ${flag(d.match.away_team)}</h3>
+     <p class="muted">阶段：${esc(STAGES[d.match.stage] || d.match.stage)}${d.match.kickoff ? " · " + esc(new Date(d.match.kickoff).toLocaleString("zh-CN")) : ""}</p>
+     ${d.match.status === "FINISHED" ? `<p>最终比分：<b>${d.match.home_score} - ${d.match.away_score}</b></p>` : ""}
+     ${p ? `<div class="probbar" style="margin:10px 0">
+              <span class="h" style="flex-basis:${p.p_home * 100}%">${pct0(p.p_home)}</span>
+              <span class="d" style="flex-basis:${p.p_draw * 100}%">${pct0(p.p_draw)}</span>
+              <span class="a" style="flex-basis:${p.p_away * 100}%">${pct0(p.p_away)}</span></div>
+            <p>最可能比分：<b>${esc(p.ml_home)}-${esc(p.ml_away)}</b></p>
+            ${p.reasoning ? `<p class="muted">关键因素：${esc(p.reasoning)}</p>` : ""}` : "<p class='muted'>暂无预测。</p>"}`;
   document.getElementById("match-modal").showModal();
 }
 
+/* ---------------- tabs + live refresh ---------------- */
+const LOADERS = {
+  upcoming: loadUpcoming, forecast: loadForecast, accuracy: loadAccuracy,
+  groups: loadGroups, knockout: loadBracket,
+};
+let current = "upcoming";
+
 function showTab(tab) {
-  document.getElementById("forecast-tab").hidden = tab !== "forecast";
-  document.getElementById("groups-tab").hidden = tab !== "groups";
-  document.getElementById("knockout-tab").hidden = tab !== "knockout";
+  current = tab;
+  document.querySelectorAll("nav button[data-tab]").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+  Object.keys(LOADERS).forEach((t) => { document.getElementById(t + "-tab").hidden = t !== tab; });
+  LOADERS[tab]().catch((e) => console.error(e));
 }
 
-function refresh() { loadForecast(); loadGroups(); loadBracket(); }
+document.querySelectorAll("nav button[data-tab]").forEach((b) => {
+  b.addEventListener("click", () => showTab(b.dataset.tab));
+});
+
 const es = new EventSource("/api/events");
-es.addEventListener("update", refresh);
-es.onerror = () => { document.getElementById("status").textContent = "重连中"; };
-refresh();
+es.addEventListener("update", () => {
+  document.getElementById("status").classList.remove("stale");
+  document.getElementById("status").textContent = "实时";
+  LOADERS[current]().catch((e) => console.error(e));
+});
+es.onerror = () => {
+  const s = document.getElementById("status");
+  s.textContent = "重连中"; s.classList.add("stale");
+};
+
+showTab("upcoming");
