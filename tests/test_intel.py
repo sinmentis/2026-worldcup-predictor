@@ -157,3 +157,18 @@ def test_direction_is_authoritative_over_magnitude_sign(tmp_path):
     lh, _, factors = intel.apply_intel(2.0, 1.0, home="A", away="B", conn=conn)
     assert lh < 2.0
     assert factors[0].lambda_delta < 0
+
+
+def test_apply_intel_includes_player_status(tmp_path):
+    from worldcup_predictor import intel as intel_mod
+    from worldcup_predictor import player_status
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    player_status.upsert_status(
+        conn, "France", "Star", "key", "out", 0.9, "https://fed", official=True
+    )
+    lh, la, factors = intel_mod.apply_intel(2.0, 1.0, home="France", away="Iraq", conn=conn)
+    assert lh < 2.0
+    assert la == 1.0
+    assert any(f.team == "France" for f in factors)

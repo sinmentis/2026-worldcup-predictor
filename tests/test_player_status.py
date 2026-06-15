@@ -66,3 +66,20 @@ def test_upsert_validates_inputs(tmp_path):
         ps.upsert_status(conn, "France", "X", "superstar", "out", 0.9, "https://a")
     with pytest.raises(ValueError):
         ps.upsert_status(conn, "France", "X", "key", "out", 0.9, "")
+
+
+def test_team_status_factor_weakens_team(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "France", "Star", "key", "out", 0.9, "https://fed", official=True)
+    delta, factors = ps.team_status_factor(conn, "France")
+    # key/out mult 0.72, credibility 0.95 => delta = 0.95 * (0.72 - 1) = -0.266
+    assert abs(delta - (0.95 * (0.72 - 1.0))) < 1e-9
+    assert len(factors) == 1
+
+
+def test_team_status_factor_ignores_pending(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "France", "X", "key", "out", 0.9, "https://a")  # single => pending
+    delta, factors = ps.team_status_factor(conn, "France")
+    assert delta == 0.0
+    assert factors == []

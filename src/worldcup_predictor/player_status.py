@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 
 from worldcup_predictor import config
 from worldcup_predictor.config import ADJUST_CLAMP, LAMBDA_MIN  # noqa: F401
+from worldcup_predictor.models import IntelFactor
 
 TIERS = {"key", "regular", "fringe"}
 STATUSES = {"out", "doubtful", "suspended", "available"}
@@ -121,3 +122,27 @@ def upsert_status(
         "team": team,
         "player": player,
     }
+
+
+def team_status_factor(conn: sqlite3.Connection, team: str) -> tuple[float, list[IntelFactor]]:
+    team = config.canonical_team(team)
+    today = date.today().isoformat()
+    rows = conn.execute(
+        "SELECT player, tier, status, credibility FROM player_status "
+        "WHERE team=? AND pending=0 AND (valid_until IS NULL OR valid_until >= ?)",
+        (team, today),
+    ).fetchall()
+    delta = 0.0
+    factors: list[IntelFactor] = []
+    for r in rows:
+        contrib = float(r["credibility"]) * (status_mult(r["tier"], r["status"]) - 1.0)
+        delta += contrib
+        factors.append(
+            IntelFactor(
+                team=team,
+                description=f"{r['player']}: {r['status']} ({r['tier']})",
+                lambda_delta=contrib,
+            )
+        )
+    lo, hi = ADJUST_CLAMP
+    return max(lo, min(hi, delta)), factors

@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 import time
 
+from worldcup_predictor import player_status
 from worldcup_predictor.config import ADJUST_CLAMP, LAMBDA_MIN  # noqa: F401, RUF100
 from worldcup_predictor.models import IntelEvent, IntelFactor
 
@@ -64,8 +65,13 @@ def _team_factor(conn: sqlite3.Connection, team: str) -> tuple[float, list[Intel
 def apply_intel(
     lam_h: float, lam_a: float, home: str, away: str, conn: sqlite3.Connection
 ) -> tuple[float, float, list[IntelFactor]]:
-    dh, fh = _team_factor(conn, home)
-    da, fa = _team_factor(conn, away)
+    dh_e, fh_e = _team_factor(conn, home)  # legacy intel_events (manual overrides)
+    da_e, fa_e = _team_factor(conn, away)
+    dh_s, fh_s = player_status.team_status_factor(conn, home)  # state-based statuses
+    da_s, fa_s = player_status.team_status_factor(conn, away)
+    lo, hi = ADJUST_CLAMP
+    dh = max(lo, min(hi, dh_e + dh_s))
+    da = max(lo, min(hi, da_e + da_s))
     lam_h = max(LAMBDA_MIN, lam_h * (1 + dh))
     lam_a = max(LAMBDA_MIN, lam_a * (1 + da))
-    return lam_h, lam_a, fh + fa
+    return lam_h, lam_a, fh_e + fh_s + fa_e + fa_s
