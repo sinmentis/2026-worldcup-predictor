@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import dataclass
 
 import numpy as np
@@ -79,3 +80,26 @@ class GoalModel:
         matrix = np.asarray(fpg.grid, dtype=float)
         matrix = matrix / matrix.sum()
         return ScoreGrid(matrix=matrix)
+
+
+def history_frame(conn: sqlite3.Connection, since: str = "2018-01-01") -> pd.DataFrame:
+    rows = conn.execute(
+        "SELECT date, home_team, away_team, home_score, away_score, neutral "
+        "FROM historical_matches WHERE date >= ? "
+        "AND home_score IS NOT NULL AND away_score IS NOT NULL ORDER BY date",
+        (since,),
+    ).fetchall()
+    return pd.DataFrame(
+        [
+            {
+                "date": r["date"],
+                "home_team": r["home_team"],
+                "away_team": r["away_team"],
+                "home_goals": r["home_score"],
+                "away_goals": r["away_score"],
+                "neutral": bool(r["neutral"]),
+            }
+            for r in rows
+        ],
+        columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"],
+    )
