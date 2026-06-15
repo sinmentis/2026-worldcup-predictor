@@ -36,8 +36,17 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
-def index() -> str:
-    return (STATIC / "index.html").read_text(encoding="utf-8")
+def index() -> HTMLResponse:
+    # Cache-bust the static assets by their mtime so browsers always pick up new builds,
+    # and never let the entry document itself be served stale.
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    for asset in ("styles.css", "app.js"):
+        try:
+            version = str(int((STATIC / asset).stat().st_mtime))
+        except OSError:
+            version = "0"
+        html = html.replace(f"/static/{asset}", f"/static/{asset}?v={version}")
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/api/groups/{group}/standings")

@@ -17,6 +17,9 @@ def test_api_endpoints(tmp_path, monkeypatch):
     root = client.get("/")
     assert root.status_code == 200
     assert "世界杯预测" in root.text
+    # static assets are cache-busted so browsers pick up new builds
+    assert "/static/app.js?v=" in root.text
+    assert root.headers.get("cache-control") == "no-cache"
 
     r = client.get("/api/groups/A/standings")
     assert r.status_code == 200
