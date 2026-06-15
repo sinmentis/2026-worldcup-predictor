@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import io
 import sqlite3
+from itertools import combinations
 
 import httpx
 
@@ -42,3 +43,22 @@ def load_history(conn: sqlite3.Connection, url: str | None = None) -> int:
     resp = httpx.get(url or config.HISTORY_CSV_URL, timeout=60.0, follow_redirects=True)
     resp.raise_for_status()
     return load_history_from_text(conn, resp.text)
+
+
+def seed_teams_and_fixtures(conn: sqlite3.Connection) -> None:
+    for gid, teams in config.GROUPS.items():
+        for team in teams:
+            conn.execute(
+                "INSERT OR REPLACE INTO teams(name, group_id, elo, is_host) VALUES (?,?,?,?)",
+                (team, gid, config.DEFAULT_ELO, 1 if team in config.HOSTS else 0),
+            )
+    mid = 1
+    for gid, teams in config.GROUPS.items():
+        for home, away in combinations(teams, 2):
+            conn.execute(
+                "INSERT INTO matches(id, stage, group_id, home_team, away_team, neutral, status)"
+                " VALUES (?, 'group', ?, ?, ?, 1, 'SCHEDULED')",
+                (mid, gid, home, away),
+            )
+            mid += 1
+    conn.commit()
