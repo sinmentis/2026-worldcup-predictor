@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import csv
 import io
+import os
 import sqlite3
 from itertools import combinations
+from typing import Any
 
 import httpx
 
 from worldcup_predictor import config
+from worldcup_predictor import db as _db
 
 
 def _to_bool_int(raw: str) -> int:
@@ -62,3 +65,32 @@ def seed_teams_and_fixtures(conn: sqlite3.Connection) -> None:
             )
             mid += 1
     conn.commit()
+
+
+def apply_results_payload(conn: sqlite3.Connection, payload: dict[str, Any]) -> int:
+    updated = 0
+    for m in payload.get("matches", []):
+        if m.get("status") != "FINISHED":
+            continue
+        home = m["homeTeam"]["name"]
+        away = m["awayTeam"]["name"]
+        ft = m["score"]["fullTime"]
+        cur = conn.execute(
+            "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
+            "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
+            (ft["home"], ft["away"], home, away),
+        )
+        updated += cur.rowcount
+    conn.commit()
+    if updated:
+        _db.touch_update(conn)
+    return updated
+
+
+def fetch_live_results(conn: sqlite3.Connection, token: str | None = None) -> int:
+    token = token or os.environ.get("FOOTBALL_DATA_TOKEN", "")
+    url = f"{config.FOOTBALL_DATA_BASE}/competitions/{config.FOOTBALL_DATA_COMP}/matches"
+    headers = {"X-Auth-Token": token} if token else {}
+    resp = httpx.get(url, headers=headers, params={"status": "FINISHED"}, timeout=60.0)
+    resp.raise_for_status()
+    return apply_results_payload(conn, resp.json())
