@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 import random
+import sqlite3
+import time
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Iterator
+from itertools import combinations
+from typing import Any
 
 import numpy as np
 
+from worldcup_predictor import config
+from worldcup_predictor.goal_model import GoalModel
 from worldcup_predictor.models import GroupRow
 
 Result = tuple[str, str, int, int]  # home, away, home_goals, away_goals
@@ -138,3 +144,90 @@ def _resolve(
         return next(thirds)
     side, gid = token.split("_")
     return winners[gid] if side == "W" else runners[gid]
+
+
+def _sample_score(matrix: np.ndarray, rng: np.random.Generator) -> tuple[int, int]:
+    flat = matrix.ravel()
+    idx = rng.choice(flat.size, p=flat / flat.sum())
+    h, a = np.unravel_index(idx, matrix.shape)
+    return int(h), int(a)
+
+
+def _knockout_winner(
+    a: str,
+    b: str,
+    probs: dict[tuple[str, str], tuple[float, float, float]],
+    grids: dict[tuple[str, str], np.ndarray],
+    rng: np.random.Generator,
+) -> str:
+    p_h, _p_d, p_a = probs[(a, b)]
+    r = rng.random()
+    if r < p_h:
+        return a
+    if r < p_h + p_a:
+        return b
+    return a if rng.random() < 0.5 else b  # penalties ~ 50/50
+
+
+def simulate_tournament(
+    conn: sqlite3.Connection, model: GoalModel, n: int = 50_000, seed: int | None = None
+) -> dict[str, dict[str, float]]:
+    rng = np.random.default_rng(seed)
+    teams = [t for ts in config.GROUPS.values() for t in ts]
+
+    # Pre-compute grids and 1X2 probs for every ordered pair once.
+    grids: dict[tuple[str, str], np.ndarray] = {}
+    probs: dict[tuple[str, str], tuple[float, float, float]] = {}
+    for x in teams:
+        for y in teams:
+            if x == y:
+                continue
+            g = model.predict_grid(x, y, neutral=True)
+            grids[(x, y)] = g.matrix
+            probs[(x, y)] = (g.home_win, g.draw, g.away_win)
+
+    counts = {t: dict(advance=0, r16=0, qf=0, sf=0, final=0, title=0) for t in teams}
+
+    for _ in range(n):
+        winners: dict[str, str] = {}
+        runners: dict[str, str] = {}
+        thirds_rows: dict[str, GroupRow] = {}
+
+        for gid, gteams in config.GROUPS.items():
+            results: list[Result] = []
+            for h, a in combinations(gteams, 2):
+                hg, ag = _sample_score(grids[(h, a)], rng)
+                results.append((h, a, hg, ag))
+            table = standings_from_results(
+                gteams, results, random.Random(int(rng.integers(1 << 30)))
+            )
+            winners[gid] = table[0].team
+            runners[gid] = table[1].team
+            thirds_rows[gid] = table[2]
+
+        for t in list(winners.values()) + list(runners.values()):
+            counts[t]["advance"] += 1
+        qual_thirds = best_thirds(thirds_rows, random.Random(int(rng.integers(1 << 30))))
+        for r in qual_thirds:
+            counts[r.team]["advance"] += 1
+
+        bracket = build_r32(winners, runners, [r.team for r in qual_thirds])
+        # Winning round R32/R16/QF/SF/Final credits reaching r16/qf/sf/final/title.
+        for round_key in ("r16", "qf", "sf", "final", "title"):
+            winners_round = [_knockout_winner(a, b, probs, grids, rng) for a, b in bracket]
+            for w in winners_round:
+                counts[w][round_key] += 1
+            it = iter(winners_round)
+            bracket = list(zip(it, it))  # noqa: B905 - pair winners for the next round
+
+    result = {t: {k: v / n for k, v in counts[t].items()} for t in teams}
+    now = time.time()
+    conn.execute("DELETE FROM sim_results")
+    for t, p in result.items():
+        conn.execute(
+            "INSERT INTO sim_results(created_at, team, advance_prob, r16_prob, qf_prob,"
+            " sf_prob, final_prob, title_prob, n_iter) VALUES (?,?,?,?,?,?,?,?,?)",
+            (now, t, p["advance"], p["r16"], p["qf"], p["sf"], p["final"], p["title"], n),
+        )
+    conn.commit()
+    return result

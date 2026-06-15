@@ -9,7 +9,7 @@ def _row(team, pts, gd, gf):
 def test_best_thirds_picks_top_8():
     thirds = {
         g: _row(f"T{g}", pts=pts, gd=0, gf=0)
-        for g, pts in zip("ABCDEFGHIJKL", [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0])
+        for g, pts in zip("ABCDEFGHIJKL", [9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0], strict=True)
     }
     chosen = best_thirds(thirds)
     assert len(chosen) == 8
