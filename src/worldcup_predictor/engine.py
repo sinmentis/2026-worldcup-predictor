@@ -5,6 +5,7 @@ from dataclasses import asdict
 from typing import Any
 
 from worldcup_predictor import config, db
+from worldcup_predictor import evaluate as _eval
 from worldcup_predictor import intel as _intel
 from worldcup_predictor import news as _news
 from worldcup_predictor import player_status as _ps
@@ -73,6 +74,63 @@ def get_forecast(conn: sqlite3.Connection) -> list[dict[str, Any]]:
         "FROM sim_results ORDER BY title_prob DESC, advance_prob DESC"
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+def get_upcoming_predictions(conn: sqlite3.Connection, limit: int = 12) -> dict[str, Any]:
+    """Scheduled matches ordered by real kickoff, each with our live prediction + factors."""
+    limit = min(max(1, limit), 60)
+    model = get_model(conn)
+    rows = conn.execute(
+        "SELECT id, group_id, home_team, away_team, kickoff, neutral FROM matches "
+        "WHERE status='SCHEDULED' ORDER BY (kickoff IS NULL), kickoff, id LIMIT ?",
+        (limit,),
+    ).fetchall()
+    remaining = conn.execute("SELECT COUNT(*) FROM matches WHERE status='SCHEDULED'").fetchone()[0]
+    matches: list[dict[str, Any]] = []
+    for r in rows:
+        pred = predict_match(
+            conn,
+            model,
+            r["home_team"],
+            r["away_team"],
+            match_id=r["id"],
+            neutral=bool(r["neutral"]),
+        )
+        matches.append(
+            {
+                "match_id": r["id"],
+                "group": r["group_id"],
+                "home_team": pred.home_team,
+                "away_team": pred.away_team,
+                "kickoff": r["kickoff"],
+                "p_home": pred.p_home,
+                "p_draw": pred.p_draw,
+                "p_away": pred.p_away,
+                "ml_home": pred.ml_home,
+                "ml_away": pred.ml_away,
+                "exp_home_goals": pred.exp_home_goals,
+                "exp_away_goals": pred.exp_away_goals,
+                "factors": [
+                    {"team": f.team, "description": f.description, "lambda_delta": f.lambda_delta}
+                    for f in pred.factors
+                ],
+            }
+        )
+    return {"remaining": remaining, "matches": matches}
+
+
+def get_accuracy(conn: sqlite3.Connection) -> dict[str, Any]:
+    """Original-prediction-vs-actual breakdown for finished matches, plus a scoreboard."""
+    rows = _eval.per_match_breakdown(conn)
+    n = len(rows)
+    aggregate: dict[str, Any] = {"n": n}
+    if n:
+        aggregate["model_rps"] = sum(float(r["model_rps"]) for r in rows) / n
+        aggregate["baseline_rps"] = sum(float(r["baseline_rps"]) for r in rows) / n
+        aggregate["pick_hit_rate"] = sum(1 for r in rows if r["pick_correct"]) / n
+        aggregate["exact_rate"] = sum(1 for r in rows if r["exact_scoreline"]) / n
+        aggregate["beats_baseline"] = aggregate["model_rps"] < aggregate["baseline_rps"]
+    return {"aggregate": aggregate, "matches": rows}
 
 
 def fetch_news(conn: sqlite3.Connection) -> int:

@@ -111,3 +111,47 @@ def fetch_live_results(conn: sqlite3.Connection, token: str | None = None) -> in
     resp = httpx.get(url, headers=headers, params={"status": "FINISHED"}, timeout=60.0)
     resp.raise_for_status()
     return apply_results_payload(conn, resp.json())
+
+
+def apply_fixtures_payload(conn: sqlite3.Connection, payload: dict[str, Any]) -> int:
+    """Set each match's kickoff (utcDate) by team pair, order-independently, and apply any
+    finished scores. Returns the number of fixtures whose kickoff was set."""
+    set_kickoffs = 0
+    for m in payload.get("matches", []):
+        home = config.canonical_team(m["homeTeam"]["name"])
+        away = config.canonical_team(m["awayTeam"]["name"])
+        kickoff = m.get("utcDate")
+        if kickoff:
+            cur = conn.execute(
+                "UPDATE matches SET kickoff=? WHERE "
+                "(home_team=? AND away_team=?) OR (home_team=? AND away_team=?)",
+                (kickoff, home, away, away, home),
+            )
+            set_kickoffs += 1 if cur.rowcount else 0
+        if m.get("status") == "FINISHED":
+            ft = m.get("score", {}).get("fullTime", {})
+            if ft.get("home") is not None:
+                c2 = conn.execute(
+                    "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
+                    "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
+                    (ft["home"], ft["away"], home, away),
+                )
+                if c2.rowcount == 0:
+                    conn.execute(
+                        "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
+                        "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
+                        (ft["away"], ft["home"], away, home),
+                    )
+    conn.commit()
+    _db.touch_update(conn)
+    return set_kickoffs
+
+
+def fetch_fixtures(conn: sqlite3.Connection, token: str | None = None) -> int:
+    """Fetch ALL WC fixtures (scheduled + finished) and populate kickoff times + results."""
+    token = token or os.environ.get("FOOTBALL_DATA_TOKEN", "")
+    url = f"{config.FOOTBALL_DATA_BASE}/competitions/{config.FOOTBALL_DATA_COMP}/matches"
+    headers = {"X-Auth-Token": token} if token else {}
+    resp = httpx.get(url, headers=headers, timeout=60.0)
+    resp.raise_for_status()
+    return apply_fixtures_payload(conn, resp.json())

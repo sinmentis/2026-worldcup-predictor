@@ -65,6 +65,14 @@ def fetch_results() -> None:
     typer.echo(f"Updated {n} results.")
 
 
+@app.command("fetch-fixtures")
+def fetch_fixtures() -> None:
+    """Fetch all WC fixtures and populate kickoff times (and any results)."""
+    conn = _conn()
+    n = ingest.fetch_fixtures(conn)
+    typer.echo(f"Set kickoff on {n} fixtures.")
+
+
 @app.command("fetch-news")
 def fetch_news() -> None:
     """Fetch configured RSS feeds and store new articles (cron-friendly)."""

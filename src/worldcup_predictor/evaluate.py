@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import sqlite3
 import time
+from typing import Any
 
 
 def rps(probs: list[float], outcome: int) -> float:
@@ -35,6 +36,51 @@ def _outcome(home_score: int, away_score: int) -> int:
     if home_score == away_score:
         return 1
     return 2
+
+
+def per_match_breakdown(conn: sqlite3.Connection) -> list[dict[str, Any]]:
+    """For each finished match, compare our ORIGINAL (earliest stored) prediction with the
+    actual result. Read-only (no metrics side effects)."""
+    rows = conn.execute(
+        "SELECT m.id AS match_id, m.home_team, m.away_team, m.group_id, m.kickoff, "
+        "       m.home_score, m.away_score, "
+        "       p.p_home, p.p_draw, p.p_away, p.ml_home, p.ml_away "
+        "FROM predictions p "
+        "JOIN matches m ON m.id = p.match_id "
+        "JOIN (SELECT match_id, MIN(id) AS mn FROM predictions GROUP BY match_id) first "
+        "  ON first.match_id = p.match_id AND first.mn = p.id "
+        "WHERE m.status='FINISHED' "
+        "ORDER BY COALESCE(m.kickoff,''), m.id"
+    ).fetchall()
+    out: list[dict[str, object]] = []
+    for r in rows:
+        probs = [r["p_home"], r["p_draw"], r["p_away"]]
+        outcome = _outcome(r["home_score"], r["away_score"])
+        pred_pick = max(range(3), key=lambda i: probs[i])
+        out.append(
+            {
+                "match_id": r["match_id"],
+                "home_team": r["home_team"],
+                "away_team": r["away_team"],
+                "group": r["group_id"],
+                "kickoff": r["kickoff"],
+                "home_score": r["home_score"],
+                "away_score": r["away_score"],
+                "p_home": probs[0],
+                "p_draw": probs[1],
+                "p_away": probs[2],
+                "ml_home": r["ml_home"],
+                "ml_away": r["ml_away"],
+                "outcome": outcome,
+                "pred_pick": pred_pick,
+                "pick_correct": pred_pick == outcome,
+                "exact_scoreline": r["ml_home"] == r["home_score"]
+                and r["ml_away"] == r["away_score"],
+                "model_rps": rps(probs, outcome),
+                "baseline_rps": rps(BASELINE, outcome),
+            }
+        )
+    return out
 
 
 def score_finished_predictions(conn: sqlite3.Connection) -> dict[str, float]:

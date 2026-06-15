@@ -42,3 +42,73 @@ def test_get_forecast_orders_by_title(tmp_path):
     fc = engine.get_forecast(conn)
     assert [r["team"] for r in fc] == ["Spain", "Brazil"]
     assert {"team", "title_prob", "advance_prob"} <= set(fc[0])
+
+
+def test_get_accuracy_aggregates(tmp_path):
+    conn = _conn(tmp_path)
+    conn.execute("UPDATE matches SET home_score=2, away_score=0, status='FINISHED' WHERE id=1")
+    m = conn.execute("SELECT home_team, away_team FROM matches WHERE id=1").fetchone()
+    conn.execute(
+        "INSERT INTO predictions(match_id,created_at,p_home,p_draw,p_away,"
+        "exp_home_goals,exp_away_goals,ml_home,ml_away,model_version,reasoning)"
+        " VALUES (1,100,0.7,0.2,0.1,1.9,0.5,2,0,'v','')"
+    )
+    conn.commit()
+    acc = engine.get_accuracy(conn)
+    assert acc["aggregate"]["n"] == 1
+    assert acc["aggregate"]["beats_baseline"] is True
+    assert acc["aggregate"]["pick_hit_rate"] == 1.0
+    assert acc["matches"][0]["home_team"] == m["home_team"]
+
+
+def test_get_upcoming_predictions_shape(tmp_path, monkeypatch):
+    import numpy as np
+    import pandas as pd
+
+    from worldcup_predictor import engine as eng
+    from worldcup_predictor.goal_model import GoalModel
+
+    conn = db.connect(tmp_path / "u.db")
+    db.init_schema(conn)
+    # one scheduled fixture between two teams the model knows
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,neutral,status)"
+        " VALUES (1,'group','A','Strong','Weak',1,'SCHEDULED')"
+    )
+    conn.commit()
+    rng = np.random.default_rng(1)
+    rows = []
+    for _ in range(80):
+        rows.append(
+            (
+                "2024-01-01",
+                "Strong",
+                "Weak",
+                int(rng.integers(2, 5)),
+                int(rng.integers(0, 2)),
+                False,
+            )
+        )
+        rows.append(
+            (
+                "2024-01-01",
+                "Weak",
+                "Strong",
+                int(rng.integers(0, 2)),
+                int(rng.integers(2, 5)),
+                False,
+            )
+        )
+    history = pd.DataFrame(
+        rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+    )
+    model = GoalModel().fit(history)
+    monkeypatch.setattr(eng, "get_model", lambda _conn, refit=False: model)
+
+    out = eng.get_upcoming_predictions(conn, limit=10)
+    assert out["remaining"] == 1
+    assert len(out["matches"]) == 1
+    mm = out["matches"][0]
+    assert mm["home_team"] == "Strong"
+    assert abs(mm["p_home"] + mm["p_draw"] + mm["p_away"] - 1.0) < 1e-6
+    assert "factors" in mm

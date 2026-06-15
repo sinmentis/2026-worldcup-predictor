@@ -75,3 +75,71 @@ def test_forecast_endpoint(tmp_path, monkeypatch):
     body = r.json()
     assert body[0]["team"] == "Argentina"
     assert body[0]["title_prob"] == 0.11
+
+
+def test_accuracy_endpoint(tmp_path, monkeypatch):
+    db_path = tmp_path / "web_acc.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
+    from worldcup_predictor import db
+
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,home_score,away_score,status)"
+        " VALUES (1,'group','A','Spain','Brazil',1,0,'FINISHED')"
+    )
+    conn.execute(
+        "INSERT INTO predictions(match_id,created_at,p_home,p_draw,p_away,"
+        "exp_home_goals,exp_away_goals,ml_home,ml_away,model_version,reasoning)"
+        " VALUES (1,100,0.7,0.2,0.1,1.8,0.6,1,0,'v','')"
+    )
+    conn.commit()
+
+    from worldcup_predictor.web_server import app
+
+    client = TestClient(app)
+    r = client.get("/api/accuracy")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["aggregate"]["n"] == 1
+    assert body["matches"][0]["pick_correct"] is True
+
+
+def test_upcoming_predictions_endpoint(tmp_path, monkeypatch):
+    db_path = tmp_path / "web_up.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
+    from worldcup_predictor import db, engine
+
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+
+    canned = {
+        "remaining": 3,
+        "matches": [
+            {
+                "match_id": 1,
+                "group": "A",
+                "home_team": "Spain",
+                "away_team": "Brazil",
+                "kickoff": "2026-06-20T19:00:00Z",
+                "p_home": 0.5,
+                "p_draw": 0.3,
+                "p_away": 0.2,
+                "ml_home": 1,
+                "ml_away": 0,
+                "exp_home_goals": 1.4,
+                "exp_away_goals": 0.8,
+                "factors": [],
+            }
+        ],
+    }
+    monkeypatch.setattr(engine, "get_upcoming_predictions", lambda _c, limit=12: canned)
+
+    from worldcup_predictor.web_server import app
+
+    client = TestClient(app)
+    r = client.get("/api/upcoming-predictions?limit=5")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["remaining"] == 3
+    assert body["matches"][0]["home_team"] == "Spain"

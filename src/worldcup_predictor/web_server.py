@@ -67,6 +67,19 @@ def forecast() -> list[dict[str, Any]]:
         return engine.get_forecast(conn)
 
 
+@app.get("/api/upcoming-predictions")
+def upcoming_predictions(limit: int = 12) -> dict[str, Any]:
+    limit = min(max(1, limit), 60)
+    with closing(_conn()) as conn:
+        return engine.get_upcoming_predictions(conn, limit)
+
+
+@app.get("/api/accuracy")
+def accuracy() -> dict[str, Any]:
+    with closing(_conn()) as conn:
+        return engine.get_accuracy(conn)
+
+
 @app.get("/api/matches/{match_id}")
 def match_detail(match_id: int) -> dict[str, Any]:
     with closing(_conn()) as conn:

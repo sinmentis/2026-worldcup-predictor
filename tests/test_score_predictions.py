@@ -65,3 +65,35 @@ def test_scores_only_latest_prediction_per_match(tmp_path):
     conn.commit()
     summary = score_finished_predictions(conn)
     assert summary["n"] == 1
+
+
+def test_per_match_breakdown_uses_earliest_prediction(tmp_path):
+    from worldcup_predictor.evaluate import per_match_breakdown
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,home_score,away_score,status)"
+        " VALUES (1,'group','A','Spain','Brazil',1,0,'FINISHED')"
+    )
+    # original (earliest) prediction: strong home, scoreline 1-0 (exact + correct pick)
+    conn.execute(
+        "INSERT INTO predictions(match_id,created_at,p_home,p_draw,p_away,"
+        "exp_home_goals,exp_away_goals,ml_home,ml_away,model_version,reasoning)"
+        " VALUES (1,100,0.7,0.2,0.1,1.8,0.6,1,0,'v','')"
+    )
+    # later (stale) prediction must be ignored by the breakdown
+    conn.execute(
+        "INSERT INTO predictions(match_id,created_at,p_home,p_draw,p_away,"
+        "exp_home_goals,exp_away_goals,ml_home,ml_away,model_version,reasoning)"
+        " VALUES (1,200,0.1,0.2,0.7,0.6,1.8,0,1,'v','')"
+    )
+    conn.commit()
+    rows = per_match_breakdown(conn)
+    assert len(rows) == 1
+    r = rows[0]
+    assert r["p_home"] == 0.7  # earliest, not the stale 0.1
+    assert r["outcome"] == 0 and r["pred_pick"] == 0
+    assert r["pick_correct"] is True
+    assert r["exact_scoreline"] is True
+    assert r["model_rps"] < r["baseline_rps"]
