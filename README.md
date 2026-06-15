@@ -86,7 +86,19 @@ uv run worldcup simulate --n 50000 --seed 123
 uv run worldcup evaluate
 uv run worldcup backtest --fit-calibration   # walk-forward skill/calibration + fit the calibrator
 uv run worldcup tune --apply                 # auto-tune the recency decay (Phase 2b; dry-run without --apply)
+uv run worldcup fetch-odds                   # pull bookmaker odds (needs ODDS_API_KEY in .env)
+uv run worldcup value-bets --min-edge 0.05   # outcomes where our model beats the market consensus
 ```
+
+### Value betting
+
+`worldcup fetch-odds` pulls h2h decimal odds for the World Cup from The Odds API (free 500
+req/month; set `ODDS_API_KEY` in `.env`) and maps them to fixtures by team pair. `value-bets`
+(and the 价值投注 web tab / `/api/value-bets`) de-margins each book, takes the median across books
+as the market consensus, and flags outcomes where our model's probability exceeds that consensus
+by `VALUE_MIN_EDGE`, reporting the EV at the best available price and a fractional-Kelly stake.
+The 40-book consensus is very sharp, so these are edge *candidates* to sanity-check (a large
+gap usually means a stale/erroneous line), not guaranteed profit.
 
 ### Model calibration, backtest, and auto-tuning
 
@@ -215,6 +227,7 @@ sudo systemctl enable --now worldcup-fetch.timer
 - **Historical international results:** `martj42/international_results` raw `results.csv`, licensed CC0 1.0 Universal. Used by `worldcup load-history` for bootstrap history.
 - **Finished World Cup results:** football-data.org API v4, competition code `WC`. The free API needs `FOOTBALL_DATA_TOKEN` and is governed by football-data.org terms, including rate limits and attribution requirements. Check their current terms before public or commercial use.
 - **Off-pitch news:** RSS feeds are intended for Phase 2 intelligence gathering. RSS licensing and reuse rights are publisher-specific. Store source URLs and respect each publisher's feed terms.
+- **Bookmaker odds:** The Odds API (https://the-odds-api.com), sport `soccer_fifa_world_cup`, market `h2h`, decimal. Free tier is 500 requests/month; needs `ODDS_API_KEY`. Governed by The Odds API terms; check usage and attribution before public or commercial use.
 
 ## Model backend note
 
