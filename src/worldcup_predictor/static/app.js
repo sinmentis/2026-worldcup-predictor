@@ -66,49 +66,97 @@ function dayKey(d) {
 function timeStr(d) {
   return d ? d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "待定";
 }
+function fmtFull(d) {
+  return d
+    ? d.toLocaleString("zh-CN", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" })
+    : "时间待定";
+}
 
 /* ---------------- upcoming ---------------- */
+let UPCOMING = [];
+let UP_REMAINING = 0;
+const upFilter = { group: "", team: "", onlyIntel: false };
+
 async function loadUpcoming() {
+  const data = await (await fetch("/api/upcoming-predictions?limit=60")).json();
+  UPCOMING = data.matches || [];
+  UP_REMAINING = data.remaining || 0;
+  renderUpcoming();
+}
+
+function matchCardHtml(m) {
+  const d = kickDate(m.kickoff);
+  const fac = (m.factors || []).map((f) => {
+    const dir = f.lambda_delta >= 0 ? "up" : "down";
+    const arrow = f.lambda_delta >= 0 ? "▲" : "▼";
+    return `<span class="chip ${dir}">${arrow} ${zh(f.team)} ${esc(f.description)}</span>`;
+  }).join("");
+  return `<div class="match card" onclick="showDetail(${m.match_id})">
+    ${teamCell(m.home_team, "")}
+    <div class="mid">
+      <div class="kick">${m.group ? esc(m.group) + "组 · " : ""}${esc(timeStr(d))}</div>
+      <span class="scoreline">${esc(m.ml_home)}-${esc(m.ml_away)}</span>
+      <div class="xg">预期 ${m.exp_home_goals.toFixed(2)} : ${m.exp_away_goals.toFixed(2)}</div>
+    </div>
+    ${teamCell(m.away_team, "away")}
+    <div class="probbar">
+      <span class="h" style="flex-basis:${m.p_home * 100}%" title="主胜">${pct0(m.p_home)}</span>
+      <span class="d" style="flex-basis:${m.p_draw * 100}%" title="平">${pct0(m.p_draw)}</span>
+      <span class="a" style="flex-basis:${m.p_away * 100}%" title="客胜">${pct0(m.p_away)}</span>
+    </div>
+    ${fac ? `<div class="factors">${fac}</div>` : ""}
+  </div>`;
+}
+
+function renderUpcoming() {
   const el = document.getElementById("upcoming");
-  const data = await (await fetch("/api/upcoming-predictions?limit=24")).json();
-  const ms = data.matches || [];
-  if (!ms.length) {
-    el.innerHTML = `<div class="empty">暂无已排程的比赛。请先执行 <code>worldcup fetch-fixtures</code> 同步赛程。</div>`;
-    return;
-  }
+  const teams = [...new Set(UPCOMING.flatMap((m) => [m.home_team, m.away_team]))]
+    .sort((a, b) => zh(a).localeCompare(zh(b), "zh"));
+  if (upFilter.team && !teams.includes(upFilter.team)) upFilter.team = "";
+
+  const ms = UPCOMING.filter((m) =>
+    (!upFilter.group || m.group === upFilter.group) &&
+    (!upFilter.team || m.home_team === upFilter.team || m.away_team === upFilter.team) &&
+    (!upFilter.onlyIntel || (m.factors && m.factors.length)));
+
+  const groupOpts = ["", ..."ABCDEFGHIJKL".split("")]
+    .map((g) => `<option value="${g}"${g === upFilter.group ? " selected" : ""}>${g ? g + "组" : "全部组"}</option>`).join("");
+  const teamOpts = ["", ...teams]
+    .map((t) => `<option value="${esc(t)}"${t === upFilter.team ? " selected" : ""}>${t ? zh(t) : "全部球队"}</option>`).join("");
+  const active = upFilter.group || upFilter.team || upFilter.onlyIntel;
+
   let html = `<div class="section-head">
-    <span class="pill">剩余 ${data.remaining} 场比赛</span>
-    <span class="muted">下面是最近的 ${ms.length} 场，含我们的预测</span>
-    <span class="muted" style="margin-left:auto">🟢主胜 · 🟡平 · 🔴客胜</span>
+    <span class="pill">剩余 ${UP_REMAINING} 场比赛</span>
+    <span class="muted">🟢主胜 · 🟡平 · 🔴客胜</span>
+  </div>
+  <div class="filterbar card">
+    <select id="f-group" aria-label="按组筛选">${groupOpts}</select>
+    <select id="f-team" aria-label="按球队筛选">${teamOpts}</select>
+    <label class="f-check"><input type="checkbox" id="f-intel"${upFilter.onlyIntel ? " checked" : ""}/> 只看有情报</label>
+    <span class="f-count">${ms.length} 场匹配</span>
+    ${active ? `<button class="f-clear" id="f-clear">清除筛选</button>` : ""}
   </div>`;
 
-  let lastDay = null;
-  for (const m of ms) {
-    const d = kickDate(m.kickoff);
-    const dk = dayKey(d);
-    if (dk !== lastDay) { html += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
-    const fac = (m.factors || []).map((f) => {
-      const dir = f.lambda_delta >= 0 ? "up" : "down";
-      const arrow = f.lambda_delta >= 0 ? "▲" : "▼";
-      return `<span class="chip ${dir}">${arrow} ${zh(f.team)} ${esc(f.description)}</span>`;
-    }).join("");
-    html += `<div class="match card" onclick="showDetail(${m.match_id})">
-      ${teamCell(m.home_team, "")}
-      <div class="mid">
-        <div class="kick">${esc(timeStr(d))}</div>
-        <span class="scoreline">${esc(m.ml_home)}-${esc(m.ml_away)}</span>
-        <div class="xg">预期 ${m.exp_home_goals.toFixed(2)} : ${m.exp_away_goals.toFixed(2)}</div>
-      </div>
-      ${teamCell(m.away_team, "away")}
-      <div class="probbar">
-        <span class="h" style="flex-basis:${m.p_home * 100}%" title="主胜">${pct0(m.p_home)}</span>
-        <span class="d" style="flex-basis:${m.p_draw * 100}%" title="平">${pct0(m.p_draw)}</span>
-        <span class="a" style="flex-basis:${m.p_away * 100}%" title="客胜">${pct0(m.p_away)}</span>
-      </div>
-      ${fac ? `<div class="factors">${fac}</div>` : ""}
-    </div>`;
+  if (!ms.length) {
+    html += `<div class="empty">${UPCOMING.length ? "没有符合筛选条件的比赛。" : "暂无已排程的比赛。请先执行 <code>worldcup fetch-fixtures</code> 同步赛程。"}</div>`;
+  } else {
+    let lastDay = null;
+    for (const m of ms) {
+      const dk = dayKey(kickDate(m.kickoff));
+      if (dk !== lastDay) { html += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
+      html += matchCardHtml(m);
+    }
   }
   el.innerHTML = html;
+
+  const g = document.getElementById("f-group");
+  if (g) g.onchange = (e) => { upFilter.group = e.target.value; renderUpcoming(); };
+  const t = document.getElementById("f-team");
+  if (t) t.onchange = (e) => { upFilter.team = e.target.value; renderUpcoming(); };
+  const ic = document.getElementById("f-intel");
+  if (ic) ic.onchange = (e) => { upFilter.onlyIntel = e.target.checked; renderUpcoming(); };
+  const c = document.getElementById("f-clear");
+  if (c) c.onclick = () => { upFilter.group = ""; upFilter.team = ""; upFilter.onlyIntel = false; renderUpcoming(); };
 }
 
 /* ---------------- forecast ---------------- */
@@ -158,7 +206,13 @@ async function loadAccuracy() {
   </div>`;
   const list = (data.matches || []).map((m) => {
     const correct = m.pick_correct;
+    const stage = STAGES[m.stage] || m.stage || "";
+    const meta = `<div class="res-meta">
+      <span class="tag">${esc(stage)}</span>
+      ${m.group ? `<span>${esc(m.group)}组</span>` : ""}
+      <span class="when">${esc(fmtFull(kickDate(m.kickoff)))}</span></div>`;
     return `<div class="res card" onclick="showDetail(${m.match_id})">
+      ${meta}
       ${teamCell(m.home_team, "")}
       <div class="vs">
         <span class="final">${m.home_score} - ${m.away_score}</span>

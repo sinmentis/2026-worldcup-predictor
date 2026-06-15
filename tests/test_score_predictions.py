@@ -93,6 +93,8 @@ def test_per_match_breakdown_uses_earliest_prediction(tmp_path):
     assert len(rows) == 1
     r = rows[0]
     assert r["p_home"] == 0.7  # earliest, not the stale 0.1
+    assert r["stage"] == "group"
+    assert r["group"] == "A"
     assert r["outcome"] == 0 and r["pred_pick"] == 0
     assert r["pick_correct"] is True
     assert r["exact_scoreline"] is True

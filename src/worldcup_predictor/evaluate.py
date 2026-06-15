@@ -42,7 +42,7 @@ def per_match_breakdown(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     """For each finished match, compare our ORIGINAL (earliest stored) prediction with the
     actual result. Read-only (no metrics side effects)."""
     rows = conn.execute(
-        "SELECT m.id AS match_id, m.home_team, m.away_team, m.group_id, m.kickoff, "
+        "SELECT m.id AS match_id, m.home_team, m.away_team, m.group_id, m.stage, m.kickoff, "
         "       m.home_score, m.away_score, "
         "       p.p_home, p.p_draw, p.p_away, p.ml_home, p.ml_away "
         "FROM predictions p "
@@ -63,6 +63,7 @@ def per_match_breakdown(conn: sqlite3.Connection) -> list[dict[str, Any]]:
                 "home_team": r["home_team"],
                 "away_team": r["away_team"],
                 "group": r["group_id"],
+                "stage": r["stage"],
                 "kickoff": r["kickoff"],
                 "home_score": r["home_score"],
                 "away_score": r["away_score"],
