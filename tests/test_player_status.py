@@ -112,3 +112,24 @@ def test_purge_expired(tmp_path):
     )
     assert ps.purge_expired(conn) == 1
     assert conn.execute("SELECT COUNT(*) FROM player_status").fetchone()[0] == 0
+
+
+def test_corroboration_does_not_demote_active(tmp_path):
+    # An active status must not be re-pended by a later lower-confidence corroboration.
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "France", "Star", "key", "out", 0.9, "https://fed", official=True)
+    out = ps.upsert_status(conn, "France", "Star", "key", "out", 0.4, "https://b")
+    assert out["status"] == "active"
+    row = conn.execute("SELECT pending, credibility FROM player_status").fetchone()
+    assert row["pending"] == 0
+    assert row["credibility"] == 0.95  # credibility unchanged/raised, never lost
+
+
+def test_approved_status_not_re_pended_by_low_confidence(tmp_path):
+    # A human-approved item must not be silently re-pended by a later low-confidence report.
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "France", "X", "key", "out", 0.9, "https://a")  # single => pending
+    sid = ps.list_pending(conn)[0]["id"]
+    ps.approve(conn, sid)
+    ps.upsert_status(conn, "France", "X", "key", "out", 0.3, "https://a2")
+    assert conn.execute("SELECT pending FROM player_status WHERE id=?", (sid,)).fetchone()[0] == 0

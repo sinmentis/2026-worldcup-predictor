@@ -82,14 +82,19 @@ def upsert_status(
         return {"status": "cleared", "team": team, "player": player}
 
     row = conn.execute(
-        "SELECT sources, official FROM player_status WHERE team=? AND player=?", (team, player)
+        "SELECT sources, official, pending FROM player_status WHERE team=? AND player=?",
+        (team, player),
     ).fetchone()
     sources: list[str] = json.loads(row["sources"]) if row else []
     if source_url not in sources:
         sources.append(source_url)
     official_ever = official or bool(row["official"]) if row else official
     cred = derive_credibility(len(sources), official_ever)
-    pending = 0 if (cred >= ACTIVE_CRED_THRESHOLD and confidence >= ACTIVE_CONF_THRESHOLD) else 1
+    was_active = row is not None and row["pending"] == 0
+    gate_pass = cred >= ACTIVE_CRED_THRESHOLD and confidence >= ACTIVE_CONF_THRESHOLD
+    # Corroboration only raises trust: an already-active (or human-approved) status is never
+    # demoted by a later lower-confidence report; a pending one is promoted when the gate passes.
+    pending = 0 if (was_active or gate_pass) else 1
     if valid_until is None:
         valid_until = _default_valid_until(conn, team)
 
