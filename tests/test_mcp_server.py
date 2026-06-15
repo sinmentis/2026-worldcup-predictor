@@ -26,6 +26,20 @@ async def test_list_tools_registered():
 
 
 @pytest.mark.asyncio
+async def test_intel_tools_registered():
+    tools = await mcp_server.mcp.list_tools()
+    names = {t.name for t in tools}
+    assert {
+        "get_unprocessed_news",
+        "upsert_player_status",
+        "mark_news_processed",
+        "list_pending_intel",
+        "approve_intel",
+        "reject_intel",
+    } <= names
+
+
+@pytest.mark.asyncio
 async def test_get_group_standings_returns_valid_group(tmp_path, monkeypatch):
     monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "mcp.db"))
     mcp_server._reset_conn()

@@ -13,6 +13,7 @@ from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
 from worldcup_predictor import config, db, engine
+from worldcup_predictor import player_status as _ps
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger("worldcup-mcp")
@@ -124,6 +125,78 @@ def run_simulation(
     result = engine.run_simulation(_conn(), n=iterations, seed=seed)
     top = sorted(result.items(), key=lambda kv: kv[1]["title"], reverse=True)[:10]
     return dict(top)
+
+
+@mcp.tool()
+def get_unprocessed_news(limit: int = 20) -> list[dict[str, Any]]:
+    """Return raw news articles not yet processed, for off-pitch intel extraction."""
+    return engine.get_unprocessed_news(_conn(), limit)
+
+
+@mcp.tool()
+def upsert_player_status(
+    team: str,
+    player: str,
+    tier: str,
+    status: str,
+    confidence: float,
+    source_url: str,
+    official: bool = False,
+    notes: str = "",
+) -> dict[str, object]:
+    """Record/update a player's current status from news, adjusting that team's expected goals.
+
+    tier: 'key' | 'regular' | 'fringe' (you judge importance from the article).
+    status: 'out' | 'doubtful' | 'suspended' | 'available' ('available' clears a prior status).
+    confidence in [0,1]; ALWAYS pass a real source_url. official=True only for
+    club/federation sources. High confidence AND (>=2 sources OR official) applies
+    immediately; otherwise it is queued for review.
+    """
+    if tier not in _ps.TIERS:
+        raise ToolError(f"tier must be one of {sorted(_ps.TIERS)}")
+    if status not in _ps.STATUSES:
+        raise ToolError(f"status must be one of {sorted(_ps.STATUSES)}")
+    if not source_url:
+        raise ToolError("source_url is required; intel must be traceable.")
+    if not 0.0 <= confidence <= 1.0:
+        raise ToolError("confidence must be in [0,1].")
+    return engine.upsert_player_status(
+        _conn(),
+        team=team,
+        player=player,
+        tier=tier,
+        status=status,
+        confidence=confidence,
+        source_url=source_url,
+        official=official,
+        notes=notes or None,
+    )
+
+
+@mcp.tool()
+def mark_news_processed(article_ids: list[int]) -> dict[str, int]:
+    """Mark news articles as processed so they are not re-extracted."""
+    return {"processed": engine.mark_news_processed(_conn(), article_ids)}
+
+
+@mcp.tool()
+def list_pending_intel() -> list[dict[str, Any]]:
+    """List player-status items awaiting human approval (low-confidence / single-source)."""
+    return engine.list_pending_intel(_conn())
+
+
+@mcp.tool()
+def approve_intel(status_id: int) -> dict[str, str]:
+    """Approve a pending player-status item so it starts affecting predictions."""
+    engine.approve_intel(_conn(), status_id)
+    return {"status": "approved", "id": str(status_id)}
+
+
+@mcp.tool()
+def reject_intel(status_id: int) -> dict[str, str]:
+    """Reject (delete) a pending or active player-status item."""
+    engine.reject_intel(_conn(), status_id)
+    return {"status": "rejected", "id": str(status_id)}
 
 
 def main() -> None:
