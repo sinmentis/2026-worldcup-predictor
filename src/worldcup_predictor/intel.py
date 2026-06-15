@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 import time
 
-from worldcup_predictor import player_status
+from worldcup_predictor import player_status, team_signal
 from worldcup_predictor.config import ADJUST_CLAMP, LAMBDA_MIN  # noqa: F401, RUF100
 from worldcup_predictor.models import IntelEvent, IntelFactor
 
@@ -67,11 +67,13 @@ def apply_intel(
 ) -> tuple[float, float, list[IntelFactor]]:
     dh_e, fh_e = _team_factor(conn, home)  # legacy intel_events (manual overrides)
     da_e, fa_e = _team_factor(conn, away)
-    dh_s, fh_s = player_status.team_status_factor(conn, home)  # state-based statuses
+    dh_s, fh_s = player_status.team_status_factor(conn, home)  # state-based player availability
     da_s, fa_s = player_status.team_status_factor(conn, away)
+    dh_t, fh_t = team_signal.team_signal_factor(conn, home)  # team-level off-pitch signals
+    da_t, fa_t = team_signal.team_signal_factor(conn, away)
     lo, hi = ADJUST_CLAMP
-    dh = max(lo, min(hi, dh_e + dh_s))
-    da = max(lo, min(hi, da_e + da_s))
+    dh = max(lo, min(hi, dh_e + dh_s + dh_t))
+    da = max(lo, min(hi, da_e + da_s + da_t))
     lam_h = max(LAMBDA_MIN, lam_h * (1 + dh))
     lam_a = max(LAMBDA_MIN, lam_a * (1 + da))
-    return lam_h, lam_a, fh_e + fh_s + fa_e + fa_s
+    return lam_h, lam_a, fh_e + fh_s + fh_t + fa_e + fa_s + fa_t

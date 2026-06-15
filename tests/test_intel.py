@@ -172,3 +172,42 @@ def test_apply_intel_includes_player_status(tmp_path):
     assert lh < 2.0
     assert la == 1.0
     assert any(f.team == "France" for f in factors)
+
+
+def test_apply_intel_includes_team_signal(tmp_path):
+    from worldcup_predictor import intel as intel_mod
+    from worldcup_predictor import team_signal
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    # A team-level strengthen signal must raise that team's lambda.
+    team_signal.upsert_signal(
+        conn, "Brazil", "tactical", "strengthen", "major", 0.9, "https://fed", official=True
+    )
+    lh, la, factors = intel_mod.apply_intel(2.0, 1.0, home="Brazil", away="Haiti", conn=conn)
+    assert lh > 2.0
+    assert la == 1.0
+    assert any(f.team == "Brazil" and "tactical" in f.description for f in factors)
+
+
+def test_apply_intel_sums_all_three_sources(tmp_path):
+    # legacy intel_events + player_status + team_signal all stack onto one team's delta.
+    from worldcup_predictor import intel as intel_mod
+    from worldcup_predictor import player_status, team_signal
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    intel_mod.record_intel(
+        conn, IntelEvent("Spain", "rotation", "weaken", -0.05, "u", 1.0, player="x")
+    )
+    player_status.upsert_status(
+        conn, "Spain", "Keeper", "regular", "doubtful", 0.9, "https://fed", official=True
+    )
+    team_signal.upsert_signal(
+        conn, "Spain", "fatigue", "weaken", "minor", 0.9, "https://fed", official=True
+    )
+    lh, _, factors = intel_mod.apply_intel(2.0, 1.0, home="Spain", away="Haiti", conn=conn)
+    assert lh < 2.0
+    teams_desc = {(f.team, f.description.split(":")[0]) for f in factors}
+    assert ("Spain", "fatigue") in teams_desc  # team-signal factor present
+    assert len(factors) == 3
