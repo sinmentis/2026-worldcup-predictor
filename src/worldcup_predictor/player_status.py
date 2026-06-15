@@ -146,3 +146,32 @@ def team_status_factor(conn: sqlite3.Connection, team: str) -> tuple[float, list
         )
     lo, hi = ADJUST_CLAMP
     return max(lo, min(hi, delta)), factors
+
+
+def list_pending(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute(
+        "SELECT * FROM player_status WHERE pending=1 ORDER BY as_of DESC"
+    ).fetchall()
+
+
+def approve(conn: sqlite3.Connection, status_id: int) -> None:
+    cur = conn.execute("UPDATE player_status SET pending=0 WHERE id=?", (status_id,))
+    if cur.rowcount == 0:
+        raise ValueError(f"No pending status with id {status_id}")
+    conn.commit()
+
+
+def reject(conn: sqlite3.Connection, status_id: int) -> None:
+    cur = conn.execute("DELETE FROM player_status WHERE id=?", (status_id,))
+    if cur.rowcount == 0:
+        raise ValueError(f"No status with id {status_id}")
+    conn.commit()
+
+
+def purge_expired(conn: sqlite3.Connection) -> int:
+    today = date.today().isoformat()
+    cur = conn.execute(
+        "DELETE FROM player_status WHERE valid_until IS NOT NULL AND valid_until < ?", (today,)
+    )
+    conn.commit()
+    return cur.rowcount

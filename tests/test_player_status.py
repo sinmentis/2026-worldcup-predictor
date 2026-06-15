@@ -83,3 +83,32 @@ def test_team_status_factor_ignores_pending(tmp_path):
     delta, factors = ps.team_status_factor(conn, "France")
     assert delta == 0.0
     assert factors == []
+
+
+def test_list_approve_reject_pending(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "France", "X", "key", "out", 0.9, "https://a")  # pending
+    pend = ps.list_pending(conn)
+    assert len(pend) == 1
+    sid = pend[0]["id"]
+    ps.approve(conn, sid)
+    assert conn.execute("SELECT pending FROM player_status WHERE id=?", (sid,)).fetchone()[0] == 0
+    ps.reject(conn, sid)
+    assert conn.execute("SELECT COUNT(*) FROM player_status WHERE id=?", (sid,)).fetchone()[0] == 0
+
+
+def test_purge_expired(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(
+        conn,
+        "France",
+        "X",
+        "key",
+        "out",
+        0.9,
+        "https://fed",
+        official=True,
+        valid_until="2000-01-01",
+    )
+    assert ps.purge_expired(conn) == 1
+    assert conn.execute("SELECT COUNT(*) FROM player_status").fetchone()[0] == 0
