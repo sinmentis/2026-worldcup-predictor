@@ -10,3 +10,7 @@ td:first-child, th:first-child { text-align: left; }
 .match-card { border: 1px solid #ccc; border-radius: 6px; padding: 6px 10px; margin: 4px 0; cursor: pointer; background: #fff; }
 .match-card:hover { background: #f0f8ff; }
 .match-card .winner { font-weight: bold; color: #2a7a2a; }
+#forecast { padding: 1rem; }
+#forecast h2 small { font-weight: normal; color: #666; font-size: 0.7em; }
+table.forecast { max-width: 560px; }
+table.forecast td:first-child { color: #888; }

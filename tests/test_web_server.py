@@ -16,7 +16,7 @@ def test_api_endpoints(tmp_path, monkeypatch):
 
     root = client.get("/")
     assert root.status_code == 200
-    assert "World Cup Predictor" in root.text
+    assert "世界杯预测" in root.text
 
     r = client.get("/api/groups/A/standings")
     assert r.status_code == 200
@@ -52,3 +52,26 @@ def test_web_validation(tmp_path, monkeypatch):
     clamped = client.get("/api/matches/upcoming?limit=-5")
     assert clamped.status_code == 200
     assert 1 <= len(clamped.json()) <= 100
+
+
+def test_forecast_endpoint(tmp_path, monkeypatch):
+    db_path = tmp_path / "web3.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
+    from worldcup_predictor import db
+
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO sim_results(created_at,team,advance_prob,r16_prob,qf_prob,sf_prob,"
+        "final_prob,title_prob,n_iter) VALUES (0,'Argentina',0.97,0.78,0.55,0.29,0.18,0.11,1000)"
+    )
+    conn.commit()
+
+    from worldcup_predictor.web_server import app
+
+    client = TestClient(app)
+    r = client.get("/api/forecast")
+    assert r.status_code == 200
+    body = r.json()
+    assert body[0]["team"] == "Argentina"
+    assert body[0]["title_prob"] == 0.11

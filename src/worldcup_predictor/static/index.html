@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>2026 World Cup Predictor</title>
+  <title>2026 世界杯预测</title>
   <link rel="stylesheet" href="/static/bracket.css" />
 </head>
 <body>
-  <header><h1>2026 World Cup Predictor</h1>
+  <header><h1>2026 世界杯预测系统</h1>
     <nav>
-      <button onclick="showTab('groups')">Groups</button>
-      <button onclick="showTab('knockout')">Knockout</button>
-      <span id="status">live</span>
+      <button onclick="showTab('forecast')">夺冠预测</button>
+      <button onclick="showTab('groups')">小组赛</button>
+      <button onclick="showTab('knockout')">淘汰赛</button>
+      <span id="status">实时</span>
     </nav>
   </header>
-  <section id="groups-tab"><div id="group-grid"></div></section>
+  <section id="forecast-tab"><div id="forecast"></div></section>
+  <section id="groups-tab" hidden><div id="group-grid"></div></section>
   <section id="knockout-tab" hidden>
     <div class="bracket">
-      <div class="round" id="R32"><h3>R32</h3></div>
-      <div class="round" id="R16"><h3>R16</h3></div>
-      <div class="round" id="QF"><h3>QF</h3></div>
-      <div class="round" id="SF"><h3>SF</h3></div>
-      <div class="round" id="FINAL"><h3>Final</h3></div>
+      <div class="round" id="R32"><h3>32强</h3></div>
+      <div class="round" id="R16"><h3>16强</h3></div>
+      <div class="round" id="QF"><h3>八强</h3></div>
+      <div class="round" id="SF"><h3>四强</h3></div>
+      <div class="round" id="FINAL"><h3>决赛</h3></div>
     </div>
   </section>
   <dialog id="match-modal"><article id="match-detail"></article>
-    <button onclick="document.getElementById('match-modal').close()">Close</button>
+    <button onclick="document.getElementById('match-modal').close()">关闭</button>
   </dialog>
   <script src="/static/app.js"></script>
 </body>

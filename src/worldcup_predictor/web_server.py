@@ -61,6 +61,12 @@ def bracket() -> dict[str, list[dict[str, Any]]]:
         return engine.get_knockout_bracket(conn)
 
 
+@app.get("/api/forecast")
+def forecast() -> list[dict[str, Any]]:
+    with closing(_conn()) as conn:
+        return engine.get_forecast(conn)
+
+
 @app.get("/api/matches/{match_id}")
 def match_detail(match_id: int) -> dict[str, Any]:
     with closing(_conn()) as conn:

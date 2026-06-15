@@ -29,3 +29,16 @@ def test_upcoming_matches(tmp_path):
     ups = engine.get_upcoming_matches(conn, limit=5)
     assert len(ups) == 5
     assert ups[0]["status"] == "SCHEDULED"
+
+
+def test_get_forecast_orders_by_title(tmp_path):
+    conn = _conn(tmp_path)
+    conn.execute(
+        "INSERT INTO sim_results(created_at,team,advance_prob,r16_prob,qf_prob,sf_prob,"
+        "final_prob,title_prob,n_iter) VALUES (0,'Spain',0.99,0.8,0.6,0.3,0.18,0.11,1000),"
+        "(0,'Brazil',0.98,0.7,0.5,0.25,0.14,0.07,1000)"
+    )
+    conn.commit()
+    fc = engine.get_forecast(conn)
+    assert [r["team"] for r in fc] == ["Spain", "Brazil"]
+    assert {"team", "title_prob", "advance_prob"} <= set(fc[0])

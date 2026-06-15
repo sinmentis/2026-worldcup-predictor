@@ -63,6 +63,15 @@ def get_last_update_ts(conn: sqlite3.Connection) -> str | None:
     return db.get_last_update_ts(conn)
 
 
+def get_forecast(conn: sqlite3.Connection) -> list[dict[str, Any]]:
+    """Return the stored simulation leaderboard (title/advancement odds), best first."""
+    rows = conn.execute(
+        "SELECT team, title_prob, final_prob, sf_prob, qf_prob, r16_prob, advance_prob, n_iter "
+        "FROM sim_results ORDER BY title_prob DESC, advance_prob DESC"
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 _MODEL: GoalModel | None = None
 _MODEL_DB: str | None = None
 
