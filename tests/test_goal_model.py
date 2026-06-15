@@ -37,3 +37,10 @@ def test_most_likely_and_exact(history):
     h, a = grid.most_likely()
     assert isinstance(h, int) and isinstance(a, int)
     assert 0.0 <= grid.exact(1, 0) <= 1.0
+
+
+def test_neutral_flag_changes_prediction(history):
+    m = GoalModel().fit(history)
+    neutral_grid = m.predict_grid("Strong", "Weak", neutral=True)
+    home_grid = m.predict_grid("Strong", "Weak", neutral=False)
+    assert not np.allclose(neutral_grid.matrix, home_grid.matrix)

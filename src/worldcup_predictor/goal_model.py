@@ -70,6 +70,7 @@ class GoalModel:
             history["home_team"].to_numpy(),
             history["away_team"].to_numpy(),
             weights=np.asarray(weights, dtype="float64").copy(),
+            neutral_venue=history["neutral"].to_numpy(),
         )
         self._model.fit()
         return self
@@ -79,7 +80,7 @@ class GoalModel:
     ) -> ScoreGrid:
         if self._model is None:
             raise RuntimeError("GoalModel.fit() must be called before predict_grid()")
-        fpg = self._model.predict(home, away, max_goals=max_goals)
+        fpg = self._model.predict(home, away, max_goals=max_goals, neutral_venue=neutral)
         matrix = np.asarray(fpg.grid, dtype=float)
         matrix = matrix / matrix.sum()
         return ScoreGrid(matrix=matrix)
