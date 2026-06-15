@@ -1,5 +1,11 @@
 const GROUPS = "ABCDEFGHIJKL".split("");
 
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
 async function loadGroups() {
   const grid = document.getElementById("group-grid");
   grid.innerHTML = "";
@@ -37,14 +43,17 @@ async function loadBracket() {
 
 async function showDetail(id) {
   if (!id) return;
-  const d = await (await fetch(`/api/matches/${id}`)).json();
+  const res = await fetch(`/api/matches/${id}`);
+  if (!res.ok) return;
+  const d = await res.json();
+  if (!d.match) return;
   const p = d.prediction;
   document.getElementById("match-detail").innerHTML =
-    `<h3>${d.match.home_team} vs ${d.match.away_team}</h3>
-     <p>Stage: ${d.match.stage}</p>
+    `<h3>${esc(d.match.home_team)} vs ${esc(d.match.away_team)}</h3>
+     <p>Stage: ${esc(d.match.stage)}</p>
      ${p ? `<p>Prediction: H ${(p.p_home*100).toFixed(0)}% / D ${(p.p_draw*100).toFixed(0)}% / A ${(p.p_away*100).toFixed(0)}%</p>
-            <p>Most likely: ${p.ml_home}-${p.ml_away}</p>
-            <p>${p.reasoning || ""}</p>` : "<p>No prediction yet.</p>"}`;
+            <p>Most likely: ${esc(p.ml_home)}-${esc(p.ml_away)}</p>
+            <p>${esc(p.reasoning || "")}</p>` : "<p>No prediction yet.</p>"}`;
   document.getElementById("match-modal").showModal();
 }
 

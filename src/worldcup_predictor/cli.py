@@ -6,7 +6,7 @@ from pathlib import Path
 
 import typer
 
-from worldcup_predictor import db, engine, evaluate, ingest
+from worldcup_predictor import db, engine, evaluate, ingest, ratings
 
 app = typer.Typer(help="WorldCup Predictor CLI")
 
@@ -47,6 +47,16 @@ def load_history(
     typer.echo(f"Loaded {n} historical matches.")
 
 
+@app.command()
+def rate() -> None:
+    """Compute Elo ratings from loaded history and store them on teams."""
+    conn = _conn()
+    table = ratings.compute_elo_ratings(conn)
+    top = sorted(table.items(), key=lambda kv: kv[1], reverse=True)[:5]
+    for team, elo in top:
+        typer.echo(f"{team:20s} elo={elo:.0f}")
+
+
 @app.command("fetch-results")
 def fetch_results() -> None:
     """Fetch finished WC results and update the DB."""
@@ -83,8 +93,8 @@ app.command("evaluate")(evaluate_cmd)
 
 
 @app.command()
-def serve(host: str = "0.0.0.0", port: int = 8080) -> None:
-    """Start the web UI."""
+def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
+    """Start the web UI (bind 127.0.0.1 by default; use --host 0.0.0.0 for LAN access)."""
     import uvicorn
 
     uvicorn.run("worldcup_predictor.web_server:app", host=host, port=port)
