@@ -32,8 +32,8 @@ def load_history_from_text(conn: sqlite3.Connection, text: str) -> int:
         away_score = _parse_int(row.get("away_score"))
         if home_score is None or away_score is None:
             continue  # skip unplayed/NA/non-numeric rows (e.g. in-progress fixtures)
-        conn.execute(
-            "INSERT INTO historical_matches"
+        cur = conn.execute(
+            "INSERT OR IGNORE INTO historical_matches"
             "(date, home_team, away_team, home_score, away_score, tournament, neutral)"
             " VALUES (?,?,?,?,?,?,?)",
             (
@@ -46,7 +46,7 @@ def load_history_from_text(conn: sqlite3.Connection, text: str) -> int:
                 _to_bool_int(row.get("neutral", "False")),
             ),
         )
-        count += 1
+        count += cur.rowcount  # OR IGNORE => 0 for duplicate rows, so reloads are idempotent
     conn.commit()
     return count
 

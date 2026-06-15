@@ -51,3 +51,17 @@ def test_score_finished_predictions_accepts_plain_sqlite_connection(tmp_path):
     summary = score_finished_predictions(conn)
 
     assert summary["n"] == 1
+
+
+def test_scores_only_latest_prediction_per_match(tmp_path):
+    conn = _setup(tmp_path)
+    # A second (stale) prediction for the same finished match must NOT be double-counted.
+    conn.execute(
+        "INSERT INTO predictions(match_id,created_at,p_home,p_draw,p_away,"
+        "exp_home_goals,exp_away_goals,ml_home,ml_away,model_version,reasoning)"
+        " VALUES (1,?,0.33,0.34,0.33,1.0,1.0,1,1,'v','')",
+        (time.time() + 1,),
+    )
+    conn.commit()
+    summary = score_finished_predictions(conn)
+    assert summary["n"] == 1

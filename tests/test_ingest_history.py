@@ -43,3 +43,13 @@ def test_load_history_skips_unplayed_and_na_rows(tmp_path):
     n = ingest.load_history_from_text(conn, csv_with_gaps)
     assert n == 1  # only the played match is stored; NA / empty rows are skipped
     assert conn.execute("SELECT COUNT(*) FROM historical_matches").fetchone()[0] == 1
+
+
+def test_load_history_is_idempotent(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    first = ingest.load_history_from_text(conn, CSV)
+    second = ingest.load_history_from_text(conn, CSV)
+    assert first == 2
+    assert second == 0  # re-loading the same rows inserts nothing
+    assert conn.execute("SELECT COUNT(*) FROM historical_matches").fetchone()[0] == 2

@@ -38,9 +38,14 @@ def _outcome(home_score: int, away_score: int) -> int:
 
 
 def score_finished_predictions(conn: sqlite3.Connection) -> dict[str, float]:
+    # Score only the latest prediction per finished match (by row id) so repeated
+    # predictions for the same match don't get counted multiple times.
     rows = conn.execute(
         "SELECT p.p_home, p.p_draw, p.p_away, m.home_score, m.away_score "
-        "FROM predictions p JOIN matches m ON m.id = p.match_id "
+        "FROM predictions p "
+        "JOIN matches m ON m.id = p.match_id "
+        "JOIN (SELECT match_id, MAX(id) AS mx FROM predictions GROUP BY match_id) latest "
+        "  ON latest.match_id = p.match_id AND latest.mx = p.id "
         "WHERE m.status='FINISHED'"
     ).fetchall()
     if not rows:

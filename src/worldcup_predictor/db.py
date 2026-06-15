@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS historical_matches (
     tournament TEXT,
     neutral INTEGER DEFAULT 0
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_hist_match
+    ON historical_matches(date, home_team, away_team, tournament, home_score, away_score);
 CREATE TABLE IF NOT EXISTS predictions (
     id INTEGER PRIMARY KEY,
     match_id INTEGER,
