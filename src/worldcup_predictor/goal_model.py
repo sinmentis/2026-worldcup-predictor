@@ -5,7 +5,10 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from penaltyblog.models import DixonColesGoalModel, dixon_coles_weights  # type: ignore[import-untyped]
+from penaltyblog.models import (  # type: ignore[import-untyped]
+    DixonColesGoalModel,
+    dixon_coles_weights,
+)
 
 from worldcup_predictor import config
 
