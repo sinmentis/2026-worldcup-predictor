@@ -70,9 +70,16 @@ uv run worldcup serve --host 0.0.0.0 --port 8080
 
 Then open `http://localhost:8080`.
 
+The web UI has five tabs (Chinese): 即将开赛 (upcoming matches with our per-match prediction and
+the active off-pitch factors), 夺冠预测 (title odds), 战绩对比 (our original prediction vs the
+actual result, with a model-vs-baseline scoreboard), 小组积分 (group tables), and 淘汰赛 (bracket).
+JSON endpoints: `/api/upcoming-predictions`, `/api/accuracy`, `/api/forecast`,
+`/api/groups/{g}/standings`, `/api/knockout/bracket`, `/api/matches/{id}`.
+
 Useful CLI commands:
 
 ```bash
+uv run worldcup fetch-fixtures   # populate kickoff times (and results) from football-data.org
 uv run worldcup fetch-results
 uv run worldcup predict <match_id>
 uv run worldcup simulate --n 50000 --seed 123

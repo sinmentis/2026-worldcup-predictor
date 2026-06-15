@@ -1,5 +1,7 @@
 # Fetch finished results every 10 minutes during the tournament
 */10 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-results >> /tmp/wc-fetch.log 2>&1
+# Twice daily: refresh kickoff times (and any results) from the fixtures endpoint
+0 6,18 * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-fixtures >> /tmp/wc-fixtures.log 2>&1
 # Nightly: refit ratings + re-run simulation
 30 4 * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup simulate --n 50000 >> /tmp/wc-sim.log 2>&1
 # Fetch off-pitch news every 30 minutes (deterministic, no LLM)
