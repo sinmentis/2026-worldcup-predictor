@@ -282,10 +282,34 @@ async function showDetail(id) {
   document.getElementById("match-modal").showModal();
 }
 
+/* ---------------- value bets ---------------- */
+async function loadValue() {
+  const el = document.getElementById("value");
+  const data = await (await fetch("/api/value-bets")).json();
+  const bets = data.bets || [];
+  if (!bets.length) {
+    el.innerHTML = `<div class="empty">暂无价值投注。先在 <code>.env</code> 配置 <code>ODDS_API_KEY</code> 并运行 <code>worldcup fetch-odds</code> 拉取赔率；或当前没有超过阈值的 edge。</div>`;
+    return;
+  }
+  const OUT = { home: "主胜", draw: "平局", away: "客胜" };
+  const rows = bets.map((b) => `<div class="vbet card">
+    <div class="vbet-match">${flag(b.home_team)} ${zh(b.home_team)} <span class="muted">vs</span> ${zh(b.away_team)} ${flag(b.away_team)}</div>
+    <div class="vbet-pick">押 <b>${OUT[b.outcome] || esc(b.outcome)}</b>${b.best_price ? ` @ <b>${b.best_price.toFixed(2)}</b> <span class="muted">(${esc(b.bookmaker || "")})</span>` : ""}</div>
+    <div class="vbet-stats">
+      <span>我们 <b>${pct0(b.our_prob)}</b></span>
+      <span class="muted">市场 ${pct0(b.market_prob)}</span>
+      <span class="vbet-edge">领先市场 +${(b.edge * 100).toFixed(1)}%</span>
+      ${b.ev != null ? `<span>最佳价 EV ${(b.ev * 100).toFixed(0)}%</span>` : ""}
+      <span class="vbet-kelly">建议仓位 ${(b.kelly * 100).toFixed(1)}%</span>
+    </div>
+  </div>`).join("");
+  el.innerHTML = `<h2>价值投注 <small>（我们的概率 vs 市场共识 · 市场通常更准，仅供参考）</small></h2>${rows}`;
+}
+
 /* ---------------- tabs + live refresh ---------------- */
 const LOADERS = {
-  upcoming: loadUpcoming, forecast: loadForecast, accuracy: loadAccuracy,
-  groups: loadGroups, knockout: loadBracket,
+  upcoming: loadUpcoming, forecast: loadForecast, value: loadValue,
+  accuracy: loadAccuracy, groups: loadGroups, knockout: loadBracket,
 };
 let current = "upcoming";
 

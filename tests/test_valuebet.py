@@ -1,0 +1,108 @@
+import numpy as np
+import pandas as pd
+
+from worldcup_predictor import db, valuebet
+from worldcup_predictor.goal_model import GoalModel
+
+
+def _model():
+    rng = np.random.default_rng(1)
+    rows = []
+    for _ in range(80):
+        rows.append(
+            (
+                "2024-01-01",
+                "Strong",
+                "Weak",
+                int(rng.integers(2, 5)),
+                int(rng.integers(0, 2)),
+                False,
+            )
+        )
+        rows.append(
+            (
+                "2024-01-01",
+                "Weak",
+                "Strong",
+                int(rng.integers(0, 2)),
+                int(rng.integers(2, 5)),
+                False,
+            )
+        )
+    hist = pd.DataFrame(
+        rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+    )
+    return GoalModel().fit(hist)
+
+
+def _conn(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,neutral,status)"
+        " VALUES (1,'group','A','Strong','Weak',1,'SCHEDULED')"
+    )
+    conn.commit()
+    return conn
+
+
+def test_best_prices_picks_highest(tmp_path):
+    conn = _conn(tmp_path)
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'a',1.5,3.5,6.0,0),(1,'b',1.6,3.4,5.5,0)"
+    )
+    conn.commit()
+    best = valuebet.best_prices(conn, 1)
+    assert best[0] == (1.6, "b")
+    assert best[1] == (3.5, "a")
+
+
+def test_consensus_probs_demargined_median(tmp_path):
+    conn = _conn(tmp_path)
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'a',2.0,3.5,4.0,0),(1,'b',2.1,3.4,3.8,0)"
+    )
+    conn.commit()
+    cons = valuebet.consensus_probs(conn, 1)
+    assert cons is not None
+    assert abs(sum(cons) - 1.0) < 1e-9
+    assert cons[0] > cons[1] > cons[2]  # home favourite
+
+
+def test_value_flagged_when_we_beat_market(tmp_path):
+    conn = _conn(tmp_path)
+    model = _model()  # Strong heavily favoured (p_home high)
+    # market prices Strong's home win around 0.48 (de-margined); our model says much higher
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'soft',2.0,3.5,4.0,0)"
+    )
+    conn.commit()
+    bets = valuebet.value_bets(conn, model, min_edge=0.05)
+    home = [b for b in bets if b["outcome"] == "home"]
+    assert home, "expected a value flag where our prob >> market consensus"
+    b = home[0]
+    assert b["edge"] > 0.05  # our_prob - market_prob
+    assert b["our_prob"] > b["market_prob"]
+    assert b["best_price"] == 2.0 and b["bookmaker"] == "soft"
+    assert b["ev"] is not None and 0.0 < b["kelly"] <= 1.0
+
+
+def test_no_value_when_market_agrees(tmp_path):
+    conn = _conn(tmp_path)
+    model = _model()
+    # market also makes Strong a heavy favourite -> no outcome where we beat the market by 5pts
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'sharp',1.05,8.0,15.0,0)"
+    )
+    conn.commit()
+    assert valuebet.value_bets(conn, model, min_edge=0.05) == []
+
+
+def test_value_bets_empty_without_odds(tmp_path):
+    conn = _conn(tmp_path)
+    model = _model()
+    assert valuebet.value_bets(conn, model) == []

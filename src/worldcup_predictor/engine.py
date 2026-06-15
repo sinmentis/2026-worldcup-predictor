@@ -10,9 +10,11 @@ from worldcup_predictor import config, db
 from worldcup_predictor import evaluate as _eval
 from worldcup_predictor import intel as _intel
 from worldcup_predictor import news as _news
+from worldcup_predictor import odds as _odds
 from worldcup_predictor import player_status as _ps
 from worldcup_predictor import team_signal as _ts
 from worldcup_predictor import tune as _tune
+from worldcup_predictor import valuebet as _valuebet
 from worldcup_predictor.goal_model import GoalModel, history_frame
 from worldcup_predictor.models import IntelEvent
 from worldcup_predictor.predict import predict_match
@@ -182,6 +184,19 @@ def fetch_news(conn: sqlite3.Connection) -> int:
     n = _news.fetch_news(conn)
     db.touch_update(conn)
     return n
+
+
+def fetch_odds(conn: sqlite3.Connection) -> int:
+    return _odds.fetch_odds(conn)
+
+
+def get_value_bets(
+    conn: sqlite3.Connection,
+    min_edge: float | None = None,
+    kelly_fraction: float | None = None,
+) -> list[dict[str, Any]]:
+    model = get_model(conn)
+    return _valuebet.value_bets(conn, model, min_edge=min_edge, kelly_fraction=kelly_fraction)
 
 
 def get_unprocessed_news(conn: sqlite3.Connection, limit: int = 20) -> list[dict[str, Any]]:

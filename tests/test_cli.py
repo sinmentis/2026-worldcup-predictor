@@ -95,3 +95,23 @@ def test_tune_cmd_handles_empty(tmp_path, monkeypatch):
     res = runner.invoke(app, ["tune"])
     assert res.exit_code == 0
     assert "No out-of-sample" in res.stdout
+
+
+def test_fetch_odds_without_key(tmp_path, monkeypatch):
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli_odds.db"))
+    monkeypatch.delenv("ODDS_API_KEY", raising=False)
+    runner.invoke(app, ["init-db"])
+    res = runner.invoke(app, ["fetch-odds"])
+    assert res.exit_code == 1
+    assert "ODDS_API_KEY" in res.stdout
+
+
+def test_value_bets_empty(tmp_path, monkeypatch):
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli_vb.db"))
+    runner.invoke(app, ["init-db"])
+    from worldcup_predictor import engine
+
+    monkeypatch.setattr(engine, "get_value_bets", lambda *a, **k: [])
+    res = runner.invoke(app, ["value-bets"])
+    assert res.exit_code == 0
+    assert "No value bets" in res.stdout

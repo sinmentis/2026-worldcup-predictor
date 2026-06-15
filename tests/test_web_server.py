@@ -146,3 +146,37 @@ def test_upcoming_predictions_endpoint(tmp_path, monkeypatch):
     body = r.json()
     assert body["remaining"] == 3
     assert body["matches"][0]["home_team"] == "Spain"
+
+
+def test_value_bets_endpoint(tmp_path, monkeypatch):
+    db_path = tmp_path / "web_vb.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
+    from worldcup_predictor import db, engine
+
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+    canned = [
+        {
+            "match_id": 1,
+            "home_team": "Strong",
+            "away_team": "Weak",
+            "group": "A",
+            "kickoff": None,
+            "outcome": "home",
+            "our_prob": 0.7,
+            "market_prob": 0.55,
+            "best_price": 1.9,
+            "bookmaker": "soft",
+            "edge": 0.15,
+            "ev": 0.33,
+            "kelly": 0.1,
+        }
+    ]
+    monkeypatch.setattr(engine, "get_value_bets", lambda _c, min_edge=0.05: canned)
+
+    from worldcup_predictor.web_server import app
+
+    client = TestClient(app)
+    r = client.get("/api/value-bets")
+    assert r.status_code == 200
+    assert r.json()["bets"][0]["outcome"] == "home"

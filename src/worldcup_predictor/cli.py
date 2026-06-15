@@ -81,6 +81,38 @@ def fetch_news() -> None:
     typer.echo(f"Stored {n} new articles.")
 
 
+@app.command("fetch-odds")
+def fetch_odds() -> None:
+    """Fetch bookmaker odds from The Odds API (needs ODDS_API_KEY in .env)."""
+    conn = _conn()
+    try:
+        n = engine.fetch_odds(conn)
+    except ValueError as e:
+        typer.echo(str(e))
+        raise typer.Exit(code=1) from e
+    typer.echo(f"Stored {n} odds rows.")
+
+
+@app.command("value-bets")
+def value_bets(
+    min_edge: float = typer.Option(0.05), kelly_fraction: float = typer.Option(0.25)
+) -> None:
+    """List positive-EV bets (our model vs the best bookmaker price)."""
+    conn = _conn()
+    bets = engine.get_value_bets(conn, min_edge=min_edge, kelly_fraction=kelly_fraction)
+    if not bets:
+        typer.echo("No value bets (fetch odds first, or our model doesn't beat the market).")
+        return
+    for b in bets:
+        ev = f"{b['ev']:+.0%}" if b["ev"] is not None else "n/a"
+        price = f"{b['best_price']:.2f}" if b["best_price"] else "n/a"
+        typer.echo(
+            f"{b['home_team']} v {b['away_team']}  {b['outcome']:<5} "
+            f"our={b['our_prob']:.0%} mkt={b['market_prob']:.0%} edge={b['edge']:+.0%}  "
+            f"best {price} ({b['bookmaker']}) EV={ev} kelly={b['kelly']:.1%}"
+        )
+
+
 @app.command("intel-pending")
 def intel_pending() -> None:
     """List intel items awaiting approval (player statuses and team signals)."""

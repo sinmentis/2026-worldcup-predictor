@@ -89,6 +89,12 @@ def accuracy() -> dict[str, Any]:
         return engine.get_accuracy(conn)
 
 
+@app.get("/api/value-bets")
+def value_bets(min_edge: float = 0.05) -> dict[str, Any]:
+    with closing(_conn()) as conn:
+        return {"bets": engine.get_value_bets(conn, min_edge=min_edge)}
+
+
 @app.get("/api/matches/{match_id}")
 def match_detail(match_id: int) -> dict[str, Any]:
     with closing(_conn()) as conn:

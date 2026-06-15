@@ -117,6 +117,17 @@ CREATE TABLE IF NOT EXISTS team_signal (
     notes TEXT,
     UNIQUE(team, category)
 );
+CREATE TABLE IF NOT EXISTS odds (
+    id INTEGER PRIMARY KEY,
+    match_id INTEGER,
+    bookmaker TEXT NOT NULL,
+    price_home REAL,
+    price_draw REAL,
+    price_away REAL,
+    commence_time TEXT,
+    fetched_at REAL,
+    UNIQUE(match_id, bookmaker)
+);
 """
 
 

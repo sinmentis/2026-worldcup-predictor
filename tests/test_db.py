@@ -76,3 +76,25 @@ def test_team_signal_table_exists(tmp_path):
             "(team,category,direction,magnitude_tier,credibility,sources,as_of,pending)"
             " VALUES ('Brazil','tactical','weaken','major',0.8,'[]',0,0)"
         )
+
+
+def test_odds_table_exists(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    names = {
+        r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    }
+    assert "odds" in names
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'x',1.5,3.5,6.0,0)"
+    )
+    import sqlite3
+
+    import pytest
+
+    with pytest.raises(sqlite3.IntegrityError):  # UNIQUE(match_id, bookmaker)
+        conn.execute(
+            "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+            " VALUES (1,'x',1.6,3.4,5.5,0)"
+        )

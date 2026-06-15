@@ -19,6 +19,14 @@ HISTORY_CSV_URL = (
 FOOTBALL_DATA_BASE = "https://api.football-data.org/v4"
 FOOTBALL_DATA_COMP = "WC"
 
+# The Odds API (free tier) for bookmaker odds. Key (ODDS_API_KEY) lives in .env.
+ODDS_API_BASE = "https://api.the-odds-api.com/v4"
+ODDS_API_SPORT = "soccer_fifa_world_cup"
+ODDS_API_REGIONS = "eu,uk"
+# Value-betting guardrails: only surface bets with at least this edge; stake fractional Kelly.
+VALUE_MIN_EDGE = 0.05
+KELLY_FRACTION = 0.25
+
 # eloratings.net K-factors by competition importance
 K_TABLE = {
     "world_cup": 60,
