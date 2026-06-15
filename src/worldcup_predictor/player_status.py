@@ -1,3 +1,9 @@
+import json
+import sqlite3
+import time
+from datetime import date, datetime, timedelta
+
+from worldcup_predictor import config
 from worldcup_predictor.config import ADJUST_CLAMP, LAMBDA_MIN  # noqa: F401
 
 TIERS = {"key", "regular", "fringe"}
@@ -30,3 +36,88 @@ def derive_credibility(n_sources: int, official: bool) -> float:
     if n_sources >= 2:
         return 0.80
     return 0.50
+
+
+def _default_valid_until(conn: sqlite3.Connection, team: str) -> str:
+    row = conn.execute(
+        "SELECT MIN(kickoff) FROM matches WHERE status='SCHEDULED' AND kickoff IS NOT NULL "
+        "AND (home_team=? OR away_team=?)",
+        (team, team),
+    ).fetchone()
+    if row and row[0]:
+        try:
+            d = datetime.fromisoformat(str(row[0]).replace("Z", "+00:00")).date()
+            return (d + timedelta(days=1)).isoformat()
+        except ValueError:
+            pass
+    return (date.today() + timedelta(days=DEFAULT_EXPIRY_DAYS)).isoformat()
+
+
+def upsert_status(
+    conn: sqlite3.Connection,
+    team: str,
+    player: str,
+    tier: str,
+    status: str,
+    confidence: float,
+    source_url: str,
+    official: bool = False,
+    notes: str | None = None,
+    valid_until: str | None = None,
+) -> dict[str, object]:
+    team = config.canonical_team(team)
+    if tier not in TIERS:
+        raise ValueError(f"tier must be one of {sorted(TIERS)}")
+    if status not in STATUSES:
+        raise ValueError(f"status must be one of {sorted(STATUSES)}")
+    if not 0.0 <= confidence <= 1.0:
+        raise ValueError("confidence must be in [0, 1]")
+    if not source_url:
+        raise ValueError("source_url is required; intel must be traceable")
+
+    if status == "available":
+        conn.execute("DELETE FROM player_status WHERE team=? AND player=?", (team, player))
+        conn.commit()
+        return {"status": "cleared", "team": team, "player": player}
+
+    row = conn.execute(
+        "SELECT sources, official FROM player_status WHERE team=? AND player=?", (team, player)
+    ).fetchone()
+    sources: list[str] = json.loads(row["sources"]) if row else []
+    if source_url not in sources:
+        sources.append(source_url)
+    official_ever = official or bool(row["official"]) if row else official
+    cred = derive_credibility(len(sources), official_ever)
+    pending = 0 if (cred >= ACTIVE_CRED_THRESHOLD and confidence >= ACTIVE_CONF_THRESHOLD) else 1
+    if valid_until is None:
+        valid_until = _default_valid_until(conn, team)
+
+    conn.execute(
+        "INSERT INTO player_status"
+        "(team,player,tier,status,credibility,sources,official,valid_until,as_of,pending,notes)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+        " ON CONFLICT(team,player) DO UPDATE SET"
+        " tier=excluded.tier, status=excluded.status, credibility=excluded.credibility,"
+        " sources=excluded.sources, official=excluded.official, valid_until=excluded.valid_until,"
+        " as_of=excluded.as_of, pending=excluded.pending, notes=excluded.notes",
+        (
+            team,
+            player,
+            tier,
+            status,
+            cred,
+            json.dumps(sources),
+            int(official_ever),
+            valid_until,
+            time.time(),
+            pending,
+            notes,
+        ),
+    )
+    conn.commit()
+    return {
+        "status": "active" if pending == 0 else "pending",
+        "credibility": cred,
+        "team": team,
+        "player": player,
+    }

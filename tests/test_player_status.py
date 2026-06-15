@@ -1,4 +1,15 @@
+import json
+
+import pytest
+
+from worldcup_predictor import db
 from worldcup_predictor import player_status as ps
+
+
+def _conn(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    return conn
 
 
 def test_status_mult():
@@ -12,3 +23,46 @@ def test_derive_credibility():
     assert ps.derive_credibility(1, official=False) == 0.50
     assert ps.derive_credibility(2, official=False) == 0.80
     assert ps.derive_credibility(1, official=True) == 0.95
+
+
+def test_single_source_is_pending(tmp_path):
+    conn = _conn(tmp_path)
+    out = ps.upsert_status(conn, "France", "Star", "key", "out", 0.9, "https://a")
+    assert out["status"] == "pending"  # single non-official source => credibility 0.5 < 0.70
+    row = conn.execute("SELECT pending, credibility FROM player_status").fetchone()
+    assert row["pending"] == 1
+    assert row["credibility"] == 0.50
+
+
+def test_second_source_corroborates_to_active(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "France", "Star", "key", "out", 0.9, "https://a")
+    out = ps.upsert_status(conn, "France", "Star", "key", "out", 0.9, "https://b")
+    assert out["status"] == "active"
+    row = conn.execute("SELECT pending, credibility, sources FROM player_status").fetchone()
+    assert row["pending"] == 0
+    assert row["credibility"] == 0.80
+    assert len(json.loads(row["sources"])) == 2  # one row, two sources (no stacking)
+
+
+def test_official_source_is_active_immediately(tmp_path):
+    conn = _conn(tmp_path)
+    out = ps.upsert_status(conn, "Spain", "Keeper", "key", "out", 0.9, "https://fed", official=True)
+    assert out["status"] == "active"
+    assert conn.execute("SELECT credibility FROM player_status").fetchone()[0] == 0.95
+
+
+def test_available_clears_the_row(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "Brazil", "Striker", "key", "out", 0.9, "https://a", official=True)
+    ps.upsert_status(conn, "Brazil", "Striker", "key", "available", 0.9, "https://b")
+    assert conn.execute("SELECT COUNT(*) FROM player_status WHERE team='Brazil'").fetchone()[0] == 0
+
+
+def test_upsert_validates_inputs(tmp_path):
+    conn = _conn(tmp_path)
+
+    with pytest.raises(ValueError):
+        ps.upsert_status(conn, "France", "X", "superstar", "out", 0.9, "https://a")
+    with pytest.raises(ValueError):
+        ps.upsert_status(conn, "France", "X", "key", "out", 0.9, "")
