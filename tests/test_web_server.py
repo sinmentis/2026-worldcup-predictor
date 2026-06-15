@@ -13,6 +13,10 @@ def test_api_endpoints(tmp_path, monkeypatch):
 
     client = TestClient(app)
 
+    root = client.get("/")
+    assert root.status_code == 200
+    assert "World Cup Predictor" in root.text
+
     r = client.get("/api/groups/A/standings")
     assert r.status_code == 200
     assert len(r.json()) == 4

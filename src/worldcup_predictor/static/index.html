@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>2026 World Cup Predictor</title>
+  <link rel="stylesheet" href="/static/bracket.css" />
+</head>
+<body>
+  <header><h1>2026 World Cup Predictor</h1>
+    <nav>
+      <button onclick="showTab('groups')">Groups</button>
+      <button onclick="showTab('knockout')">Knockout</button>
+      <span id="status">live</span>
+    </nav>
+  </header>
+  <section id="groups-tab"><div id="group-grid"></div></section>
+  <section id="knockout-tab" hidden>
+    <div class="bracket">
+      <div class="round" id="R32"><h3>R32</h3></div>
+      <div class="round" id="R16"><h3>R16</h3></div>
+      <div class="round" id="QF"><h3>QF</h3></div>
+      <div class="round" id="SF"><h3>SF</h3></div>
+      <div class="round" id="FINAL"><h3>Final</h3></div>
+    </div>
+  </section>
+  <dialog id="match-modal"><article id="match-detail"></article>
+    <button onclick="document.getElementById('match-modal').close()">Close</button>
+  </dialog>
+  <script src="/static/app.js"></script>
+</body>
+</html>
