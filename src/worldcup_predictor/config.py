@@ -3,6 +3,12 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# Load a project-root .env (if present) without overriding real environment variables.
+# This lets the CLI / web / MCP / cron pick up FOOTBALL_DATA_TOKEN and WC_* settings.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
 DATA_DIR = Path(os.environ.get("WC_DATA_DIR", Path(__file__).resolve().parents[2] / "data"))
 DB_PATH = Path(os.environ.get("WC_DB_PATH", DATA_DIR / "worldcup.db"))
 CACHE_DIR = DATA_DIR / "cache"
@@ -47,6 +53,10 @@ GROUPS: dict[str, list[str]] = {
 # to the canonical team names used in GROUPS above. Extend as new mismatches surface.
 TEAM_ALIASES: dict[str, str] = {
     "Curaçao": "Curacao",
+    "Czechia": "Czech Republic",
+    "Bosnia-Herzegovina": "Bosnia and Herzegovina",
+    "Cape Verde Islands": "Cape Verde",
+    "Congo DR": "DR Congo",
 }
 
 
