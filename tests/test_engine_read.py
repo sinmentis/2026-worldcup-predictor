@@ -10,10 +10,14 @@ def _conn(tmp_path):
 
 def test_group_standings_shape(tmp_path):
     conn = _conn(tmp_path)
-    conn.execute("UPDATE matches SET home_score=1, away_score=0, status='FINISHED' "
-                 "WHERE group_id='A' AND home_team=? AND away_team=?",
-                 (conn.execute("SELECT home_team FROM matches WHERE group_id='A' LIMIT 1").fetchone()[0],
-                  conn.execute("SELECT away_team FROM matches WHERE group_id='A' LIMIT 1").fetchone()[0]))
+    conn.execute(
+        "UPDATE matches SET home_score=1, away_score=0, status='FINISHED' "
+        "WHERE group_id='A' AND home_team=? AND away_team=?",
+        (
+            conn.execute("SELECT home_team FROM matches WHERE group_id='A' LIMIT 1").fetchone()[0],
+            conn.execute("SELECT away_team FROM matches WHERE group_id='A' LIMIT 1").fetchone()[0],
+        ),
+    )
     conn.commit()
     rows = engine.get_group_standings(conn, "A")
     assert len(rows) == 4
