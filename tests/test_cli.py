@@ -20,3 +20,15 @@ def test_simulate_small(tmp_path, monkeypatch):
     runner.invoke(app, ["load-history", "--file", "tests/fixtures/mini_history.csv"])
     res = runner.invoke(app, ["simulate", "--n", "50", "--seed", "1"])
     assert res.exit_code == 0
+
+
+def test_fetch_news_command_wired(tmp_path, monkeypatch):
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli.db"))
+    # Point all feeds at an unreachable host so the command runs offline and returns 0.
+    from worldcup_predictor import config
+
+    monkeypatch.setattr(config, "RSS_FEEDS", {"x": "http://127.0.0.1:0/none.xml"})
+    runner.invoke(app, ["init-db"])
+    res = runner.invoke(app, ["fetch-news"])
+    assert res.exit_code == 0
+    assert "0" in res.stdout

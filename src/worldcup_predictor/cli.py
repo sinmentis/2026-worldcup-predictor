@@ -6,7 +6,7 @@ from pathlib import Path
 
 import typer
 
-from worldcup_predictor import db, engine, evaluate, ingest, ratings
+from worldcup_predictor import db, engine, evaluate, ingest, news, ratings
 
 app = typer.Typer(help="WorldCup Predictor CLI")
 
@@ -63,6 +63,14 @@ def fetch_results() -> None:
     conn = _conn()
     n = ingest.fetch_live_results(conn)
     typer.echo(f"Updated {n} results.")
+
+
+@app.command("fetch-news")
+def fetch_news() -> None:
+    """Fetch configured RSS feeds and store new articles (cron-friendly)."""
+    conn = _conn()
+    n = news.fetch_news(conn)
+    typer.echo(f"Stored {n} new articles.")
 
 
 @app.command()
