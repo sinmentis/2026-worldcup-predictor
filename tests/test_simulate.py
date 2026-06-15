@@ -38,3 +38,23 @@ def test_simulation_probabilities_valid(tmp_path):
     assert abs(sum(p["advance"] for p in result.values()) - 32.0) < 1e-6
     # persisted
     assert conn.execute("SELECT COUNT(*) FROM sim_results").fetchone()[0] == 48
+
+
+def test_intel_lowers_simulated_advancement(tmp_path):
+    # The tournament simulation must honor off-pitch intel (not just single-match predict).
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    model = GoalModel().fit(_history())
+
+    target = config.GROUPS["A"][0]
+    before = simulate_tournament(conn, model, n=500, seed=3)[target]["advance"]
+
+    from worldcup_predictor import intel
+    from worldcup_predictor.models import IntelEvent
+
+    intel.record_intel(
+        conn, IntelEvent(target, "injury", "weaken", 0.6, "https://x", 1.0, player="key")
+    )
+    after = simulate_tournament(conn, model, n=500, seed=3)[target]["advance"]
+    assert after < before

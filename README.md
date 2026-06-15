@@ -6,8 +6,10 @@ FIFA World Cup 2026 prediction system with a deterministic Python engine, SQLite
 
 - Seeds the 48-team 2026 World Cup group stage fixture set.
 - Loads historical men's international results.
-- Fits a Dixon-Coles goal model through `penaltyblog` and runs Elo-style team ratings.
-- Predicts 1X2 probabilities, expected goals, and likely scorelines for fixtures.
+- Predicts 1X2 probabilities, expected goals, and likely scorelines by fitting a
+  Dixon-Coles goal model through `penaltyblog`. (Elo ratings are computed and stored via
+  `worldcup rate` as a standalone strength view and a future lambda prior; the Phase-1
+  prediction pipeline uses Dixon-Coles directly, not Elo.)
 - Applies source-linked off-pitch intelligence adjustments that are stored in SQLite.
 - Runs Monte Carlo tournament simulations.
 - Scores finished predictions against simple baselines.

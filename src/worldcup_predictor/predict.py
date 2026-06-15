@@ -4,10 +4,31 @@ import sqlite3
 import time
 
 from worldcup_predictor import intel
-from worldcup_predictor.goal_model import GoalModel, retilt_grid
+from worldcup_predictor.goal_model import GoalModel, ScoreGrid, retilt_grid
 from worldcup_predictor.models import IntelFactor, MatchPrediction
 
-MODEL_VERSION = "dc-elo-v1"
+MODEL_VERSION = "dc-v1"
+
+
+def adjusted_grid(
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    home: str,
+    away: str,
+    neutral: bool = True,
+) -> tuple[ScoreGrid, list[IntelFactor]]:
+    """Return the score grid for a match with current off-pitch intel applied.
+
+    Shared by both single-match prediction and the tournament simulation so the two are
+    always consistent. Intel shifts each team's expected goals; the fitted Dixon-Coles
+    grid is re-tilted toward the new lambdas (no-op when there is no intel).
+    """
+    grid = model.predict_grid(home, away, neutral=neutral)
+    lam_h, lam_a = grid.exp_goals()
+    new_h, new_a, factors = intel.apply_intel(lam_h, lam_a, home, away, conn)
+    if (new_h, new_a) != (lam_h, lam_a):
+        grid = retilt_grid(grid, lam_h, lam_a, new_h, new_a)
+    return grid, factors
 
 
 def predict_match(
@@ -19,16 +40,12 @@ def predict_match(
     neutral: bool = True,
     apply_intel: bool = True,
 ) -> MatchPrediction:
-    grid = model.predict_grid(home, away, neutral=neutral)
-    lam_h, lam_a = grid.exp_goals()
-    factors: list[IntelFactor] = []
     if apply_intel:
-        new_h, new_a, factors = intel.apply_intel(lam_h, lam_a, home, away, conn)
-        if (new_h, new_a) != (lam_h, lam_a):
-            # Re-tilt the fitted Dixon-Coles grid toward the adjusted lambdas so the
-            # low-score correction is preserved (no discontinuous switch to indep. Poisson).
-            grid = retilt_grid(grid, lam_h, lam_a, new_h, new_a)
-            lam_h, lam_a = grid.exp_goals()
+        grid, factors = adjusted_grid(conn, model, home, away, neutral=neutral)
+    else:
+        grid = model.predict_grid(home, away, neutral=neutral)
+        factors = []
+    lam_h, lam_a = grid.exp_goals()
 
     ml_h, ml_a = grid.most_likely()
     pred = MatchPrediction(

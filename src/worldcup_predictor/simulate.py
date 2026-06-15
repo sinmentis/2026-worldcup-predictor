@@ -13,6 +13,7 @@ import numpy as np
 from worldcup_predictor import config
 from worldcup_predictor.goal_model import GoalModel
 from worldcup_predictor.models import GroupRow
+from worldcup_predictor.predict import adjusted_grid
 
 Result = tuple[str, str, int, int]  # home, away, home_goals, away_goals
 
@@ -187,14 +188,15 @@ def simulate_tournament(
     rng = np.random.default_rng(seed)
     teams = [t for ts in config.GROUPS.values() for t in ts]
 
-    # Pre-compute grids and 1X2 probs for every ordered pair once.
+    # Pre-compute intel-adjusted grids and 1X2 probs for every ordered pair once, so the
+    # tournament odds reflect the same off-pitch intel that single-match predictions use.
     grids: dict[tuple[str, str], np.ndarray] = {}
     probs: dict[tuple[str, str], tuple[float, float, float]] = {}
     for x in teams:
         for y in teams:
             if x == y:
                 continue
-            g = model.predict_grid(x, y, neutral=True)
+            g, _factors = adjusted_grid(conn, model, x, y, neutral=True)
             grids[(x, y)] = g.matrix
             probs[(x, y)] = (g.home_win, g.draw, g.away_win)
 
