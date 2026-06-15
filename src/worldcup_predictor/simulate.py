@@ -53,16 +53,18 @@ def _accumulate(teams: list[str], results: list[Result]) -> dict[str, _Acc]:
     return table
 
 
-def _h2h(team: str, others: set[str], results: list[Result]) -> tuple[int, int]:
-    pts = gd = 0
+def _h2h(team: str, others: set[str], results: list[Result]) -> tuple[int, int, int]:
+    pts = gd = gf = 0
     for h, a, hg, ag in results:
         if h == team and a in others:
             gd += hg - ag
+            gf += hg
             pts += 3 if hg > ag else (1 if hg == ag else 0)
         elif a == team and h in others:
             gd += ag - hg
+            gf += ag
             pts += 3 if ag > hg else (1 if hg == ag else 0)
-    return pts, gd
+    return pts, gd, gf
 
 
 def standings_from_results(
@@ -73,9 +75,19 @@ def standings_from_results(
 
     def key(team: str) -> tuple[Any, ...]:
         a = acc[team]
-        tied = {t for t in teams if acc[t].pts == a.pts and t != team} | {team}
-        h2h_pts, h2h_gd = _h2h(team, tied - {team}, results) if len(tied) > 1 else (0, 0)
-        return (a.pts, a.gf - a.ga, a.gf, h2h_pts, h2h_gd, rng.random())
+        a_gd = a.gf - a.ga
+        # FIFA Annex C: head-to-head applies only among teams still tied after the
+        # overall criteria (points, overall GD, overall GF), not all equal-on-points teams.
+        tied = {
+            t
+            for t in teams
+            if (acc[t].pts, acc[t].gf - acc[t].ga, acc[t].gf) == (a.pts, a_gd, a.gf)
+        }
+        if len(tied) > 1:
+            h2h_pts, h2h_gd, h2h_gf = _h2h(team, tied - {team}, results)
+        else:
+            h2h_pts, h2h_gd, h2h_gf = 0, 0, 0
+        return (a.pts, a_gd, a.gf, h2h_pts, h2h_gd, h2h_gf, rng.random())
 
     ordered = sorted(teams, key=key, reverse=True)
     return [
