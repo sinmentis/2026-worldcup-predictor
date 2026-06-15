@@ -42,3 +42,14 @@ GROUPS: dict[str, list[str]] = {
     "K": ["Portugal", "Colombia", "DR Congo", "Uzbekistan"],
     "L": ["England", "Croatia", "Ghana", "Panama"],
 }
+
+# Map alternate spellings from external data sources (martj42 history, football-data.org)
+# to the canonical team names used in GROUPS above. Extend as new mismatches surface.
+TEAM_ALIASES: dict[str, str] = {
+    "Curaçao": "Curacao",
+}
+
+
+def canonical_team(name: str) -> str:
+    """Return the canonical GROUPS name for a possibly differently-spelled team name."""
+    return TEAM_ALIASES.get(name, name)

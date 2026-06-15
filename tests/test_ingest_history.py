@@ -18,6 +18,19 @@ def test_load_history_from_csv_text(tmp_path):
     assert rows[0]["neutral"] == 0
 
 
+def test_load_history_canonicalizes_team_names(tmp_path):
+    # martj42 uses "Curaçao" (cedilla); GROUPS uses canonical "Curacao".
+    csv_alias = (
+        "date,home_team,away_team,home_score,away_score,tournament,city,country,neutral\n"
+        "2025-06-01,Curaçao,Jamaica,2,1,Friendly,Willemstad,Curacao,False\n"
+    )
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.load_history_from_text(conn, csv_alias)
+    home = conn.execute("SELECT home_team FROM historical_matches").fetchone()[0]
+    assert home == "Curacao"
+
+
 def test_load_history_skips_unplayed_and_na_rows(tmp_path):
     csv_with_gaps = (
         "date,home_team,away_team,home_score,away_score,tournament,city,country,neutral\n"

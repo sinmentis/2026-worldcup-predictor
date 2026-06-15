@@ -38,8 +38,8 @@ def load_history_from_text(conn: sqlite3.Connection, text: str) -> int:
             " VALUES (?,?,?,?,?,?,?)",
             (
                 row["date"],
-                row["home_team"],
-                row["away_team"],
+                config.canonical_team(row["home_team"]),
+                config.canonical_team(row["away_team"]),
                 home_score,
                 away_score,
                 row.get("tournament", ""),
@@ -81,8 +81,8 @@ def apply_results_payload(conn: sqlite3.Connection, payload: dict[str, Any]) -> 
     for m in payload.get("matches", []):
         if m.get("status") != "FINISHED":
             continue
-        home = m["homeTeam"]["name"]
-        away = m["awayTeam"]["name"]
+        home = config.canonical_team(m["homeTeam"]["name"])
+        away = config.canonical_team(m["awayTeam"]["name"])
         ft = m["score"]["fullTime"]
         # Seeded fixtures use an arbitrary home/away order (itertools.combinations), so
         # match the pair order-independently and store scores in the seeded orientation.
