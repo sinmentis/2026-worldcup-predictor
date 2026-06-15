@@ -8,6 +8,7 @@ from worldcup_predictor import config, db
 from worldcup_predictor import intel as _intel
 from worldcup_predictor import news as _news
 from worldcup_predictor import player_status as _ps
+from worldcup_predictor import team_signal as _ts
 from worldcup_predictor.goal_model import GoalModel, history_frame
 from worldcup_predictor.models import IntelEvent
 from worldcup_predictor.predict import predict_match
@@ -103,17 +104,62 @@ def upsert_player_status(conn: sqlite3.Connection, **kwargs: Any) -> dict[str, o
     return out
 
 
+def upsert_team_signal(conn: sqlite3.Connection, **kwargs: Any) -> dict[str, object]:
+    out = _ts.upsert_signal(conn, **kwargs)
+    db.touch_update(conn)
+    return out
+
+
+def _resolve_ref(ref: int | str) -> tuple[str, int]:
+    """Resolve a pending-item reference to (kind, id).
+
+    Accepts a prefixed ref ("ps:3" player / "ts:5" team) or a bare integer, which is
+    treated as a player_status id for backward compatibility.
+    """
+    s = str(ref).strip()
+    if ":" in s:
+        prefix, _, num = s.partition(":")
+        if prefix.lower() in {"ts", "team", "team_signal"}:
+            return "team", int(num)
+        return "player", int(num)
+    return "player", int(s)
+
+
 def list_pending_intel(conn: sqlite3.Connection) -> list[dict[str, Any]]:
-    return [dict(r) for r in _ps.list_pending(conn)]
+    """Return all pending items awaiting human review, across both intel stores.
+
+    Each item keeps its raw ``id`` and gains a ``kind`` ("player"|"team") plus a
+    ``ref`` ("ps:<id>"/"ts:<id>") for unambiguous approve/reject.
+    """
+    items: list[dict[str, Any]] = []
+    for r in _ps.list_pending(conn):
+        d = dict(r)
+        d["kind"] = "player"
+        d["ref"] = f"ps:{r['id']}"
+        items.append(d)
+    for r in _ts.list_pending(conn):
+        d = dict(r)
+        d["kind"] = "team"
+        d["ref"] = f"ts:{r['id']}"
+        items.append(d)
+    return items
 
 
-def approve_intel(conn: sqlite3.Connection, status_id: int) -> None:
-    _ps.approve(conn, status_id)
+def approve_intel(conn: sqlite3.Connection, ref: int | str) -> None:
+    kind, num = _resolve_ref(ref)
+    if kind == "team":
+        _ts.approve(conn, num)
+    else:
+        _ps.approve(conn, num)
     db.touch_update(conn)
 
 
-def reject_intel(conn: sqlite3.Connection, status_id: int) -> None:
-    _ps.reject(conn, status_id)
+def reject_intel(conn: sqlite3.Connection, ref: int | str) -> None:
+    kind, num = _resolve_ref(ref)
+    if kind == "team":
+        _ts.reject(conn, num)
+    else:
+        _ps.reject(conn, num)
     db.touch_update(conn)
 
 

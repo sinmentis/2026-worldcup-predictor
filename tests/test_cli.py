@@ -54,3 +54,28 @@ def test_intel_pending_and_approve(tmp_path, monkeypatch):
     assert "France" in res.stdout
     sid = engine.list_pending_intel(conn)[0]["id"]
     assert runner.invoke(app, ["intel-approve", str(sid)]).exit_code == 0
+
+
+def test_intel_pending_lists_team_signals(tmp_path, monkeypatch):
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli.db"))
+    runner.invoke(app, ["init-db"])
+    from worldcup_predictor import db, engine
+
+    conn = db.connect(tmp_path / "cli.db")
+    engine.upsert_team_signal(
+        conn,
+        team="Brazil",
+        category="morale",
+        direction="weaken",
+        magnitude_tier="moderate",
+        confidence=0.9,
+        source_url="https://a",
+    )
+    res = runner.invoke(app, ["intel-pending"])
+    assert res.exit_code == 0
+    assert "Brazil" in res.stdout
+    assert "morale" in res.stdout
+    ref = engine.list_pending_intel(conn)[0]["ref"]
+    assert ref.startswith("ts:")
+    assert runner.invoke(app, ["intel-approve", ref]).exit_code == 0
+    assert engine.list_pending_intel(conn) == []

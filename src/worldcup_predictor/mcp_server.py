@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from worldcup_predictor import config, db, engine
 from worldcup_predictor import player_status as _ps
+from worldcup_predictor import team_signal as _ts
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger("worldcup-mcp")
@@ -180,23 +181,83 @@ def mark_news_processed(article_ids: list[int]) -> dict[str, int]:
 
 
 @mcp.tool()
+def upsert_team_signal(
+    team: str,
+    category: str,
+    direction: str,
+    magnitude_tier: str,
+    confidence: float,
+    source_url: str,
+    official: bool = False,
+    notes: str = "",
+) -> dict[str, object]:
+    """Record a team-level, between-the-lines signal that nudges a team's expected goals.
+
+    Use this for qualitative signals that the player-availability tool cannot capture:
+    tactics, morale, motivation, fatigue, or general form/eye-test.
+
+    category: 'tactical' | 'morale' | 'motivation' | 'fatigue' | 'form'.
+    direction: 'weaken' | 'strengthen'.
+    magnitude_tier: 'major' | 'moderate' | 'minor' (these are deliberately soft; even
+    'major' is far smaller than a key-player injury).
+    confidence in [0,1]; ALWAYS pass a real source_url. official=True only for
+    club/federation sources.
+
+    Record only FORWARD-LOOKING or beyond-the-result signals (e.g. "manager switching to
+    a back three", "camp morale low after a bust-up", "clearly fatigued on a third match
+    in eight days"). Do NOT log match recaps or scorelines here — results are ingested
+    separately, and logging them as signals would double-count.
+    """
+    if category not in _ts.CATEGORIES:
+        raise ToolError(f"category must be one of {sorted(_ts.CATEGORIES)}")
+    if direction not in _ts.DIRECTIONS:
+        raise ToolError(f"direction must be one of {sorted(_ts.DIRECTIONS)}")
+    if magnitude_tier not in _ts.TIERS:
+        raise ToolError(f"magnitude_tier must be one of {sorted(_ts.TIERS)}")
+    if not source_url:
+        raise ToolError("source_url is required; intel must be traceable.")
+    if not 0.0 <= confidence <= 1.0:
+        raise ToolError("confidence must be in [0,1].")
+    return engine.upsert_team_signal(
+        _conn(),
+        team=team,
+        category=category,
+        direction=direction,
+        magnitude_tier=magnitude_tier,
+        confidence=confidence,
+        source_url=source_url,
+        official=official,
+        notes=notes or None,
+    )
+
+
+@mcp.tool()
 def list_pending_intel() -> list[dict[str, Any]]:
-    """List player-status items awaiting human approval (low-confidence / single-source)."""
+    """List intel items awaiting human approval (low-confidence / single-source).
+
+    Covers both player-availability statuses and team-level signals. Each item carries a
+    ``kind`` ('player'|'team') and a ``ref`` ('ps:<id>'/'ts:<id>') to pass to
+    approve_intel / reject_intel.
+    """
     return engine.list_pending_intel(_conn())
 
 
 @mcp.tool()
-def approve_intel(status_id: int) -> dict[str, str]:
-    """Approve a pending player-status item so it starts affecting predictions."""
-    engine.approve_intel(_conn(), status_id)
-    return {"status": "approved", "id": str(status_id)}
+def approve_intel(ref: str) -> dict[str, str]:
+    """Approve a pending intel item so it starts affecting predictions.
+
+    ref is the 'ps:<id>'/'ts:<id>' value from list_pending_intel (a bare integer is
+    treated as a player-status id).
+    """
+    engine.approve_intel(_conn(), ref)
+    return {"status": "approved", "ref": str(ref)}
 
 
 @mcp.tool()
-def reject_intel(status_id: int) -> dict[str, str]:
-    """Reject (delete) a pending or active player-status item."""
-    engine.reject_intel(_conn(), status_id)
-    return {"status": "rejected", "id": str(status_id)}
+def reject_intel(ref: str) -> dict[str, str]:
+    """Reject (delete) a pending or active intel item by its 'ps:<id>'/'ts:<id>' ref."""
+    engine.reject_intel(_conn(), ref)
+    return {"status": "rejected", "ref": str(ref)}
 
 
 def main() -> None:

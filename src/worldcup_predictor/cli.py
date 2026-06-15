@@ -75,27 +75,33 @@ def fetch_news() -> None:
 
 @app.command("intel-pending")
 def intel_pending() -> None:
-    """List player-status items awaiting approval."""
+    """List intel items awaiting approval (player statuses and team signals)."""
     conn = _conn()
     for r in engine.list_pending_intel(conn):
-        typer.echo(
-            f"[{r['id']}] {r['team']} - {r['player']} {r['status']} ({r['tier']}) "
-            f"cred={r['credibility']:.2f} sources={r['sources']}"
-        )
+        if r["kind"] == "team":
+            typer.echo(
+                f"[{r['ref']}] {r['team']} - {r['category']}: {r['direction']} "
+                f"({r['magnitude_tier']}) cred={r['credibility']:.2f} sources={r['sources']}"
+            )
+        else:
+            typer.echo(
+                f"[{r['ref']}] {r['team']} - {r['player']} {r['status']} ({r['tier']}) "
+                f"cred={r['credibility']:.2f} sources={r['sources']}"
+            )
 
 
 @app.command("intel-approve")
-def intel_approve(status_id: int) -> None:
-    """Approve a pending player-status item."""
-    engine.approve_intel(_conn(), status_id)
-    typer.echo(f"Approved {status_id}.")
+def intel_approve(ref: str) -> None:
+    """Approve a pending intel item by its ref ('ps:<id>'/'ts:<id>', or a bare id)."""
+    engine.approve_intel(_conn(), ref)
+    typer.echo(f"Approved {ref}.")
 
 
 @app.command("intel-reject")
-def intel_reject(status_id: int) -> None:
-    """Reject (delete) a player-status item."""
-    engine.reject_intel(_conn(), status_id)
-    typer.echo(f"Rejected {status_id}.")
+def intel_reject(ref: str) -> None:
+    """Reject (delete) an intel item by its ref ('ps:<id>'/'ts:<id>', or a bare id)."""
+    engine.reject_intel(_conn(), ref)
+    typer.echo(f"Rejected {ref}.")
 
 
 @app.command()
