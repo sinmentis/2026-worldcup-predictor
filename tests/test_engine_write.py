@@ -29,3 +29,41 @@ def test_record_intel_event(tmp_path):
     )
     n = conn.execute("SELECT COUNT(*) FROM intel_events WHERE team='France'").fetchone()[0]
     assert n == 1
+
+
+def test_record_result_unknown_id_raises(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    import pytest
+
+    with pytest.raises(ValueError):
+        engine.record_result(conn, 999999, 1, 0)
+
+
+def test_predict_before_history_raises(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    mid = conn.execute("SELECT id FROM matches LIMIT 1").fetchone()[0]
+    import pytest
+
+    with pytest.raises(ValueError):
+        engine.predict_fixture(conn, mid)
+
+
+def test_record_intel_event_rejects_bad_direction(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    import pytest
+
+    with pytest.raises(ValueError):
+        engine.record_intel_event(
+            conn,
+            team="A",
+            event_type="injury",
+            direction="sideways",
+            magnitude=0.2,
+            source_url="https://x",
+            credibility=0.5,
+        )

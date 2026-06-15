@@ -147,3 +147,13 @@ def test_lambda_min_floor_applied_after_clamped_adjustment(tmp_path):
     assert lh == 0.05  # Floor applied
     assert len(factors) == 1
     assert factors[0].lambda_delta == -0.6
+
+
+def test_direction_is_authoritative_over_magnitude_sign(tmp_path):
+    # A caller passing a POSITIVE magnitude with direction="weaken" must still weaken.
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    intel.record_intel(conn, IntelEvent("A", "injury", "weaken", 0.40, "u", 1.0, player="x"))
+    lh, _, factors = intel.apply_intel(2.0, 1.0, home="A", away="B", conn=conn)
+    assert lh < 2.0
+    assert factors[0].lambda_delta < 0

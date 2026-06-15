@@ -40,7 +40,16 @@ def _team_factor(conn: sqlite3.Connection, team: str) -> tuple[float, list[Intel
     delta = 0.0
     factors: list[IntelFactor] = []
     for row in active_intel_for(conn, team):
-        contrib = float(row["credibility"]) * float(row["magnitude"])
+        # `direction` is authoritative for the sign: "weaken" lowers lambda, "strengthen"
+        # raises it, regardless of the sign the caller put on `magnitude`.
+        magnitude = abs(float(row["magnitude"]))
+        direction = (row["direction"] or "").strip().lower()
+        if direction == "weaken":
+            magnitude = -magnitude
+        elif direction != "strengthen":
+            # Unknown/empty direction: fall back to the raw signed magnitude.
+            magnitude = float(row["magnitude"])
+        contrib = float(row["credibility"]) * magnitude
         delta += contrib
         label = row["player"] or row["event_type"]
         factors.append(

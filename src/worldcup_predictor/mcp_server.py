@@ -91,11 +91,15 @@ def record_intel(
 ) -> dict[str, str]:
     """Record an off-pitch intelligence event that adjusts a team's expected goals.
 
-    magnitude is a signed multiplier delta on the team's lambda, e.g. -0.20 for a key
-    injury. credibility in [0,1] scales the effect. ALWAYS pass a real source_url.
+    `direction` ("weaken" or "strengthen") determines the sign of the effect; `magnitude`
+    is the size of the lambda multiplier delta (e.g. 0.20 for a key injury with
+    direction="weaken"). credibility in [0,1] scales the effect. ALWAYS pass a real
+    source_url so the adjustment is traceable.
     """
     if not source_url:
         raise ToolError("source_url is required; intel must be traceable.")
+    if direction.strip().lower() not in {"weaken", "strengthen"}:
+        raise ToolError("direction must be 'weaken' or 'strengthen'.")
     if not 0.0 <= credibility <= 1.0:
         raise ToolError("credibility must be in [0,1].")
     engine.record_intel_event(

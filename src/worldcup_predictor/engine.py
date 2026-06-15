@@ -64,27 +64,56 @@ def get_last_update_ts(conn: sqlite3.Connection) -> str | None:
 
 
 _MODEL: GoalModel | None = None
+_MODEL_DB: str | None = None
+
+
+def _db_path(conn: sqlite3.Connection) -> str:
+    row = conn.execute("PRAGMA database_list").fetchone()
+    return str(row["file"]) if row else ""
 
 
 def get_model(conn: sqlite3.Connection, refit: bool = False) -> GoalModel:
-    global _MODEL
-    if _MODEL is None or refit:
-        _MODEL = GoalModel().fit(history_frame(conn))
+    """Return a fitted goal model, cached per database file.
+
+    The cache is keyed on the DB path so reusing the process against a different database
+    (e.g. across tests) refits instead of silently reusing a stale model.
+    """
+    global _MODEL, _MODEL_DB
+    path = _db_path(conn)
+    if _MODEL is None or refit or path != _MODEL_DB:
+        frame = history_frame(conn)
+        if frame.empty:
+            raise ValueError(
+                "No historical data loaded. Run 'worldcup load-history' before predicting."
+            )
+        _MODEL = GoalModel().fit(frame)
+        _MODEL_DB = path
     return _MODEL
 
 
 def record_result(
     conn: sqlite3.Connection, match_id: int, home_score: int, away_score: int
 ) -> None:
-    conn.execute(
+    cur = conn.execute(
         "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' WHERE id=?",
         (home_score, away_score, match_id),
     )
+    if cur.rowcount == 0:
+        raise ValueError(f"No match with id {match_id}")
     conn.commit()
     db.touch_update(conn)
 
 
+_VALID_DIRECTIONS = {"weaken", "strengthen"}
+
+
 def record_intel_event(conn: sqlite3.Connection, **kwargs: Any) -> None:
+    direction = str(kwargs.get("direction", "")).strip().lower()
+    if direction not in _VALID_DIRECTIONS:
+        raise ValueError("direction must be 'weaken' or 'strengthen'")
+    credibility = float(kwargs.get("credibility", 0.0))
+    if not 0.0 <= credibility <= 1.0:
+        raise ValueError("credibility must be in [0, 1]")
     _intel.record_intel(conn, IntelEvent(**kwargs))
     db.touch_update(conn)
 
@@ -93,6 +122,8 @@ def predict_fixture(conn: sqlite3.Connection, match_id: int) -> dict[str, Any]:
     m = conn.execute(
         "SELECT home_team, away_team, neutral FROM matches WHERE id=?", (match_id,)
     ).fetchone()
+    if m is None:
+        raise ValueError(f"No match with id {match_id}")
     model = get_model(conn)
     pred = predict_match(
         conn, model, m["home_team"], m["away_team"], match_id=match_id, neutral=bool(m["neutral"])
