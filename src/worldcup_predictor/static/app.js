@@ -201,7 +201,9 @@ async function loadAccuracy() {
   </div>`;
   let list = "";
   let lastDay = null;
-  for (const m of (data.matches || [])) {
+  // newest match first (backend returns oldest-first)
+  const ordered = (data.matches || []).slice().reverse();
+  for (const m of ordered) {
     const dk = dayKey(kickDate(m.kickoff));
     if (dk !== lastDay) { list += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
     const correct = m.pick_correct;
