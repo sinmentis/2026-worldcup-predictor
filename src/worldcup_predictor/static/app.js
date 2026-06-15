@@ -66,11 +66,6 @@ function dayKey(d) {
 function timeStr(d) {
   return d ? d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "待定";
 }
-function fmtFull(d) {
-  return d
-    ? d.toLocaleString("zh-CN", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" })
-    : "时间待定";
-}
 
 /* ---------------- upcoming ---------------- */
 let UPCOMING = [];
@@ -204,14 +199,18 @@ async function loadAccuracy() {
     ${beats ? "✓ 我们的模型优于基准（RPS 更低）" : "✗ 模型暂未跑赢基准"} ·
     平均每场比基准 ${(Math.abs(a.baseline_rps - a.model_rps)).toFixed(3)} ${beats ? "更准" : "更差"}
   </div>`;
-  const list = (data.matches || []).map((m) => {
+  let list = "";
+  let lastDay = null;
+  for (const m of (data.matches || [])) {
+    const dk = dayKey(kickDate(m.kickoff));
+    if (dk !== lastDay) { list += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
     const correct = m.pick_correct;
     const stage = STAGES[m.stage] || m.stage || "";
     const meta = `<div class="res-meta">
       <span class="tag">${esc(stage)}</span>
       ${m.group ? `<span>${esc(m.group)}组</span>` : ""}
-      <span class="when">${esc(fmtFull(kickDate(m.kickoff)))}</span></div>`;
-    return `<div class="res card" onclick="showDetail(${m.match_id})">
+      <span class="when">${esc(timeStr(kickDate(m.kickoff)))}</span></div>`;
+    list += `<div class="res card" onclick="showDetail(${m.match_id})">
       ${meta}
       ${teamCell(m.home_team, "")}
       <div class="vs">
@@ -221,7 +220,7 @@ async function loadAccuracy() {
       ${teamCell(m.away_team, "away")}
       <div class="verdict-mark ${correct ? "ok" : "no"}">${correct ? "✓" : "✗"}</div>
     </div>`;
-  }).join("");
+  }
   el.innerHTML = `<h2>预测 vs 实际 <small>（与我们最初的预测对比）</small></h2>${tiles}${verdict}${list}`;
 }
 
