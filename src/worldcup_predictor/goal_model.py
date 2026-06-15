@@ -119,3 +119,26 @@ def poisson_grid(lam_h: float, lam_a: float, max_goals: int = 15) -> ScoreGrid:
     matrix = np.outer(h, a)
     matrix = matrix / matrix.sum()
     return ScoreGrid(matrix=matrix)
+
+
+def retilt_grid(
+    grid: ScoreGrid,
+    lam_h_old: float,
+    lam_a_old: float,
+    lam_h_new: float,
+    lam_a_new: float,
+) -> ScoreGrid:
+    """Shift a fitted grid's marginals from old to new expected goals while preserving
+    its dependency structure (the Dixon-Coles low-score correction).
+
+    Multiplies cell (h, a) by the Poisson pmf ratio (lam_new/lam_old)^h for the home
+    axis and ^a for the away axis, then renormalizes. This is the exact transform for an
+    independent-Poisson grid and a shape-preserving approximation for Dixon-Coles; when
+    the lambdas are unchanged the grid is returned untouched (continuity).
+    """
+    n = grid.matrix.shape[0]
+    tilt_h = (lam_h_new / lam_h_old) ** np.arange(n)
+    tilt_a = (lam_a_new / lam_a_old) ** np.arange(n)
+    matrix = grid.matrix * np.outer(tilt_h, tilt_a)
+    return ScoreGrid(matrix=matrix / matrix.sum())
+

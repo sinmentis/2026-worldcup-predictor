@@ -4,7 +4,7 @@ import sqlite3
 import time
 
 from worldcup_predictor import intel
-from worldcup_predictor.goal_model import GoalModel, poisson_grid
+from worldcup_predictor.goal_model import GoalModel, retilt_grid
 from worldcup_predictor.models import IntelFactor, MatchPrediction
 
 MODEL_VERSION = "dc-elo-v1"
@@ -25,8 +25,10 @@ def predict_match(
     if apply_intel:
         new_h, new_a, factors = intel.apply_intel(lam_h, lam_a, home, away, conn)
         if (new_h, new_a) != (lam_h, lam_a):
-            grid = poisson_grid(new_h, new_a)
-            lam_h, lam_a = new_h, new_a
+            # Re-tilt the fitted Dixon-Coles grid toward the adjusted lambdas so the
+            # low-score correction is preserved (no discontinuous switch to indep. Poisson).
+            grid = retilt_grid(grid, lam_h, lam_a, new_h, new_a)
+            lam_h, lam_a = grid.exp_goals()
 
     ml_h, ml_a = grid.most_likely()
     pred = MatchPrediction(
