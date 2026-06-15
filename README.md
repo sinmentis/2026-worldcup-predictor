@@ -85,6 +85,30 @@ uv run worldcup evaluate
 uv run worldcup load-history --file path/to/results.csv
 ```
 
+## Phase 2a — Off-pitch intelligence
+
+Phase 2a adds source-linked player-status intelligence to the deterministic prediction engine. Cron can run `worldcup fetch-news` to store raw RSS articles in SQLite. In a Copilot CLI session, ask it to process the latest news through MCP. The MCP flow is `get_unprocessed_news`, `upsert_player_status`, then `mark_news_processed`.
+
+The trust gate keeps weak intel out of predictions. A status becomes active only when confidence is high and it has either at least two sources or an official source. Single-source or lower-confidence items stay pending and have no model effect until reviewed.
+
+Status multipliers are defined by `MAGNITUDE_TABLE`:
+
+| Tier | `out` | `suspended` | `doubtful` |
+| --- | ---: | ---: | ---: |
+| `key` | 0.72 | 0.72 | 0.88 |
+| `regular` | 0.85 | 0.85 | 0.93 |
+| `fringe` | 0.96 | 0.96 | 0.98 |
+
+Review pending items with:
+
+```bash
+uv run worldcup intel-pending
+uv run worldcup intel-approve <id>
+uv run worldcup intel-reject <id>
+```
+
+Statuses expire at the team's next scheduled match when that date is known. If no kickoff is set, the default expiry is 14 days.
+
 ## MCP server
 
 The stdio MCP server exposes the engine through FastMCP tools:

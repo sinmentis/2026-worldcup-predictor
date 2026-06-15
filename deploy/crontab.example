@@ -2,3 +2,5 @@
 */10 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-results >> /tmp/wc-fetch.log 2>&1
 # Nightly: refit ratings + re-run simulation
 30 4 * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup simulate --n 50000 >> /tmp/wc-sim.log 2>&1
+# Fetch off-pitch news every 30 minutes (deterministic, no LLM)
+*/30 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-news >> /tmp/wc-news.log 2>&1
