@@ -102,6 +102,21 @@ CREATE TABLE IF NOT EXISTS player_status (
     notes TEXT,
     UNIQUE(team, player)
 );
+CREATE TABLE IF NOT EXISTS team_signal (
+    id INTEGER PRIMARY KEY,
+    team TEXT NOT NULL,
+    category TEXT NOT NULL,
+    direction TEXT NOT NULL,
+    magnitude_tier TEXT NOT NULL,
+    credibility REAL NOT NULL,
+    sources TEXT NOT NULL,
+    official INTEGER DEFAULT 0,
+    valid_until TEXT,
+    as_of REAL NOT NULL,
+    pending INTEGER DEFAULT 0,
+    notes TEXT,
+    UNIQUE(team, category)
+);
 """
 
 

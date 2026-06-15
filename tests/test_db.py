@@ -51,3 +51,28 @@ def test_phase2a_tables_exist(tmp_path):
             "INSERT INTO player_status(team,player,tier,status,credibility,sources,as_of,pending)"
             " VALUES ('France','X','key','out',0.9,'[]',0,0)"
         )
+
+
+def test_team_signal_table_exists(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    names = {
+        r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    }
+    assert "team_signal" in names
+    # team_signal enforces one current row per (team, category)
+    conn.execute(
+        "INSERT INTO team_signal"
+        "(team,category,direction,magnitude_tier,credibility,sources,as_of,pending)"
+        " VALUES ('Brazil','tactical','strengthen','minor',0.8,'[]',0,0)"
+    )
+    import sqlite3
+
+    import pytest
+
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO team_signal"
+            "(team,category,direction,magnitude_tier,credibility,sources,as_of,pending)"
+            " VALUES ('Brazil','tactical','weaken','major',0.8,'[]',0,0)"
+        )
