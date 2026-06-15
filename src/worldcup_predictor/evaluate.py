@@ -24,3 +24,50 @@ def multiclass_brier(probs: list[float], outcome: int) -> float:
 def log_loss_score(probs: list[float], outcome: int, eps: float = 1e-15) -> float:
     p = min(1 - eps, max(eps, probs[outcome]))
     return -math.log(p)
+
+
+BASELINE = [0.40, 0.30, 0.30]
+
+
+def _outcome(home_score: int, away_score: int) -> int:
+    if home_score > away_score:
+        return 0
+    if home_score == away_score:
+        return 1
+    return 2
+
+
+def score_finished_predictions(conn: sqlite3.Connection) -> dict[str, float]:
+    rows = conn.execute(
+        "SELECT p.p_home, p.p_draw, p.p_away, m.home_score, m.away_score "
+        "FROM predictions p JOIN matches m ON m.id = p.match_id "
+        "WHERE m.status='FINISHED'"
+    ).fetchall()
+    if not rows:
+        return {"n": 0}
+
+    m_rps = m_brier = m_ll = b_rps = 0.0
+    for r in rows:
+        probs = [r["p_home"], r["p_draw"], r["p_away"]]
+        out = _outcome(r["home_score"], r["away_score"])
+        m_rps += rps(probs, out)
+        m_brier += multiclass_brier(probs, out)
+        m_ll += log_loss_score(probs, out)
+        b_rps += rps(BASELINE, out)
+
+    n = len(rows)
+    summary = {
+        "n": n,
+        "model_rps": m_rps / n,
+        "model_brier": m_brier / n,
+        "model_log_loss": m_ll / n,
+        "baseline_rps": b_rps / n,
+    }
+    now = time.time()
+    for key in ("model_rps", "model_brier", "model_log_loss", "baseline_rps"):
+        conn.execute(
+            "INSERT INTO metrics(created_at, metric, value, scope) VALUES (?,?,?,?)",
+            (now, key, summary[key], "all_finished"),
+        )
+    conn.commit()
+    return summary
