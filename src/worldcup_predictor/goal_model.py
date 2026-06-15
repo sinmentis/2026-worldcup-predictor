@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
+from math import exp, factorial
 
 import numpy as np
 import pandas as pd
@@ -107,3 +108,14 @@ def history_frame(conn: sqlite3.Connection, since: str = "2018-01-01") -> pd.Dat
         ],
         columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"],
     )
+
+
+def poisson_grid(lam_h: float, lam_a: float, max_goals: int = 15) -> ScoreGrid:
+    def pmf(k: int, lam: float) -> float:
+        return exp(-lam) * lam**k / factorial(k)
+
+    h = np.array([pmf(i, lam_h) for i in range(max_goals)])
+    a = np.array([pmf(j, lam_a) for j in range(max_goals)])
+    matrix = np.outer(h, a)
+    matrix = matrix / matrix.sum()
+    return ScoreGrid(matrix=matrix)
