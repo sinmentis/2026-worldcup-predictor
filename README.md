@@ -85,9 +85,10 @@ uv run worldcup predict <match_id>
 uv run worldcup simulate --n 50000 --seed 123
 uv run worldcup evaluate
 uv run worldcup backtest --fit-calibration   # walk-forward skill/calibration + fit the calibrator
+uv run worldcup tune --apply                 # auto-tune the recency decay (Phase 2b; dry-run without --apply)
 ```
 
-### Model calibration and backtest
+### Model calibration, backtest, and auto-tuning
 
 `worldcup backtest` runs a walk-forward, no-look-ahead evaluation: for each refit window the
 goal model is trained only on matches before that window and used to predict it, yielding
@@ -95,6 +96,12 @@ out-of-sample predictions. It reports RPS/Brier/log-loss versus a flat baseline 
 reliability curve and ECE (calibration error). With `--fit-calibration` it fits a small
 parametric calibrator (draw multiplier + temperature) that minimises out-of-sample RPS and
 stores it in `tuning_params`; `predict` then applies it to the 1X2 (identity until fitted).
+
+`worldcup tune` (Phase 2b) grid-searches the Dixon-Coles recency decay (`TIME_DECAY_XI`) over the
+same backtest and, with `--apply`, adopts the best out-of-sample value (guard-railed: only if it
+beats the current value by a margin). The tuned decay is stored in `tuning_params` and the model
+refits on change. Run it on a schedule for self-updating hyperparameters.
+
 Host nations (USA/Mexico/Canada) get a modest expected-goals bump (`config.HOST_ADVANTAGE`)
 since World Cup matches strip out home advantage.
 
