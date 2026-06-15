@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterator
 
 import numpy as np
 
@@ -86,3 +86,55 @@ def standings_from_results(
         )
         for t in ordered
     ]
+
+
+# Fixed Annex C R32 pairing template. "3" marks a best-third slot (filled in order).
+_R32_TEMPLATE: list[tuple[str, str]] = [
+    ("RU_A", "RU_B"),
+    ("W_E", "3"),
+    ("W_F", "RU_C"),
+    ("W_C", "RU_F"),
+    ("W_I", "3"),
+    ("RU_E", "RU_I"),
+    ("W_A", "3"),
+    ("W_L", "3"),
+    ("W_D", "3"),
+    ("W_G", "3"),
+    ("RU_K", "RU_L"),
+    ("W_H", "RU_J"),
+    ("W_B", "3"),
+    ("W_J", "RU_H"),
+    ("W_K", "3"),
+    ("RU_D", "RU_G"),
+]
+
+
+def best_thirds(thirds: dict[str, GroupRow], rng: random.Random | None = None) -> list[GroupRow]:
+    rng = rng or random.Random()
+    ranked = sorted(
+        thirds.values(),
+        key=lambda r: (r.pts, r.gd, r.gf, rng.random()),
+        reverse=True,
+    )
+    return ranked[:8]
+
+
+def build_r32(
+    winners: dict[str, str], runners: dict[str, str], thirds: list[str]
+) -> list[tuple[str, str]]:
+    third_iter = iter(thirds)
+    out: list[tuple[str, str]] = []
+    for left, right in _R32_TEMPLATE:
+        a = _resolve(left, winners, runners, third_iter)
+        b = _resolve(right, winners, runners, third_iter)
+        out.append((a, b))
+    return out
+
+
+def _resolve(
+    token: str, winners: dict[str, str], runners: dict[str, str], thirds: Iterator[str]
+) -> str:
+    if token == "3":
+        return next(thirds)
+    side, gid = token.split("_")
+    return winners[gid] if side == "W" else runners[gid]
