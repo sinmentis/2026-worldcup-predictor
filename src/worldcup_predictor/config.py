@@ -46,6 +46,10 @@ RSS_FEEDS = {
 
 HOSTS = {"Mexico", "Canada", "United States"}
 
+# Host-nation expected-goals multiplier: WC matches are at neutral venues, but the host
+# nations still get a home-crowd edge that neutral=True would otherwise strip out. Tunable.
+HOST_ADVANTAGE = 1.10
+
 GROUPS: dict[str, list[str]] = {
     "A": ["Mexico", "South Africa", "South Korea", "Czech Republic"],
     "B": ["Canada", "Switzerland", "Bosnia and Herzegovina", "Qatar"],

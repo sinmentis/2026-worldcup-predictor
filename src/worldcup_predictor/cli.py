@@ -139,6 +139,49 @@ def evaluate_cmd() -> None:
 app.command("evaluate")(evaluate_cmd)
 
 
+@app.command("backtest")
+def backtest_cmd(
+    since: str | None = typer.Option(None, help="Test-window start date (YYYY-MM-DD)"),
+    refit_days: int = typer.Option(30, help="Refit the model every N days"),
+    test_years: int = typer.Option(2, help="Backtest over the last N years of history"),
+    fit_calibration: bool = typer.Option(
+        False, "--fit-calibration", help="Fit and store the calibrator from the backtest"
+    ),
+) -> None:
+    """Walk-forward backtest: out-of-sample skill, reliability, and optional calibration fit."""
+    conn = _conn()
+    rep = engine.run_backtest(
+        conn,
+        since=since,
+        refit_days=refit_days,
+        test_years=test_years,
+        fit_calibration=fit_calibration,
+    )
+    if not rep.get("n"):
+        typer.echo("No out-of-sample predictions (need more history).")
+        return
+    typer.echo(f"Out-of-sample matches: {rep['n']}")
+    typer.echo(f"Model RPS    {rep['model_rps']:.4f}   Baseline RPS {rep['baseline_rps']:.4f}")
+    typer.echo(f"Model Brier  {rep['model_brier']:.4f}   log-loss {rep['model_log_loss']:.4f}")
+    typer.echo(f"ECE (calibration error): {rep['ece']:.4f}")
+    typer.echo("Reliability (predicted confidence -> actual accuracy):")
+    for b in rep["reliability"]:
+        typer.echo(
+            f"  [{b['lo']:.1f}-{b['hi']:.1f}] n={b['n']:<4} conf={b['confidence']:.3f} "
+            f"acc={b['accuracy']:.3f}"
+        )
+    if "calibration" in rep:
+        c = rep["calibration"]
+        typer.echo(
+            f"\nFitted calibration: draw_mult={c['draw_mult']} temperature={c['temperature']}"
+        )
+        typer.echo(
+            f"  RPS {c['rps_before']:.4f} -> {c['rps_after']:.4f}   "
+            f"ECE {c['ece_before']:.4f} -> {c['ece_after']:.4f}"
+        )
+        typer.echo("Stored. predict / accuracy will now use it.")
+
+
 @app.command()
 def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
     """Start the web UI (bind 127.0.0.1 by default; use --host 0.0.0.0 for LAN access)."""

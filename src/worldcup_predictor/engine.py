@@ -4,6 +4,8 @@ import sqlite3
 from dataclasses import asdict
 from typing import Any
 
+from worldcup_predictor import backtest as _backtest
+from worldcup_predictor import calibrate as _calibrate
 from worldcup_predictor import config, db
 from worldcup_predictor import evaluate as _eval
 from worldcup_predictor import intel as _intel
@@ -131,6 +133,48 @@ def get_accuracy(conn: sqlite3.Connection) -> dict[str, Any]:
         aggregate["exact_rate"] = sum(1 for r in rows if r["exact_scoreline"]) / n
         aggregate["beats_baseline"] = aggregate["model_rps"] < aggregate["baseline_rps"]
     return {"aggregate": aggregate, "matches": rows}
+
+
+def run_backtest(
+    conn: sqlite3.Connection,
+    since: str | None = None,
+    refit_days: int = 30,
+    test_years: int = 2,
+    fit_calibration: bool = False,
+) -> dict[str, Any]:
+    """Walk-forward backtest: out-of-sample skill + calibration, optionally fit+store calibrator."""
+    oos = _backtest.walk_forward_predictions(
+        conn, since=since, refit_days=refit_days, test_years=test_years
+    )
+    report: dict[str, Any] = {"n": len(oos)}
+    if not oos:
+        return report
+    base = _backtest.metrics(oos)
+    rel = _backtest.reliability(oos)
+    report.update(base)
+    report["ece"] = rel["ece"]
+    report["reliability"] = rel["bins"]
+    if fit_calibration:
+        params = _calibrate.fit(oos)
+        knobs = {"draw_mult": params["draw_mult"], "temperature": params["temperature"]}
+        after = _backtest.metrics(oos, params=knobs)
+        cal_oos = [
+            {**r, "p_home": cp[0], "p_draw": cp[1], "p_away": cp[2]}
+            for r in oos
+            for cp in [_calibrate.apply(r["p_home"], r["p_draw"], r["p_away"], knobs)]
+        ]
+        rel_after = _backtest.reliability(cal_oos)
+        meta = {
+            "n_test": len(oos),
+            "rps_before": base["model_rps"],
+            "rps_after": after["calibrated_rps"],
+            "ece_before": rel["ece"],
+            "ece_after": rel_after["ece"],
+        }
+        _calibrate.store(conn, knobs, meta=meta)
+        db.touch_update(conn)
+        report["calibration"] = {**knobs, **meta}
+    return report
 
 
 def fetch_news(conn: sqlite3.Connection) -> int:

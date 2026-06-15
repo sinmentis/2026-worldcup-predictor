@@ -3,11 +3,26 @@ from __future__ import annotations
 import sqlite3
 import time
 
-from worldcup_predictor import intel
+from worldcup_predictor import calibrate, config, intel
 from worldcup_predictor.goal_model import GoalModel, ScoreGrid, retilt_grid
 from worldcup_predictor.models import IntelFactor, MatchPrediction
 
 MODEL_VERSION = "dc-v1"
+
+
+def host_adjust(lam_h: float, lam_a: float, home: str, away: str) -> tuple[float, float]:
+    """Give a host nation a modest expected-goals bump when it plays a non-host.
+
+    All WC2026 matches are at neutral venues, but the host nations (USA/Mexico/Canada)
+    still enjoy a home-crowd edge that ``neutral=True`` strips out.
+    """
+    h_host = home in config.HOSTS
+    a_host = away in config.HOSTS
+    if h_host and not a_host:
+        return lam_h * config.HOST_ADVANTAGE, lam_a
+    if a_host and not h_host:
+        return lam_h, lam_a * config.HOST_ADVANTAGE
+    return lam_h, lam_a
 
 
 def adjusted_grid(
@@ -17,15 +32,16 @@ def adjusted_grid(
     away: str,
     neutral: bool = True,
 ) -> tuple[ScoreGrid, list[IntelFactor]]:
-    """Return the score grid for a match with current off-pitch intel applied.
+    """Return the score grid for a match with host advantage and off-pitch intel applied.
 
     Shared by both single-match prediction and the tournament simulation so the two are
-    always consistent. Intel shifts each team's expected goals; the fitted Dixon-Coles
-    grid is re-tilted toward the new lambdas (no-op when there is no intel).
+    always consistent. Host advantage and intel shift each team's expected goals; the fitted
+    Dixon-Coles grid is re-tilted toward the new lambdas (no-op when nothing applies).
     """
     grid = model.predict_grid(home, away, neutral=neutral)
     lam_h, lam_a = grid.exp_goals()
-    new_h, new_a, factors = intel.apply_intel(lam_h, lam_a, home, away, conn)
+    host_h, host_a = host_adjust(lam_h, lam_a, home, away)
+    new_h, new_a, factors = intel.apply_intel(host_h, host_a, home, away, conn)
     if (new_h, new_a) != (lam_h, lam_a):
         grid = retilt_grid(grid, lam_h, lam_a, new_h, new_a)
     return grid, factors
@@ -48,12 +64,17 @@ def predict_match(
     lam_h, lam_a = grid.exp_goals()
 
     ml_h, ml_a = grid.most_likely()
+    # Post-hoc calibration of the 1X2 (raises under-weighted draws, tames over-confidence).
+    # No-op until parameters are fitted and stored, so behaviour is unchanged by default.
+    p_home, p_draw, p_away = calibrate.apply(
+        grid.home_win, grid.draw, grid.away_win, calibrate.load(conn)
+    )
     pred = MatchPrediction(
         home_team=home,
         away_team=away,
-        p_home=grid.home_win,
-        p_draw=grid.draw,
-        p_away=grid.away_win,
+        p_home=p_home,
+        p_draw=p_draw,
+        p_away=p_away,
         exp_home_goals=lam_h,
         exp_away_goals=lam_a,
         ml_home=ml_h,
