@@ -182,6 +182,28 @@ def _knockout_winner(
     return a if rng.random() < 0.5 else b  # penalties ~ 50/50
 
 
+def _load_played_groups(
+    conn: sqlite3.Connection,
+) -> tuple[dict[str, list[Result]], dict[str, set[frozenset[str]]]]:
+    """Return finished group results and the set of played pairs, keyed by group."""
+    played: dict[str, list[Result]] = {g: [] for g in config.GROUPS}
+    pairs: dict[str, set[frozenset[str]]] = {g: set() for g in config.GROUPS}
+    rows = conn.execute(
+        "SELECT group_id, home_team, away_team, home_score, away_score "
+        "FROM matches WHERE stage='group' AND status='FINISHED' "
+        "AND home_score IS NOT NULL AND away_score IS NOT NULL"
+    ).fetchall()
+    for r in rows:
+        gid = r["group_id"]
+        if gid not in played:
+            continue
+        played[gid].append(
+            (r["home_team"], r["away_team"], int(r["home_score"]), int(r["away_score"]))
+        )
+        pairs[gid].add(frozenset((r["home_team"], r["away_team"])))
+    return played, pairs
+
+
 def simulate_tournament(
     conn: sqlite3.Connection, model: GoalModel, n: int = 50_000, seed: int | None = None
 ) -> dict[str, dict[str, float]]:
@@ -201,6 +223,7 @@ def simulate_tournament(
             probs[(x, y)] = (g.home_win, g.draw, g.away_win)
 
     counts = {t: dict(advance=0, r16=0, qf=0, sf=0, final=0, title=0) for t in teams}
+    played, played_pairs = _load_played_groups(conn)
 
     for _ in range(n):
         winners: dict[str, str] = {}
@@ -208,8 +231,11 @@ def simulate_tournament(
         thirds_rows: dict[str, GroupRow] = {}
 
         for gid, gteams in config.GROUPS.items():
-            results: list[Result] = []
+            # Condition on already-finished matches; only sample the ones not yet played.
+            results: list[Result] = list(played[gid])
             for h, a in combinations(gteams, 2):
+                if frozenset((h, a)) in played_pairs[gid]:
+                    continue
                 hg, ag = _sample_score(grids[(h, a)], rng)
                 results.append((h, a, hg, ag))
             table = standings_from_results(

@@ -58,3 +58,31 @@ def test_intel_lowers_simulated_advancement(tmp_path):
     )
     after = simulate_tournament(conn, model, n=500, seed=3)[target]["advance"]
     assert after < before
+
+
+def test_simulation_conditions_on_finished_group_matches(tmp_path):
+    # When every group-A match is already played with Mexico winning all of them,
+    # Mexico must advance in every simulation and the 4th-placed team never advances.
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    model = GoalModel().fit(_history())
+
+    def finish(home, away, hs, as_):
+        conn.execute(
+            "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
+            "WHERE group_id='A' AND home_team=? AND away_team=?",
+            (hs, as_, home, away),
+        )
+
+    finish("Mexico", "South Africa", 2, 0)
+    finish("Mexico", "South Korea", 2, 0)
+    finish("Mexico", "Czech Republic", 2, 0)
+    finish("South Africa", "South Korea", 1, 0)
+    finish("South Africa", "Czech Republic", 1, 0)
+    finish("South Korea", "Czech Republic", 1, 0)
+    conn.commit()
+
+    result = simulate_tournament(conn, model, n=300, seed=5)
+    assert result["Mexico"]["advance"] > 0.999  # 9 pts, group fully decided
+    assert result["Czech Republic"]["advance"] == 0.0  # 4th place never qualifies
