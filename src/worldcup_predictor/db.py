@@ -77,6 +77,31 @@ CREATE TABLE IF NOT EXISTS tuning_params (
     key TEXT PRIMARY KEY, value TEXT, updated_at REAL
 );
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE IF NOT EXISTS news_articles (
+    id INTEGER PRIMARY KEY,
+    source TEXT,
+    url TEXT UNIQUE,
+    title TEXT,
+    summary TEXT,
+    published_at TEXT,
+    fetched_at REAL,
+    processed INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS player_status (
+    id INTEGER PRIMARY KEY,
+    team TEXT NOT NULL,
+    player TEXT NOT NULL,
+    tier TEXT NOT NULL,
+    status TEXT NOT NULL,
+    credibility REAL NOT NULL,
+    sources TEXT NOT NULL,
+    official INTEGER DEFAULT 0,
+    valid_until TEXT,
+    as_of REAL NOT NULL,
+    pending INTEGER DEFAULT 0,
+    notes TEXT,
+    UNIQUE(team, player)
+);
 """
 
 
