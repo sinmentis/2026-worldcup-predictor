@@ -30,4 +30,3 @@ def test_load_history_skips_unplayed_and_na_rows(tmp_path):
     n = ingest.load_history_from_text(conn, csv_with_gaps)
     assert n == 1  # only the played match is stored; NA / empty rows are skipped
     assert conn.execute("SELECT COUNT(*) FROM historical_matches").fetchone()[0] == 1
-
