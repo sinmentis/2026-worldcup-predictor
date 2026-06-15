@@ -6,6 +6,8 @@ from typing import Any
 
 from worldcup_predictor import config, db
 from worldcup_predictor import intel as _intel
+from worldcup_predictor import news as _news
+from worldcup_predictor import player_status as _ps
 from worldcup_predictor.goal_model import GoalModel, history_frame
 from worldcup_predictor.models import IntelEvent
 from worldcup_predictor.predict import predict_match
@@ -70,6 +72,49 @@ def get_forecast(conn: sqlite3.Connection) -> list[dict[str, Any]]:
         "FROM sim_results ORDER BY title_prob DESC, advance_prob DESC"
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+def fetch_news(conn: sqlite3.Connection) -> int:
+    n = _news.fetch_news(conn)
+    db.touch_update(conn)
+    return n
+
+
+def get_unprocessed_news(conn: sqlite3.Connection, limit: int = 20) -> list[dict[str, Any]]:
+    rows = conn.execute(
+        "SELECT id, source, url, title, summary, published_at FROM news_articles "
+        "WHERE processed=0 ORDER BY id LIMIT ?",
+        (max(1, min(limit, 100)),),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def mark_news_processed(conn: sqlite3.Connection, ids: list[int]) -> int:
+    for i in ids:
+        conn.execute("UPDATE news_articles SET processed=1 WHERE id=?", (i,))
+    conn.commit()
+    db.touch_update(conn)
+    return len(ids)
+
+
+def upsert_player_status(conn: sqlite3.Connection, **kwargs: Any) -> dict[str, object]:
+    out = _ps.upsert_status(conn, **kwargs)
+    db.touch_update(conn)
+    return out
+
+
+def list_pending_intel(conn: sqlite3.Connection) -> list[dict[str, Any]]:
+    return [dict(r) for r in _ps.list_pending(conn)]
+
+
+def approve_intel(conn: sqlite3.Connection, status_id: int) -> None:
+    _ps.approve(conn, status_id)
+    db.touch_update(conn)
+
+
+def reject_intel(conn: sqlite3.Connection, status_id: int) -> None:
+    _ps.reject(conn, status_id)
+    db.touch_update(conn)
 
 
 _MODEL: GoalModel | None = None
