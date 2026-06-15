@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+import pandas as pd
+from penaltyblog.models import DixonColesGoalModel, dixon_coles_weights
+
+from worldcup_predictor import config
+
+
+@dataclass
+class ScoreGrid:
+    matrix: np.ndarray  # matrix[h, a] = P(home=h, away=a)
+
+    @property
+    def home_win(self) -> float:
+        return float(np.tril(self.matrix, -1).sum())
+
+    @property
+    def away_win(self) -> float:
+        return float(np.triu(self.matrix, 1).sum())
+
+    @property
+    def draw(self) -> float:
+        return float(np.trace(self.matrix))
+
+    def exp_goals(self) -> tuple[float, float]:
+        idx = np.arange(self.matrix.shape[0])
+        eh = float((self.matrix.sum(axis=1) * idx).sum())
+        ea = float((self.matrix.sum(axis=0) * idx).sum())
+        return eh, ea
+
+    def most_likely(self) -> tuple[int, int]:
+        h, a = np.unravel_index(int(np.argmax(self.matrix)), self.matrix.shape)
+        return int(h), int(a)
+
+    def exact(self, h: int, a: int) -> float:
+        return float(self.matrix[h, a])
+
+    def over(self, line: float) -> float:
+        total = 0.0
+        for h in range(self.matrix.shape[0]):
+            for a in range(self.matrix.shape[1]):
+                if h + a > line:
+                    total += self.matrix[h, a]
+        return float(total)
+
+    def btts(self) -> float:
+        return float(self.matrix[1:, 1:].sum())
+
+
+class GoalModel:
+    """Dixon-Coles wrapper. Backend = penaltyblog (fallback: see plan Task 4.x)."""
+
+    def __init__(self) -> None:
+        self._model: DixonColesGoalModel | None = None
+
+    def fit(self, history: pd.DataFrame) -> GoalModel:
+        # penaltyblog's Cython core needs writable arrays and real datetimes (arm64-verified):
+        # pandas Series are read-only buffers, and dixon_coles_weights wants datetimes not strings.
+        weights = dixon_coles_weights(pd.to_datetime(history["date"]), xi=config.TIME_DECAY_XI)
+        self._model = DixonColesGoalModel(
+            history["home_goals"].to_numpy().copy(),
+            history["away_goals"].to_numpy().copy(),
+            history["home_team"].to_numpy(),
+            history["away_team"].to_numpy(),
+            weights=np.asarray(weights, dtype="float64").copy(),
+        )
+        self._model.fit()
+        return self
+
+    def predict_grid(
+        self, home: str, away: str, neutral: bool = True, max_goals: int = 15
+    ) -> ScoreGrid:
+        if self._model is None:
+            raise RuntimeError("GoalModel.fit() must be called before predict_grid()")
+        fpg = self._model.predict(home, away, max_goals=max_goals)
+        matrix = np.asarray(fpg.grid, dtype=float)
+        matrix = matrix / matrix.sum()
+        return ScoreGrid(matrix=matrix)
