@@ -32,6 +32,18 @@ DEFAULT_ELO = 1500.0
 ELO_SHRINK_GAMES = 30  # shrink sparse teams toward the mean over this many games
 TIME_DECAY_XI = 0.001  # Dixon-Coles weight decay (~693-day half-life)
 
+# Off-pitch intel tuning (Phase 2a). ADJUST_CLAMP bounds the net per-team lambda multiplier delta.
+LAMBDA_MIN = 0.05
+ADJUST_CLAMP = (-0.6, 0.6)
+
+# Free RSS news feeds for off-pitch intelligence (no API key needed).
+RSS_FEEDS = {
+    "BBC Sport": "https://feeds.bbci.co.uk/sport/football/rss.xml",
+    "Sky Sports": "https://www.skysports.com/rss/12040",
+    "Guardian Football": "https://www.theguardian.com/football/rss",
+    "ESPN Soccer": "https://www.espn.com/espn/rss/soccer/news",
+}
+
 HOSTS = {"Mexico", "Canada", "United States"}
 
 GROUPS: dict[str, list[str]] = {

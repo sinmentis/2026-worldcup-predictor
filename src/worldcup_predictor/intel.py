@@ -3,10 +3,8 @@ from __future__ import annotations
 import sqlite3
 import time
 
+from worldcup_predictor.config import ADJUST_CLAMP, LAMBDA_MIN  # noqa: F401, RUF100
 from worldcup_predictor.models import IntelEvent, IntelFactor
-
-LAMBDA_MIN = 0.05
-ADJUST_CLAMP = (-0.6, 0.6)  # bound the net multiplier delta per team
 
 
 def record_intel(conn: sqlite3.Connection, event: IntelEvent) -> None:

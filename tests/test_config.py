@@ -14,3 +14,12 @@ def test_groups_complete():
 
 def test_k_table_has_world_cup():
     assert config.K_TABLE["world_cup"] == 60
+
+
+def test_phase2a_config():
+    from worldcup_predictor import config
+
+    assert config.LAMBDA_MIN == 0.05
+    assert config.ADJUST_CLAMP == (-0.6, 0.6)
+    assert len(config.RSS_FEEDS) >= 3
+    assert all(u.startswith("http") for u in config.RSS_FEEDS.values())
