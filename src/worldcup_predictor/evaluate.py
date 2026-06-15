@@ -48,8 +48,9 @@ def score_finished_predictions(conn: sqlite3.Connection) -> dict[str, float]:
 
     m_rps = m_brier = m_ll = b_rps = 0.0
     for r in rows:
-        probs = [r["p_home"], r["p_draw"], r["p_away"]]
-        out = _outcome(r["home_score"], r["away_score"])
+        p_home, p_draw, p_away, home_score, away_score = r
+        probs = [p_home, p_draw, p_away]
+        out = _outcome(home_score, away_score)
         m_rps += rps(probs, out)
         m_brier += multiclass_brier(probs, out)
         m_ll += log_loss_score(probs, out)

@@ -1,3 +1,4 @@
+import sqlite3
 import time
 
 from worldcup_predictor import db
@@ -30,3 +31,23 @@ def test_score_finished_predictions(tmp_path):
     # model predicted home strongly and home won -> model beats base rate
     assert summary["model_rps"] < summary["baseline_rps"]
     assert conn.execute("SELECT COUNT(*) FROM metrics").fetchone()[0] >= 1
+
+
+def test_score_finished_predictions_accepts_plain_sqlite_connection(tmp_path):
+    conn = sqlite3.connect(tmp_path / "plain.db")
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,home_team,away_team,home_score,away_score,status)"
+        " VALUES (1,'group','A','B',0,1,'FINISHED')"
+    )
+    conn.execute(
+        "INSERT INTO predictions(match_id,created_at,p_home,p_draw,p_away,"
+        "exp_home_goals,exp_away_goals,ml_home,ml_away,model_version,reasoning)"
+        " VALUES (1,?,0.2,0.3,0.5,0.6,1.4,0,1,'v','')",
+        (time.time(),),
+    )
+    conn.commit()
+
+    summary = score_finished_predictions(conn)
+
+    assert summary["n"] == 1
