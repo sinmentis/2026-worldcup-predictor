@@ -1,13 +1,6 @@
 import pandas as pd
-import pytest
 
 
-@pytest.mark.skip(
-    reason=(
-        "MODEL_BACKEND=fallback: penaltyblog installs/imports on arm64, but "
-        "DixonColesGoalModel.fit() fails with ValueError: buffer source array is read-only"
-    )
-)
 def test_penaltyblog_imports_and_fits():
     from penaltyblog.models import DixonColesGoalModel
 
@@ -20,7 +13,10 @@ def test_penaltyblog_imports_and_fits():
         }
     )
     model = DixonColesGoalModel(
-        df["home_goals"], df["away_goals"], df["home_team"], df["away_team"]
+        df["home_goals"].to_numpy().copy(),
+        df["away_goals"].to_numpy().copy(),
+        df["home_team"].to_numpy(),
+        df["away_team"].to_numpy(),
     )
     model.fit()
     grid = model.predict("A", "B")
