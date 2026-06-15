@@ -2,10 +2,11 @@ from fastapi.testclient import TestClient
 
 
 def test_api_endpoints(tmp_path, monkeypatch):
-    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "web.db"))
+    db_path = tmp_path / "web.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
     from worldcup_predictor import db, ingest
 
-    conn = db.connect()
+    conn = db.connect(db_path)
     db.init_schema(conn)
     ingest.seed_teams_and_fixtures(conn)
 

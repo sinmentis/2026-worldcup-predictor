@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sqlite3
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -20,7 +21,7 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
 def _conn() -> sqlite3.Connection:
-    conn = db.connect()
+    conn = db.connect(os.environ.get("WC_DB_PATH"))
     db.init_schema(conn)
     return conn
 
