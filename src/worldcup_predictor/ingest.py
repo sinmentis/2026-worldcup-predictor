@@ -17,12 +17,21 @@ def _to_bool_int(raw: str) -> int:
     return 1 if str(raw).strip().lower() in {"true", "1", "yes"} else 0
 
 
+def _parse_int(raw: str | None) -> int | None:
+    try:
+        return int(str(raw).strip())
+    except (TypeError, ValueError):
+        return None
+
+
 def load_history_from_text(conn: sqlite3.Connection, text: str) -> int:
     reader = csv.DictReader(io.StringIO(text))
     count = 0
     for row in reader:
-        if not row.get("home_score") or not row.get("away_score"):
-            continue
+        home_score = _parse_int(row.get("home_score"))
+        away_score = _parse_int(row.get("away_score"))
+        if home_score is None or away_score is None:
+            continue  # skip unplayed/NA/non-numeric rows (e.g. in-progress fixtures)
         conn.execute(
             "INSERT INTO historical_matches"
             "(date, home_team, away_team, home_score, away_score, tournament, neutral)"
@@ -31,8 +40,8 @@ def load_history_from_text(conn: sqlite3.Connection, text: str) -> int:
                 row["date"],
                 row["home_team"],
                 row["away_team"],
-                int(row["home_score"]),
-                int(row["away_score"]),
+                home_score,
+                away_score,
                 row.get("tournament", ""),
                 _to_bool_int(row.get("neutral", "False")),
             ),
