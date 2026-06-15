@@ -52,7 +52,8 @@ def walk_forward_predictions(
     refit_days: int = 30,
     test_years: int = 2,
     train_years: int = 4,
-    neutral: bool = True,
+    xi: float | None = None,
+    neutral: bool | None = None,
 ) -> list[dict[str, Any]]:
     df = history_frame(conn)
     if df.empty:
@@ -67,11 +68,12 @@ def walk_forward_predictions(
     for train, chunk in iter_chunks(df, cutoff, refit_days, train_years):
         if len(train) < MIN_TRAIN:
             continue
-        model = GoalModel().fit(train)
+        model = GoalModel().fit(train, xi=xi)
         for m in chunk.to_dict("records"):
             home, away = m["home_team"], m["away_team"]
+            venue = bool(m["neutral"]) if neutral is None else neutral
             try:
-                grid = model.predict_grid(home, away, neutral=neutral)
+                grid = model.predict_grid(home, away, neutral=venue)
             except Exception:
                 continue
             out.append(

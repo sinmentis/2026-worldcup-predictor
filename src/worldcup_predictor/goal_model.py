@@ -61,10 +61,11 @@ class GoalModel:
     def __init__(self) -> None:
         self._model: DixonColesGoalModel | None = None
 
-    def fit(self, history: pd.DataFrame) -> GoalModel:
+    def fit(self, history: pd.DataFrame, xi: float | None = None) -> GoalModel:
         # penaltyblog's Cython core needs writable arrays and real datetimes (arm64-verified):
         # pandas Series are read-only buffers, and dixon_coles_weights wants datetimes not strings.
-        weights = dixon_coles_weights(pd.to_datetime(history["date"]), xi=config.TIME_DECAY_XI)
+        decay = config.TIME_DECAY_XI if xi is None else xi
+        weights = dixon_coles_weights(pd.to_datetime(history["date"]), xi=decay)
         self._model = DixonColesGoalModel(
             history["home_goals"].to_numpy().copy(),
             history["away_goals"].to_numpy().copy(),

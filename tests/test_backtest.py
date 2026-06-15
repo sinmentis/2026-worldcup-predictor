@@ -20,7 +20,7 @@ class _FakeGrid:
 
 
 class _FakeModel:
-    def fit(self, df):
+    def fit(self, df, xi=None):
         return self
 
     def predict_grid(self, home, away, neutral=True):
@@ -100,3 +100,31 @@ def test_engine_run_backtest_empty(tmp_path, monkeypatch):
     db.init_schema(conn)
     monkeypatch.setattr(backtest, "walk_forward_predictions", lambda *a, **k: [])
     assert engine.run_backtest(conn) == {"n": 0}
+
+
+def test_walk_forward_threads_xi_and_real_neutral(tmp_path, monkeypatch):
+    conn = db.connect(tmp_path / "wf.db")
+    db.init_schema(conn)
+    seen = {"xi": [], "neutral": []}
+
+    class _SpyModel:
+        def fit(self, df, xi=None):
+            seen["xi"].append(xi)
+            return self
+
+        def predict_grid(self, home, away, neutral=True):
+            seen["neutral"].append(neutral)
+            return _FakeGrid()
+
+    df = _synth(400)  # neutral column is all False
+    monkeypatch.setattr(backtest, "history_frame", lambda _c: df)
+    monkeypatch.setattr(backtest, "GoalModel", _SpyModel)
+    monkeypatch.setattr(backtest, "MIN_TRAIN", 10)
+
+    backtest.walk_forward_predictions(conn, xi=0.003, test_years=1, refit_days=60)
+    assert seen["xi"] and all(x == 0.003 for x in seen["xi"])  # xi threaded to fit
+    assert seen["neutral"] and all(v is False for v in seen["neutral"])  # used the real flag
+
+    seen["neutral"].clear()
+    backtest.walk_forward_predictions(conn, neutral=True, test_years=1, refit_days=60)
+    assert all(v is True for v in seen["neutral"])  # explicit override still honoured

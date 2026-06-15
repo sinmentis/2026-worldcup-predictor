@@ -182,6 +182,37 @@ def backtest_cmd(
         typer.echo("Stored. predict / accuracy will now use it.")
 
 
+@app.command("tune")
+def tune_cmd(
+    apply: bool = typer.Option(False, "--apply", help="Adopt the best value (default: dry-run)"),
+    refit_days: int = typer.Option(45, help="Refit the model every N days during the backtest"),
+    test_years: int = typer.Option(2, help="Backtest over the last N years of history"),
+) -> None:
+    """Auto-tune the model's recency decay by walk-forward out-of-sample RPS (Phase 2b)."""
+    conn = _conn()
+    rep = engine.run_tuning(conn, apply=apply, refit_days=refit_days, test_years=test_years)
+    if rep.get("best") is None:
+        typer.echo("No out-of-sample predictions (need more history).")
+        return
+
+    def fmt(v: float | None) -> str:
+        return f"{v:.4f}" if v is not None else "n/a"
+
+    typer.echo(f"Current decay xi={rep['current_xi']:.4f}  OOS RPS={fmt(rep['current_rps'])}")
+    typer.echo("Sweep (decay xi -> out-of-sample RPS):")
+    best = rep["best"]
+    for r in rep["results"]:
+        mark = " <- best" if best and abs(r["xi"] - best["xi"]) < 1e-12 else ""
+        typer.echo(f"  xi={r['xi']:.4f}  n={r['n']:<5} rps={fmt(r['rps'])}{mark}")
+    if best:
+        typer.echo(f"\nBest xi={best['xi']:.4f}  rps={best['rps']:.4f}")
+    if rep["would_adopt"]:
+        tail = " APPLIED + model refit." if rep["applied"] else " Re-run with --apply to adopt."
+        typer.echo("Beats current beyond the guardrail." + tail)
+    else:
+        typer.echo("No guard-railed improvement; keeping the current xi.")
+
+
 @app.command()
 def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
     """Start the web UI (bind 127.0.0.1 by default; use --host 0.0.0.0 for LAN access)."""

@@ -12,6 +12,7 @@ from worldcup_predictor import intel as _intel
 from worldcup_predictor import news as _news
 from worldcup_predictor import player_status as _ps
 from worldcup_predictor import team_signal as _ts
+from worldcup_predictor import tune as _tune
 from worldcup_predictor.goal_model import GoalModel, history_frame
 from worldcup_predictor.models import IntelEvent
 from worldcup_predictor.predict import predict_match
@@ -267,6 +268,7 @@ def reject_intel(conn: sqlite3.Connection, ref: int | str) -> None:
 
 _MODEL: GoalModel | None = None
 _MODEL_DB: str | None = None
+_MODEL_XI: float | None = None
 
 
 def _db_path(conn: sqlite3.Connection) -> str:
@@ -274,23 +276,66 @@ def _db_path(conn: sqlite3.Connection) -> str:
     return str(row["file"]) if row else ""
 
 
-def get_model(conn: sqlite3.Connection, refit: bool = False) -> GoalModel:
-    """Return a fitted goal model, cached per database file.
+def _reset_model_cache() -> None:
+    global _MODEL, _MODEL_DB, _MODEL_XI
+    _MODEL = None
+    _MODEL_DB = None
+    _MODEL_XI = None
 
-    The cache is keyed on the DB path so reusing the process against a different database
-    (e.g. across tests) refits instead of silently reusing a stale model.
+
+def get_model(conn: sqlite3.Connection, refit: bool = False) -> GoalModel:
+    """Return a fitted goal model, cached per database file and tuned decay.
+
+    The cache is keyed on the DB path and the tuned ``time_decay_xi`` so reusing the process
+    against a different database, or after auto-tuning, refits instead of reusing a stale model.
     """
-    global _MODEL, _MODEL_DB
+    global _MODEL, _MODEL_DB, _MODEL_XI
     path = _db_path(conn)
-    if _MODEL is None or refit or path != _MODEL_DB:
+    xi = _tune.current_xi(conn)
+    if _MODEL is None or refit or path != _MODEL_DB or xi != _MODEL_XI:
         frame = history_frame(conn)
         if frame.empty:
             raise ValueError(
                 "No historical data loaded. Run 'worldcup load-history' before predicting."
             )
-        _MODEL = GoalModel().fit(frame)
+        _MODEL = GoalModel().fit(frame, xi=xi)
         _MODEL_DB = path
+        _MODEL_XI = xi
     return _MODEL
+
+
+def run_tuning(
+    conn: sqlite3.Connection,
+    apply: bool = False,
+    refit_days: int = 45,
+    test_years: int = 2,
+    grid: list[float] | None = None,
+) -> dict[str, Any]:
+    """Auto-tune the decay via walk-forward backtest. Adopt only on a guard-railed improvement."""
+    rep = _tune.tune_decay(conn, grid=grid, refit_days=refit_days, test_years=test_years)
+    best = rep["best"]
+    cur_rps = rep["current_rps"]
+    would_adopt = False
+    if best is not None and abs(best["xi"] - rep["current_xi"]) > 1e-12:
+        if cur_rps is None or best["rps"] < cur_rps - _tune.IMPROVE_EPS:
+            would_adopt = True
+    rep["would_adopt"] = would_adopt
+    rep["applied"] = False
+    if apply and would_adopt and best is not None:
+        _tune.store_model_params(
+            conn,
+            {"time_decay_xi": best["xi"]},
+            meta={
+                "rps": best["rps"],
+                "prev_xi": rep["current_xi"],
+                "prev_rps": cur_rps,
+                "n_test": best["n"],
+            },
+        )
+        _reset_model_cache()
+        db.touch_update(conn)
+        rep["applied"] = True
+    return rep
 
 
 def record_result(

@@ -87,3 +87,11 @@ def test_backtest_cmd_handles_empty(tmp_path, monkeypatch):
     res = runner.invoke(app, ["backtest"])
     assert res.exit_code == 0
     assert "No out-of-sample" in res.stdout
+
+
+def test_tune_cmd_handles_empty(tmp_path, monkeypatch):
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli_tune.db"))
+    runner.invoke(app, ["init-db"])
+    res = runner.invoke(app, ["tune"])
+    assert res.exit_code == 0
+    assert "No out-of-sample" in res.stdout
