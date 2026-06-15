@@ -141,4 +141,3 @@ def retilt_grid(
     tilt_a = (lam_a_new / lam_a_old) ** np.arange(n)
     matrix = grid.matrix * np.outer(tilt_h, tilt_a)
     return ScoreGrid(matrix=matrix / matrix.sum())
-

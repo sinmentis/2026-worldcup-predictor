@@ -49,4 +49,3 @@ def test_apply_results_payload_handles_reversed_orientation(tmp_path):
     ).fetchone()
     # Brazil (seeded home) scored 3, Morocco (seeded away) scored 1.
     assert (row["home_score"], row["away_score"], row["status"]) == (3, 1, "FINISHED")
-

@@ -52,4 +52,3 @@ def test_head_to_head_not_polluted_by_already_separated_teams():
     for _ in range(5):  # deterministic regardless of the random final tiebreak
         order = [row.team for row in standings_from_results(teams, results)]
         assert order == ["D", "B", "C", "A"]
-

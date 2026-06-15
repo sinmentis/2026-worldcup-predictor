@@ -1,0 +1,2097 @@
+date,home_team,away_team,home_score,away_score,tournament,city,country,neutral
+2024-01-01,Mexico,Ecuador,2,0,Friendly,X,Y,True
+2024-01-02,South Africa,Ivory Coast,1,0,Friendly,X,Y,True
+2024-01-03,South Korea,Curacao,1,0,Friendly,X,Y,True
+2024-01-04,Czech Republic,Netherlands,2,1,Friendly,X,Y,True
+2024-01-05,Canada,Japan,1,1,Friendly,X,Y,True
+2024-01-06,Switzerland,Sweden,2,1,Friendly,X,Y,True
+2024-01-07,Bosnia and Herzegovina,Tunisia,1,4,Friendly,X,Y,True
+2024-01-08,Qatar,Belgium,5,0,Friendly,X,Y,True
+2024-01-09,Brazil,Egypt,0,0,Friendly,X,Y,True
+2024-01-10,Morocco,Iran,2,0,Friendly,X,Y,True
+2024-01-11,Scotland,New Zealand,0,0,Friendly,X,Y,True
+2024-01-12,Haiti,Spain,1,0,Friendly,X,Y,True
+2024-01-13,United States,Uruguay,3,4,Friendly,X,Y,True
+2024-01-14,Australia,Saudi Arabia,0,1,Friendly,X,Y,True
+2024-01-15,Paraguay,Cape Verde,2,0,Friendly,X,Y,True
+2024-01-16,Turkey,France,2,1,Friendly,X,Y,True
+2024-01-17,Germany,Senegal,3,0,Friendly,X,Y,True
+2024-01-18,Ecuador,Norway,0,0,Friendly,X,Y,True
+2024-01-19,Ivory Coast,Iraq,2,1,Friendly,X,Y,True
+2024-01-20,Curacao,Argentina,0,0,Friendly,X,Y,True
+2024-01-21,Netherlands,Algeria,1,1,Friendly,X,Y,True
+2024-01-22,Japan,Austria,1,1,Friendly,X,Y,True
+2024-01-23,Sweden,Jordan,1,0,Friendly,X,Y,True
+2024-01-24,Tunisia,Portugal,2,0,Friendly,X,Y,True
+2024-01-25,Belgium,Colombia,1,0,Friendly,X,Y,True
+2024-01-26,Egypt,DR Congo,0,3,Friendly,X,Y,True
+2024-01-27,Iran,Uzbekistan,1,0,Friendly,X,Y,True
+2024-01-28,New Zealand,England,1,1,Friendly,X,Y,True
+2024-01-01,Spain,Croatia,1,0,Friendly,X,Y,True
+2024-01-02,Uruguay,Ghana,0,0,Friendly,X,Y,True
+2024-01-03,Saudi Arabia,Panama,0,2,Friendly,X,Y,True
+2024-01-04,Cape Verde,Mexico,1,0,Friendly,X,Y,True
+2024-01-05,France,South Africa,2,2,Friendly,X,Y,True
+2024-01-06,Senegal,South Korea,0,0,Friendly,X,Y,True
+2024-01-07,Norway,Czech Republic,1,1,Friendly,X,Y,True
+2024-01-08,Iraq,Canada,0,0,Friendly,X,Y,True
+2024-01-09,Argentina,Switzerland,0,1,Friendly,X,Y,True
+2024-01-10,Algeria,Bosnia and Herzegovina,2,1,Friendly,X,Y,True
+2024-01-11,Austria,Qatar,0,0,Friendly,X,Y,True
+2024-01-12,Jordan,Brazil,1,0,Friendly,X,Y,True
+2024-01-13,Portugal,Morocco,0,0,Friendly,X,Y,True
+2024-01-14,Colombia,Scotland,0,1,Friendly,X,Y,True
+2024-01-15,DR Congo,Haiti,1,1,Friendly,X,Y,True
+2024-01-16,Uzbekistan,United States,4,1,Friendly,X,Y,True
+2024-01-17,England,Australia,1,1,Friendly,X,Y,True
+2024-01-18,Croatia,Paraguay,2,2,Friendly,X,Y,True
+2024-01-19,Ghana,Turkey,1,0,Friendly,X,Y,True
+2024-01-20,Panama,Germany,0,1,Friendly,X,Y,True
+2024-02-01,Cape Verde,Mexico,2,1,Friendly,X,Y,True
+2024-02-02,France,South Africa,3,1,Friendly,X,Y,True
+2024-02-03,Senegal,South Korea,0,1,Friendly,X,Y,True
+2024-02-04,Norway,Czech Republic,0,1,Friendly,X,Y,True
+2024-02-05,Iraq,Canada,2,1,Friendly,X,Y,True
+2024-02-06,Argentina,Switzerland,2,2,Friendly,X,Y,True
+2024-02-07,Algeria,Bosnia and Herzegovina,2,3,Friendly,X,Y,True
+2024-02-08,Austria,Qatar,1,2,Friendly,X,Y,True
+2024-02-09,Jordan,Brazil,1,1,Friendly,X,Y,True
+2024-02-10,Portugal,Morocco,0,2,Friendly,X,Y,True
+2024-02-11,Colombia,Scotland,1,0,Friendly,X,Y,True
+2024-02-12,DR Congo,Haiti,0,1,Friendly,X,Y,True
+2024-02-13,Uzbekistan,United States,0,1,Friendly,X,Y,True
+2024-02-14,England,Australia,0,0,Friendly,X,Y,True
+2024-02-15,Croatia,Paraguay,3,1,Friendly,X,Y,True
+2024-02-16,Ghana,Turkey,0,3,Friendly,X,Y,True
+2024-02-17,Panama,Germany,3,0,Friendly,X,Y,True
+2024-02-18,Mexico,Ecuador,1,0,Friendly,X,Y,True
+2024-02-19,South Africa,Ivory Coast,4,1,Friendly,X,Y,True
+2024-02-20,South Korea,Curacao,1,2,Friendly,X,Y,True
+2024-02-21,Czech Republic,Netherlands,1,1,Friendly,X,Y,True
+2024-02-22,Canada,Japan,1,0,Friendly,X,Y,True
+2024-02-23,Switzerland,Sweden,4,2,Friendly,X,Y,True
+2024-02-24,Bosnia and Herzegovina,Tunisia,0,4,Friendly,X,Y,True
+2024-02-25,Qatar,Belgium,0,2,Friendly,X,Y,True
+2024-02-26,Brazil,Egypt,1,0,Friendly,X,Y,True
+2024-02-27,Morocco,Iran,3,2,Friendly,X,Y,True
+2024-02-28,Scotland,New Zealand,2,1,Friendly,X,Y,True
+2024-02-01,Haiti,Spain,0,1,Friendly,X,Y,True
+2024-02-02,United States,Uruguay,1,0,Friendly,X,Y,True
+2024-02-03,Australia,Saudi Arabia,0,1,Friendly,X,Y,True
+2024-02-04,Paraguay,Cape Verde,1,1,Friendly,X,Y,True
+2024-02-05,Turkey,France,1,2,Friendly,X,Y,True
+2024-02-06,Germany,Senegal,3,2,Friendly,X,Y,True
+2024-02-07,Ecuador,Norway,0,1,Friendly,X,Y,True
+2024-02-08,Ivory Coast,Iraq,0,1,Friendly,X,Y,True
+2024-02-09,Curacao,Argentina,1,1,Friendly,X,Y,True
+2024-02-10,Netherlands,Algeria,2,1,Friendly,X,Y,True
+2024-02-11,Japan,Austria,1,0,Friendly,X,Y,True
+2024-02-12,Sweden,Jordan,1,2,Friendly,X,Y,True
+2024-02-13,Tunisia,Portugal,3,0,Friendly,X,Y,True
+2024-02-14,Belgium,Colombia,1,1,Friendly,X,Y,True
+2024-02-15,Egypt,DR Congo,0,1,Friendly,X,Y,True
+2024-02-16,Iran,Uzbekistan,0,0,Friendly,X,Y,True
+2024-02-17,New Zealand,England,2,1,Friendly,X,Y,True
+2024-02-18,Spain,Croatia,0,3,Friendly,X,Y,True
+2024-02-19,Uruguay,Ghana,1,2,Friendly,X,Y,True
+2024-02-20,Saudi Arabia,Panama,1,1,Friendly,X,Y,True
+2024-01-01,Ivory Coast,Haiti,3,1,Friendly,X,Y,True
+2024-02-02,Iran,Morocco,2,0,Friendly,X,Y,True
+2024-03-03,Saudi Arabia,United States,1,2,Friendly,X,Y,True
+2024-04-04,Belgium,Paraguay,1,4,Friendly,X,Y,True
+2024-05-05,Portugal,Uzbekistan,2,0,Friendly,X,Y,True
+2024-06-06,Bosnia and Herzegovina,United States,1,0,Friendly,X,Y,True
+2024-07-07,Uzbekistan,Canada,2,3,Friendly,X,Y,True
+2024-08-08,Ivory Coast,New Zealand,0,0,Friendly,X,Y,True
+2024-09-09,Uruguay,Brazil,1,0,Friendly,X,Y,True
+2024-10-10,Iran,Uzbekistan,1,1,Friendly,X,Y,True
+2024-11-11,France,Ghana,2,1,Friendly,X,Y,True
+2024-12-12,Tunisia,Senegal,2,1,Friendly,X,Y,True
+2024-01-13,South Africa,Haiti,1,0,Friendly,X,Y,True
+2024-02-14,Mexico,Colombia,3,0,Friendly,X,Y,True
+2024-03-15,Haiti,Belgium,2,1,Friendly,X,Y,True
+2024-04-16,Egypt,Ecuador,0,1,Friendly,X,Y,True
+2024-05-17,Tunisia,South Africa,1,1,Friendly,X,Y,True
+2024-06-18,Cape Verde,Sweden,0,1,Friendly,X,Y,True
+2024-07-19,United States,Netherlands,1,1,Friendly,X,Y,True
+2024-08-20,Scotland,Austria,1,1,Friendly,X,Y,True
+2024-09-21,Uruguay,Bosnia and Herzegovina,2,3,Friendly,X,Y,True
+2024-10-22,Canada,United States,1,0,Friendly,X,Y,True
+2024-11-23,Ghana,France,1,0,Friendly,X,Y,True
+2024-12-24,Tunisia,Haiti,0,1,Friendly,X,Y,True
+2024-01-25,Turkey,Ivory Coast,3,0,Friendly,X,Y,True
+2024-02-26,Japan,Tunisia,1,2,Friendly,X,Y,True
+2024-03-27,Qatar,Croatia,3,1,Friendly,X,Y,True
+2024-04-28,Germany,South Africa,0,2,Friendly,X,Y,True
+2024-05-01,Senegal,Ivory Coast,3,1,Friendly,X,Y,True
+2024-06-02,Japan,Norway,2,0,Friendly,X,Y,True
+2024-07-03,Spain,Turkey,1,0,Friendly,X,Y,True
+2024-08-04,Jordan,Egypt,0,2,Friendly,X,Y,True
+2024-09-05,Uruguay,Paraguay,2,2,Friendly,X,Y,True
+2024-10-06,South Africa,Czech Republic,0,0,Friendly,X,Y,True
+2024-11-07,Turkey,Jordan,0,2,Friendly,X,Y,True
+2024-12-08,Germany,Iran,1,0,Friendly,X,Y,True
+2024-01-09,France,Scotland,3,4,Friendly,X,Y,True
+2024-02-10,Germany,Belgium,1,1,Friendly,X,Y,True
+2024-03-11,Turkey,Canada,0,3,Friendly,X,Y,True
+2024-04-12,Mexico,England,1,1,Friendly,X,Y,True
+2024-05-13,Ecuador,Uzbekistan,2,1,Friendly,X,Y,True
+2024-06-14,Bosnia and Herzegovina,DR Congo,0,0,Friendly,X,Y,True
+2024-07-15,Senegal,New Zealand,0,0,Friendly,X,Y,True
+2024-08-16,Jordan,Australia,1,0,Friendly,X,Y,True
+2024-09-17,Mexico,Qatar,1,0,Friendly,X,Y,True
+2024-10-18,Ecuador,Turkey,1,2,Friendly,X,Y,True
+2024-11-19,Turkey,Iran,0,1,Friendly,X,Y,True
+2024-12-20,Sweden,Senegal,1,0,Friendly,X,Y,True
+2024-01-21,Haiti,Morocco,0,3,Friendly,X,Y,True
+2024-02-22,South Africa,Australia,2,0,Friendly,X,Y,True
+2024-03-23,Morocco,Ecuador,0,0,Friendly,X,Y,True
+2024-04-24,New Zealand,Iran,1,1,Friendly,X,Y,True
+2024-05-25,Iraq,Saudi Arabia,0,0,Friendly,X,Y,True
+2024-06-26,Cape Verde,Austria,2,1,Friendly,X,Y,True
+2024-07-27,Scotland,Ecuador,3,2,Friendly,X,Y,True
+2024-08-28,Belgium,Senegal,1,4,Friendly,X,Y,True
+2024-09-01,Panama,Norway,5,1,Friendly,X,Y,True
+2024-10-02,DR Congo,Norway,1,0,Friendly,X,Y,True
+2024-11-03,United States,Haiti,0,2,Friendly,X,Y,True
+2024-12-04,Saudi Arabia,Tunisia,2,0,Friendly,X,Y,True
+2024-01-05,Uruguay,Mexico,2,2,Friendly,X,Y,True
+2024-02-06,Senegal,Haiti,1,0,Friendly,X,Y,True
+2024-03-07,Iran,Uzbekistan,1,1,Friendly,X,Y,True
+2024-04-08,Senegal,Uruguay,1,1,Friendly,X,Y,True
+2024-05-09,South Korea,Curacao,0,1,Friendly,X,Y,True
+2024-06-10,Jordan,Iran,1,2,Friendly,X,Y,True
+2024-07-11,Portugal,France,1,0,Friendly,X,Y,True
+2024-08-12,Scotland,Netherlands,7,3,Friendly,X,Y,True
+2024-09-13,Sweden,Jordan,1,1,Friendly,X,Y,True
+2024-10-14,Switzerland,Germany,0,1,Friendly,X,Y,True
+2024-11-15,Scotland,Algeria,1,2,Friendly,X,Y,True
+2024-12-16,Japan,France,2,3,Friendly,X,Y,True
+2024-01-17,Belgium,New Zealand,2,1,Friendly,X,Y,True
+2024-02-18,Curacao,Croatia,0,1,Friendly,X,Y,True
+2024-03-19,Brazil,Czech Republic,2,2,Friendly,X,Y,True
+2024-04-20,Argentina,Colombia,0,1,Friendly,X,Y,True
+2024-05-21,United States,South Korea,2,1,Friendly,X,Y,True
+2024-06-22,Czech Republic,Austria,0,0,Friendly,X,Y,True
+2024-07-23,Belgium,Portugal,2,1,Friendly,X,Y,True
+2024-08-24,Spain,Netherlands,1,0,Friendly,X,Y,True
+2024-09-25,Netherlands,South Korea,1,2,Friendly,X,Y,True
+2024-10-26,Netherlands,Uruguay,1,1,Friendly,X,Y,True
+2024-11-27,Morocco,Ivory Coast,2,2,Friendly,X,Y,True
+2024-12-28,Sweden,Qatar,1,0,Friendly,X,Y,True
+2024-01-01,Czech Republic,Germany,2,3,Friendly,X,Y,True
+2024-02-02,South Korea,Spain,0,1,Friendly,X,Y,True
+2024-03-03,Egypt,Turkey,1,2,Friendly,X,Y,True
+2024-04-04,Turkey,Brazil,0,1,Friendly,X,Y,True
+2024-05-05,Argentina,Norway,3,1,Friendly,X,Y,True
+2024-06-06,Jordan,Haiti,3,1,Friendly,X,Y,True
+2024-07-07,Brazil,South Africa,1,0,Friendly,X,Y,True
+2024-08-08,DR Congo,Qatar,2,1,Friendly,X,Y,True
+2024-09-09,Brazil,Saudi Arabia,0,0,Friendly,X,Y,True
+2024-10-10,Croatia,Uzbekistan,2,1,Friendly,X,Y,True
+2024-11-11,Mexico,Germany,1,0,Friendly,X,Y,True
+2024-12-12,Tunisia,Panama,1,3,Friendly,X,Y,True
+2024-01-13,Panama,Argentina,3,1,Friendly,X,Y,True
+2024-02-14,Switzerland,Netherlands,0,3,Friendly,X,Y,True
+2024-03-15,Czech Republic,Jordan,0,1,Friendly,X,Y,True
+2024-04-16,Switzerland,Uzbekistan,2,2,Friendly,X,Y,True
+2024-05-17,Portugal,Australia,0,1,Friendly,X,Y,True
+2024-06-18,DR Congo,Norway,0,1,Friendly,X,Y,True
+2024-07-19,Canada,Belgium,1,1,Friendly,X,Y,True
+2024-08-20,Mexico,Croatia,2,0,Friendly,X,Y,True
+2024-09-21,Saudi Arabia,Uruguay,0,0,Friendly,X,Y,True
+2024-10-22,Czech Republic,Tunisia,1,5,Friendly,X,Y,True
+2024-11-23,Belgium,Qatar,1,2,Friendly,X,Y,True
+2024-12-24,Tunisia,New Zealand,2,3,Friendly,X,Y,True
+2024-01-25,Uzbekistan,Iran,0,1,Friendly,X,Y,True
+2024-02-26,Bosnia and Herzegovina,Uruguay,0,1,Friendly,X,Y,True
+2024-03-27,Ecuador,South Korea,1,2,Friendly,X,Y,True
+2024-04-28,South Africa,Iraq,2,1,Friendly,X,Y,True
+2024-05-01,Morocco,Bosnia and Herzegovina,0,1,Friendly,X,Y,True
+2024-06-02,Germany,United States,1,0,Friendly,X,Y,True
+2024-07-03,Brazil,South Africa,3,2,Friendly,X,Y,True
+2024-08-04,Japan,England,3,3,Friendly,X,Y,True
+2024-09-05,Croatia,Senegal,4,2,Friendly,X,Y,True
+2024-10-06,Belgium,Austria,3,1,Friendly,X,Y,True
+2024-11-07,Haiti,South Africa,0,0,Friendly,X,Y,True
+2024-12-08,Belgium,Jordan,1,2,Friendly,X,Y,True
+2024-01-09,Cape Verde,Iraq,0,0,Friendly,X,Y,True
+2024-02-10,Senegal,Canada,1,0,Friendly,X,Y,True
+2024-03-11,Croatia,France,0,1,Friendly,X,Y,True
+2024-04-12,Scotland,Uzbekistan,0,4,Friendly,X,Y,True
+2024-05-13,United States,Croatia,0,0,Friendly,X,Y,True
+2024-06-14,Germany,Saudi Arabia,1,1,Friendly,X,Y,True
+2024-07-15,Ivory Coast,Algeria,3,0,Friendly,X,Y,True
+2024-08-16,Austria,Uzbekistan,0,0,Friendly,X,Y,True
+2024-09-17,DR Congo,Croatia,1,0,Friendly,X,Y,True
+2024-10-18,New Zealand,Uzbekistan,1,3,Friendly,X,Y,True
+2024-11-19,Australia,England,0,1,Friendly,X,Y,True
+2024-12-20,Ivory Coast,Sweden,1,0,Friendly,X,Y,True
+2024-01-21,Japan,England,1,2,Friendly,X,Y,True
+2024-02-22,Saudi Arabia,Turkey,2,0,Friendly,X,Y,True
+2024-03-23,Jordan,Algeria,1,2,Friendly,X,Y,True
+2024-04-24,Algeria,Senegal,0,1,Friendly,X,Y,True
+2024-05-25,Canada,Cape Verde,3,0,Friendly,X,Y,True
+2024-06-26,Uruguay,Haiti,0,1,Friendly,X,Y,True
+2024-07-27,Panama,Portugal,0,1,Friendly,X,Y,True
+2024-08-28,Colombia,Tunisia,2,2,Friendly,X,Y,True
+2024-09-01,Morocco,Ghana,1,2,Friendly,X,Y,True
+2024-10-02,New Zealand,Senegal,2,0,Friendly,X,Y,True
+2024-11-03,Brazil,Haiti,0,2,Friendly,X,Y,True
+2024-12-04,Switzerland,Iran,1,1,Friendly,X,Y,True
+2024-01-05,Senegal,Saudi Arabia,2,2,Friendly,X,Y,True
+2024-02-06,South Korea,Cape Verde,1,1,Friendly,X,Y,True
+2024-03-07,Cape Verde,Iraq,1,4,Friendly,X,Y,True
+2024-04-08,Bosnia and Herzegovina,DR Congo,1,1,Friendly,X,Y,True
+2024-05-09,Switzerland,Brazil,1,1,Friendly,X,Y,True
+2024-06-10,Ecuador,Canada,2,1,Friendly,X,Y,True
+2024-07-11,Qatar,Germany,2,0,Friendly,X,Y,True
+2024-08-12,Algeria,Germany,0,1,Friendly,X,Y,True
+2024-09-13,Panama,Colombia,3,3,Friendly,X,Y,True
+2024-10-14,New Zealand,Argentina,0,0,Friendly,X,Y,True
+2024-11-15,Portugal,Ivory Coast,2,1,Friendly,X,Y,True
+2024-12-16,Scotland,Tunisia,3,0,Friendly,X,Y,True
+2024-01-17,Australia,Argentina,1,5,Friendly,X,Y,True
+2024-02-18,Ecuador,Norway,2,0,Friendly,X,Y,True
+2024-03-19,Australia,Curacao,2,1,Friendly,X,Y,True
+2024-04-20,Scotland,Ivory Coast,1,2,Friendly,X,Y,True
+2024-05-21,Ghana,Australia,2,0,Friendly,X,Y,True
+2024-06-22,Norway,Paraguay,1,1,Friendly,X,Y,True
+2024-07-23,Algeria,Ecuador,1,0,Friendly,X,Y,True
+2024-08-24,Qatar,Canada,0,3,Friendly,X,Y,True
+2024-09-25,Ecuador,Cape Verde,3,2,Friendly,X,Y,True
+2024-10-26,South Africa,Argentina,2,0,Friendly,X,Y,True
+2024-11-27,Haiti,Germany,1,1,Friendly,X,Y,True
+2024-12-28,Belgium,Sweden,4,4,Friendly,X,Y,True
+2024-01-01,Jordan,Ecuador,2,0,Friendly,X,Y,True
+2024-02-02,Senegal,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-03-03,Argentina,Croatia,1,0,Friendly,X,Y,True
+2024-04-04,Argentina,Iraq,2,3,Friendly,X,Y,True
+2024-05-05,France,Croatia,1,2,Friendly,X,Y,True
+2024-06-06,Iraq,Brazil,1,0,Friendly,X,Y,True
+2024-07-07,France,Ivory Coast,3,2,Friendly,X,Y,True
+2024-08-08,Iran,Spain,3,1,Friendly,X,Y,True
+2024-09-09,England,Morocco,2,1,Friendly,X,Y,True
+2024-10-10,Austria,Sweden,2,1,Friendly,X,Y,True
+2024-11-11,United States,Ecuador,1,0,Friendly,X,Y,True
+2024-12-12,Tunisia,Panama,2,2,Friendly,X,Y,True
+2024-01-13,Tunisia,Ivory Coast,3,1,Friendly,X,Y,True
+2024-02-14,Scotland,Portugal,2,1,Friendly,X,Y,True
+2024-03-15,New Zealand,United States,2,0,Friendly,X,Y,True
+2024-04-16,Ecuador,Algeria,2,0,Friendly,X,Y,True
+2024-05-17,Mexico,Qatar,1,1,Friendly,X,Y,True
+2024-06-18,Ghana,Brazil,1,1,Friendly,X,Y,True
+2024-07-19,Qatar,Bosnia and Herzegovina,0,0,Friendly,X,Y,True
+2024-08-20,Switzerland,Egypt,0,0,Friendly,X,Y,True
+2024-09-21,Colombia,Algeria,2,0,Friendly,X,Y,True
+2024-10-22,Argentina,Czech Republic,1,1,Friendly,X,Y,True
+2024-11-23,Sweden,Tunisia,3,0,Friendly,X,Y,True
+2024-12-24,Ghana,Bosnia and Herzegovina,1,0,Friendly,X,Y,True
+2024-01-25,Panama,Ecuador,0,1,Friendly,X,Y,True
+2024-02-26,Japan,South Africa,0,0,Friendly,X,Y,True
+2024-03-27,Egypt,Morocco,3,1,Friendly,X,Y,True
+2024-04-28,Uruguay,Croatia,2,3,Friendly,X,Y,True
+2024-05-01,Senegal,Croatia,3,3,Friendly,X,Y,True
+2024-06-02,Ivory Coast,Canada,1,0,Friendly,X,Y,True
+2024-07-03,Belgium,South Africa,2,1,Friendly,X,Y,True
+2024-08-04,South Korea,Haiti,3,1,Friendly,X,Y,True
+2024-09-05,Australia,Saudi Arabia,1,3,Friendly,X,Y,True
+2024-10-06,Croatia,France,1,1,Friendly,X,Y,True
+2024-11-07,Colombia,Canada,0,2,Friendly,X,Y,True
+2024-12-08,Senegal,Iraq,1,0,Friendly,X,Y,True
+2024-01-09,Austria,Bosnia and Herzegovina,0,1,Friendly,X,Y,True
+2024-02-10,Portugal,New Zealand,3,2,Friendly,X,Y,True
+2024-03-11,Mexico,Brazil,0,3,Friendly,X,Y,True
+2024-04-12,Scotland,Belgium,0,3,Friendly,X,Y,True
+2024-05-13,Senegal,Colombia,2,0,Friendly,X,Y,True
+2024-06-14,France,Australia,2,1,Friendly,X,Y,True
+2024-07-15,Egypt,Netherlands,4,0,Friendly,X,Y,True
+2024-08-16,United States,Egypt,1,1,Friendly,X,Y,True
+2024-09-17,Ecuador,Turkey,0,1,Friendly,X,Y,True
+2024-10-18,DR Congo,Qatar,0,0,Friendly,X,Y,True
+2024-11-19,Austria,Algeria,1,2,Friendly,X,Y,True
+2024-12-20,Norway,Haiti,0,1,Friendly,X,Y,True
+2024-01-21,Austria,Iran,0,1,Friendly,X,Y,True
+2024-02-22,Argentina,Ghana,2,0,Friendly,X,Y,True
+2024-03-23,Qatar,Spain,1,3,Friendly,X,Y,True
+2024-04-24,Netherlands,Argentina,1,3,Friendly,X,Y,True
+2024-05-25,Belgium,Panama,3,1,Friendly,X,Y,True
+2024-06-26,Morocco,France,1,1,Friendly,X,Y,True
+2024-07-27,Austria,Bosnia and Herzegovina,0,0,Friendly,X,Y,True
+2024-08-28,Australia,Argentina,1,2,Friendly,X,Y,True
+2024-09-01,Mexico,Ghana,2,3,Friendly,X,Y,True
+2024-10-02,Qatar,United States,2,3,Friendly,X,Y,True
+2024-11-03,Saudi Arabia,Switzerland,1,2,Friendly,X,Y,True
+2024-12-04,Morocco,Colombia,1,1,Friendly,X,Y,True
+2024-01-05,South Korea,New Zealand,2,1,Friendly,X,Y,True
+2024-02-06,Jordan,New Zealand,2,1,Friendly,X,Y,True
+2024-03-07,South Africa,Iran,4,2,Friendly,X,Y,True
+2024-04-08,Bosnia and Herzegovina,Switzerland,1,2,Friendly,X,Y,True
+2024-05-09,Norway,Croatia,1,4,Friendly,X,Y,True
+2024-06-10,Japan,Algeria,0,0,Friendly,X,Y,True
+2024-07-11,Ecuador,Ghana,2,1,Friendly,X,Y,True
+2024-08-12,Algeria,Austria,3,1,Friendly,X,Y,True
+2024-09-13,Austria,Switzerland,0,0,Friendly,X,Y,True
+2024-10-14,Iraq,Paraguay,0,0,Friendly,X,Y,True
+2024-11-15,Mexico,Sweden,1,0,Friendly,X,Y,True
+2024-12-16,Scotland,Senegal,0,3,Friendly,X,Y,True
+2024-01-17,Iran,Japan,0,3,Friendly,X,Y,True
+2024-02-18,Austria,Egypt,3,3,Friendly,X,Y,True
+2024-03-19,Cape Verde,Switzerland,0,0,Friendly,X,Y,True
+2024-04-20,England,Switzerland,0,5,Friendly,X,Y,True
+2024-05-21,Saudi Arabia,Morocco,1,2,Friendly,X,Y,True
+2024-06-22,New Zealand,Mexico,3,0,Friendly,X,Y,True
+2024-07-23,Argentina,Paraguay,1,0,Friendly,X,Y,True
+2024-08-24,Belgium,Argentina,1,2,Friendly,X,Y,True
+2024-09-25,Ivory Coast,South Africa,1,0,Friendly,X,Y,True
+2024-10-26,France,Brazil,0,0,Friendly,X,Y,True
+2024-11-27,Switzerland,Sweden,1,1,Friendly,X,Y,True
+2024-12-28,Colombia,Senegal,1,1,Friendly,X,Y,True
+2024-01-01,Argentina,South Africa,3,1,Friendly,X,Y,True
+2024-02-02,Cape Verde,Curacao,3,1,Friendly,X,Y,True
+2024-03-03,Mexico,Norway,0,0,Friendly,X,Y,True
+2024-04-04,Egypt,DR Congo,0,1,Friendly,X,Y,True
+2024-05-05,Portugal,Colombia,2,1,Friendly,X,Y,True
+2024-06-06,England,Jordan,2,2,Friendly,X,Y,True
+2024-07-07,Algeria,Cape Verde,2,1,Friendly,X,Y,True
+2024-08-08,South Africa,Paraguay,3,1,Friendly,X,Y,True
+2024-09-09,Ivory Coast,Uruguay,3,4,Friendly,X,Y,True
+2024-10-10,Haiti,Qatar,1,1,Friendly,X,Y,True
+2024-11-11,Argentina,Brazil,0,0,Friendly,X,Y,True
+2024-12-12,Cape Verde,Ivory Coast,1,2,Friendly,X,Y,True
+2024-01-13,Austria,Belgium,2,0,Friendly,X,Y,True
+2024-02-14,France,South Africa,1,1,Friendly,X,Y,True
+2024-03-15,Croatia,Austria,2,3,Friendly,X,Y,True
+2024-04-16,Iraq,Saudi Arabia,2,1,Friendly,X,Y,True
+2024-05-17,Saudi Arabia,Uzbekistan,1,4,Friendly,X,Y,True
+2024-06-18,Brazil,Croatia,3,1,Friendly,X,Y,True
+2024-07-19,Argentina,United States,0,2,Friendly,X,Y,True
+2024-08-20,Czech Republic,Scotland,1,3,Friendly,X,Y,True
+2024-09-21,Scotland,Belgium,1,5,Friendly,X,Y,True
+2024-10-22,Norway,Japan,3,1,Friendly,X,Y,True
+2024-11-23,United States,Brazil,2,0,Friendly,X,Y,True
+2024-12-24,Canada,Netherlands,1,0,Friendly,X,Y,True
+2024-01-25,Scotland,Brazil,2,0,Friendly,X,Y,True
+2024-02-26,Austria,New Zealand,0,0,Friendly,X,Y,True
+2024-03-27,Egypt,DR Congo,2,0,Friendly,X,Y,True
+2024-04-28,Ecuador,Turkey,0,1,Friendly,X,Y,True
+2024-05-01,Australia,Egypt,2,1,Friendly,X,Y,True
+2024-06-02,South Korea,Qatar,1,3,Friendly,X,Y,True
+2024-07-03,New Zealand,Jordan,0,0,Friendly,X,Y,True
+2024-08-04,Netherlands,Turkey,2,0,Friendly,X,Y,True
+2024-09-05,Ecuador,Iran,1,2,Friendly,X,Y,True
+2024-10-06,Jordan,Germany,0,1,Friendly,X,Y,True
+2024-11-07,Norway,Croatia,0,0,Friendly,X,Y,True
+2024-12-08,Scotland,Jordan,0,2,Friendly,X,Y,True
+2024-01-09,Australia,Senegal,1,0,Friendly,X,Y,True
+2024-02-10,New Zealand,Switzerland,0,0,Friendly,X,Y,True
+2024-03-11,Ecuador,Bosnia and Herzegovina,4,0,Friendly,X,Y,True
+2024-04-12,Saudi Arabia,Ivory Coast,2,1,Friendly,X,Y,True
+2024-05-13,Curacao,Brazil,0,2,Friendly,X,Y,True
+2024-06-14,New Zealand,Ghana,3,4,Friendly,X,Y,True
+2024-07-15,Canada,Ecuador,2,0,Friendly,X,Y,True
+2024-08-16,Netherlands,Scotland,1,0,Friendly,X,Y,True
+2024-09-17,Portugal,Tunisia,1,2,Friendly,X,Y,True
+2024-10-18,Czech Republic,Haiti,0,2,Friendly,X,Y,True
+2024-11-19,Iraq,Scotland,2,1,Friendly,X,Y,True
+2024-12-20,Czech Republic,Canada,1,0,Friendly,X,Y,True
+2024-01-21,Morocco,Algeria,0,2,Friendly,X,Y,True
+2024-02-22,Portugal,Uruguay,0,0,Friendly,X,Y,True
+2024-03-23,Jordan,Ecuador,2,2,Friendly,X,Y,True
+2024-04-24,Japan,Saudi Arabia,3,1,Friendly,X,Y,True
+2024-05-25,England,Jordan,0,0,Friendly,X,Y,True
+2024-06-26,Sweden,Bosnia and Herzegovina,1,1,Friendly,X,Y,True
+2024-07-27,Japan,Portugal,1,2,Friendly,X,Y,True
+2024-08-28,Jordan,France,2,2,Friendly,X,Y,True
+2024-09-01,Ghana,Curacao,2,1,Friendly,X,Y,True
+2024-10-02,Panama,United States,0,1,Friendly,X,Y,True
+2024-11-03,Germany,Curacao,1,1,Friendly,X,Y,True
+2024-12-04,Iraq,Turkey,1,2,Friendly,X,Y,True
+2024-01-05,Ecuador,Canada,1,1,Friendly,X,Y,True
+2024-02-06,Ghana,England,0,1,Friendly,X,Y,True
+2024-03-07,Iraq,France,1,2,Friendly,X,Y,True
+2024-04-08,Australia,Croatia,1,1,Friendly,X,Y,True
+2024-05-09,Uzbekistan,United States,1,3,Friendly,X,Y,True
+2024-06-10,Colombia,United States,0,3,Friendly,X,Y,True
+2024-07-11,France,Iraq,1,1,Friendly,X,Y,True
+2024-08-12,Bosnia and Herzegovina,Spain,3,0,Friendly,X,Y,True
+2024-09-13,Panama,Sweden,0,0,Friendly,X,Y,True
+2024-10-14,South Africa,Tunisia,1,1,Friendly,X,Y,True
+2024-11-15,Uruguay,Germany,0,2,Friendly,X,Y,True
+2024-12-16,Canada,Iran,0,2,Friendly,X,Y,True
+2024-01-17,Iraq,New Zealand,0,2,Friendly,X,Y,True
+2024-02-18,DR Congo,Ecuador,0,1,Friendly,X,Y,True
+2024-03-19,Austria,Germany,0,2,Friendly,X,Y,True
+2024-04-20,Sweden,Canada,1,1,Friendly,X,Y,True
+2024-05-21,Mexico,Canada,0,1,Friendly,X,Y,True
+2024-06-22,Bosnia and Herzegovina,Croatia,0,1,Friendly,X,Y,True
+2024-07-23,Ecuador,England,0,2,Friendly,X,Y,True
+2024-08-24,Belgium,Qatar,1,1,Friendly,X,Y,True
+2024-09-25,New Zealand,Norway,1,1,Friendly,X,Y,True
+2024-10-26,Panama,Ecuador,0,0,Friendly,X,Y,True
+2024-11-27,Curacao,Colombia,0,0,Friendly,X,Y,True
+2024-12-28,Sweden,DR Congo,2,0,Friendly,X,Y,True
+2024-01-01,Bosnia and Herzegovina,Jordan,3,1,Friendly,X,Y,True
+2024-02-02,Panama,Scotland,2,0,Friendly,X,Y,True
+2024-03-03,Qatar,Jordan,3,1,Friendly,X,Y,True
+2024-04-04,Ecuador,Japan,1,1,Friendly,X,Y,True
+2024-05-05,Cape Verde,Colombia,0,2,Friendly,X,Y,True
+2024-06-06,Curacao,Norway,2,4,Friendly,X,Y,True
+2024-07-07,Curacao,Spain,2,1,Friendly,X,Y,True
+2024-08-08,Belgium,Egypt,1,2,Friendly,X,Y,True
+2024-09-09,Czech Republic,France,1,0,Friendly,X,Y,True
+2024-10-10,Jordan,Turkey,1,2,Friendly,X,Y,True
+2024-11-11,France,Sweden,2,1,Friendly,X,Y,True
+2024-12-12,Haiti,Spain,0,1,Friendly,X,Y,True
+2024-01-13,Canada,Tunisia,1,2,Friendly,X,Y,True
+2024-02-14,Turkey,Egypt,1,0,Friendly,X,Y,True
+2024-03-15,Cape Verde,Sweden,1,3,Friendly,X,Y,True
+2024-04-16,Qatar,Algeria,1,1,Friendly,X,Y,True
+2024-05-17,France,Brazil,0,0,Friendly,X,Y,True
+2024-06-18,Norway,Sweden,0,0,Friendly,X,Y,True
+2024-07-19,Morocco,South Africa,1,1,Friendly,X,Y,True
+2024-08-20,Paraguay,Scotland,2,0,Friendly,X,Y,True
+2024-09-21,Brazil,New Zealand,4,1,Friendly,X,Y,True
+2024-10-22,Panama,DR Congo,3,2,Friendly,X,Y,True
+2024-11-23,Spain,Belgium,0,3,Friendly,X,Y,True
+2024-12-24,Canada,Iraq,2,0,Friendly,X,Y,True
+2024-01-25,Sweden,Argentina,3,1,Friendly,X,Y,True
+2024-02-26,Austria,Jordan,2,2,Friendly,X,Y,True
+2024-03-27,New Zealand,Czech Republic,0,0,Friendly,X,Y,True
+2024-04-28,Turkey,Cape Verde,0,1,Friendly,X,Y,True
+2024-05-01,United States,Scotland,0,2,Friendly,X,Y,True
+2024-06-02,Morocco,Portugal,1,0,Friendly,X,Y,True
+2024-07-03,Ivory Coast,Paraguay,0,0,Friendly,X,Y,True
+2024-08-04,Curacao,Cape Verde,1,3,Friendly,X,Y,True
+2024-09-05,Morocco,Croatia,2,0,Friendly,X,Y,True
+2024-10-06,Croatia,Cape Verde,0,1,Friendly,X,Y,True
+2024-11-07,Canada,Qatar,2,1,Friendly,X,Y,True
+2024-12-08,Japan,Spain,1,0,Friendly,X,Y,True
+2024-01-09,New Zealand,Argentina,1,0,Friendly,X,Y,True
+2024-02-10,Jordan,Austria,0,0,Friendly,X,Y,True
+2024-03-11,Iraq,Argentina,3,1,Friendly,X,Y,True
+2024-04-12,England,Ivory Coast,3,0,Friendly,X,Y,True
+2024-05-13,Panama,Colombia,2,1,Friendly,X,Y,True
+2024-06-14,New Zealand,Czech Republic,1,1,Friendly,X,Y,True
+2024-07-15,Norway,Iraq,1,2,Friendly,X,Y,True
+2024-08-16,Norway,South Africa,0,1,Friendly,X,Y,True
+2024-09-17,Argentina,Tunisia,3,1,Friendly,X,Y,True
+2024-10-18,Portugal,Qatar,1,1,Friendly,X,Y,True
+2024-11-19,Austria,Jordan,1,0,Friendly,X,Y,True
+2024-12-20,South Africa,Morocco,4,2,Friendly,X,Y,True
+2024-01-21,Egypt,Norway,0,0,Friendly,X,Y,True
+2024-02-22,Panama,Netherlands,2,0,Friendly,X,Y,True
+2024-03-23,Senegal,South Africa,2,2,Friendly,X,Y,True
+2024-04-24,Mexico,Argentina,1,1,Friendly,X,Y,True
+2024-05-25,Iraq,Spain,0,1,Friendly,X,Y,True
+2024-06-26,Brazil,Paraguay,0,2,Friendly,X,Y,True
+2024-07-27,Japan,Mexico,0,4,Friendly,X,Y,True
+2024-08-28,Netherlands,Austria,1,2,Friendly,X,Y,True
+2024-09-01,Turkey,Croatia,1,1,Friendly,X,Y,True
+2024-10-02,United States,Germany,1,2,Friendly,X,Y,True
+2024-11-03,Algeria,South Korea,2,2,Friendly,X,Y,True
+2024-12-04,DR Congo,Ecuador,1,2,Friendly,X,Y,True
+2024-01-05,South Korea,Uzbekistan,0,0,Friendly,X,Y,True
+2024-02-06,South Africa,Tunisia,2,1,Friendly,X,Y,True
+2024-03-07,Senegal,Egypt,0,4,Friendly,X,Y,True
+2024-04-08,Paraguay,Brazil,0,1,Friendly,X,Y,True
+2024-05-09,Uzbekistan,Senegal,3,1,Friendly,X,Y,True
+2024-06-10,Norway,England,1,1,Friendly,X,Y,True
+2024-07-11,Colombia,Curacao,0,2,Friendly,X,Y,True
+2024-08-12,Portugal,England,0,2,Friendly,X,Y,True
+2024-09-13,Portugal,Uruguay,1,2,Friendly,X,Y,True
+2024-10-14,Senegal,Iraq,1,0,Friendly,X,Y,True
+2024-11-15,Australia,Jordan,2,2,Friendly,X,Y,True
+2024-12-16,Ghana,South Africa,4,2,Friendly,X,Y,True
+2024-01-17,Netherlands,Curacao,1,1,Friendly,X,Y,True
+2024-02-18,Austria,Brazil,2,1,Friendly,X,Y,True
+2024-03-19,Japan,Austria,1,1,Friendly,X,Y,True
+2024-04-20,Tunisia,Spain,0,0,Friendly,X,Y,True
+2024-05-21,Algeria,United States,0,1,Friendly,X,Y,True
+2024-06-22,Tunisia,Morocco,1,1,Friendly,X,Y,True
+2024-07-23,Norway,Bosnia and Herzegovina,0,2,Friendly,X,Y,True
+2024-08-24,Senegal,Uzbekistan,0,1,Friendly,X,Y,True
+2024-09-25,Egypt,Belgium,2,1,Friendly,X,Y,True
+2024-10-26,New Zealand,Belgium,1,0,Friendly,X,Y,True
+2024-11-27,New Zealand,Ecuador,1,3,Friendly,X,Y,True
+2024-12-28,Jordan,Brazil,1,2,Friendly,X,Y,True
+2024-01-01,Colombia,New Zealand,0,1,Friendly,X,Y,True
+2024-02-02,Canada,Argentina,1,1,Friendly,X,Y,True
+2024-03-03,Turkey,Tunisia,0,1,Friendly,X,Y,True
+2024-04-04,Norway,France,1,2,Friendly,X,Y,True
+2024-05-05,Netherlands,Uzbekistan,0,1,Friendly,X,Y,True
+2024-06-06,Senegal,Norway,2,1,Friendly,X,Y,True
+2024-07-07,Saudi Arabia,Belgium,2,0,Friendly,X,Y,True
+2024-08-08,Belgium,Sweden,1,2,Friendly,X,Y,True
+2024-09-09,DR Congo,Spain,1,0,Friendly,X,Y,True
+2024-10-10,Paraguay,Iran,0,1,Friendly,X,Y,True
+2024-11-11,Japan,Egypt,1,1,Friendly,X,Y,True
+2024-12-12,Ecuador,Canada,1,0,Friendly,X,Y,True
+2024-01-13,Tunisia,Ghana,3,0,Friendly,X,Y,True
+2024-02-14,Panama,South Africa,2,2,Friendly,X,Y,True
+2024-03-15,South Korea,Haiti,0,1,Friendly,X,Y,True
+2024-04-16,South Korea,Algeria,1,0,Friendly,X,Y,True
+2024-05-17,South Korea,Algeria,1,1,Friendly,X,Y,True
+2024-06-18,Portugal,Japan,0,1,Friendly,X,Y,True
+2024-07-19,Canada,Tunisia,0,4,Friendly,X,Y,True
+2024-08-20,Uruguay,Austria,1,2,Friendly,X,Y,True
+2024-09-21,Senegal,England,2,2,Friendly,X,Y,True
+2024-10-22,Haiti,Mexico,1,1,Friendly,X,Y,True
+2024-11-23,Senegal,Uruguay,2,1,Friendly,X,Y,True
+2024-12-24,Colombia,Bosnia and Herzegovina,3,3,Friendly,X,Y,True
+2024-01-25,Ecuador,Australia,0,3,Friendly,X,Y,True
+2024-02-26,Switzerland,New Zealand,0,1,Friendly,X,Y,True
+2024-03-27,Brazil,Ghana,2,2,Friendly,X,Y,True
+2024-04-28,Austria,South Africa,0,1,Friendly,X,Y,True
+2024-05-01,France,Ghana,1,2,Friendly,X,Y,True
+2024-06-02,DR Congo,Morocco,1,1,Friendly,X,Y,True
+2024-07-03,Panama,Tunisia,3,2,Friendly,X,Y,True
+2024-08-04,Cape Verde,Spain,0,0,Friendly,X,Y,True
+2024-09-05,Austria,Jordan,2,0,Friendly,X,Y,True
+2024-10-06,Curacao,Cape Verde,1,2,Friendly,X,Y,True
+2024-11-07,Japan,Spain,1,1,Friendly,X,Y,True
+2024-12-08,Germany,Switzerland,0,2,Friendly,X,Y,True
+2024-01-09,Panama,Czech Republic,0,3,Friendly,X,Y,True
+2024-02-10,Curacao,Egypt,2,2,Friendly,X,Y,True
+2024-03-11,Austria,Iran,1,1,Friendly,X,Y,True
+2024-04-12,Croatia,Switzerland,3,1,Friendly,X,Y,True
+2024-05-13,Uzbekistan,Jordan,2,0,Friendly,X,Y,True
+2024-06-14,Ivory Coast,Curacao,3,1,Friendly,X,Y,True
+2024-07-15,Argentina,Egypt,0,2,Friendly,X,Y,True
+2024-08-16,Paraguay,Turkey,1,1,Friendly,X,Y,True
+2024-09-17,Ghana,Argentina,1,1,Friendly,X,Y,True
+2024-10-18,Jordan,Senegal,1,1,Friendly,X,Y,True
+2024-11-19,Uzbekistan,Paraguay,1,0,Friendly,X,Y,True
+2024-12-20,Portugal,Mexico,1,0,Friendly,X,Y,True
+2024-01-21,Belgium,Morocco,1,1,Friendly,X,Y,True
+2024-02-22,Brazil,Panama,3,4,Friendly,X,Y,True
+2024-03-23,Argentina,Japan,3,3,Friendly,X,Y,True
+2024-04-24,Mexico,Senegal,4,1,Friendly,X,Y,True
+2024-05-25,Egypt,New Zealand,2,0,Friendly,X,Y,True
+2024-06-26,Croatia,Argentina,3,0,Friendly,X,Y,True
+2024-07-27,Canada,Croatia,2,1,Friendly,X,Y,True
+2024-08-28,Algeria,Spain,0,1,Friendly,X,Y,True
+2024-09-01,Austria,DR Congo,0,2,Friendly,X,Y,True
+2024-10-02,Brazil,Scotland,1,1,Friendly,X,Y,True
+2024-11-03,Mexico,Canada,3,0,Friendly,X,Y,True
+2024-12-04,Iran,Czech Republic,2,2,Friendly,X,Y,True
+2024-01-05,Tunisia,Saudi Arabia,0,3,Friendly,X,Y,True
+2024-02-06,England,Argentina,1,0,Friendly,X,Y,True
+2024-03-07,Argentina,New Zealand,3,2,Friendly,X,Y,True
+2024-04-08,Croatia,Colombia,0,1,Friendly,X,Y,True
+2024-05-09,Canada,Morocco,6,3,Friendly,X,Y,True
+2024-06-10,Ecuador,France,1,1,Friendly,X,Y,True
+2024-07-11,Panama,Senegal,1,1,Friendly,X,Y,True
+2024-08-12,Austria,Senegal,1,1,Friendly,X,Y,True
+2024-09-13,Sweden,Uruguay,1,2,Friendly,X,Y,True
+2024-10-14,France,Iran,0,0,Friendly,X,Y,True
+2024-11-15,Austria,United States,0,2,Friendly,X,Y,True
+2024-12-16,Portugal,Mexico,3,0,Friendly,X,Y,True
+2024-01-17,Colombia,Senegal,0,2,Friendly,X,Y,True
+2024-02-18,South Africa,Tunisia,1,0,Friendly,X,Y,True
+2024-03-19,Netherlands,Cape Verde,1,1,Friendly,X,Y,True
+2024-04-20,Morocco,Egypt,0,1,Friendly,X,Y,True
+2024-05-21,Uzbekistan,Japan,2,1,Friendly,X,Y,True
+2024-06-22,Canada,Ghana,1,1,Friendly,X,Y,True
+2024-07-23,United States,Belgium,2,0,Friendly,X,Y,True
+2024-08-24,Brazil,United States,4,3,Friendly,X,Y,True
+2024-09-25,Uzbekistan,Scotland,2,0,Friendly,X,Y,True
+2024-10-26,Saudi Arabia,Argentina,1,1,Friendly,X,Y,True
+2024-11-27,Qatar,Bosnia and Herzegovina,1,1,Friendly,X,Y,True
+2024-12-28,Turkey,Austria,1,1,Friendly,X,Y,True
+2024-01-01,South Korea,Germany,2,3,Friendly,X,Y,True
+2024-02-02,Morocco,Colombia,1,1,Friendly,X,Y,True
+2024-03-03,Morocco,Czech Republic,1,2,Friendly,X,Y,True
+2024-04-04,Netherlands,Austria,3,1,Friendly,X,Y,True
+2024-05-05,Spain,Belgium,2,0,Friendly,X,Y,True
+2024-06-06,South Korea,Turkey,2,3,Friendly,X,Y,True
+2024-07-07,Switzerland,South Africa,1,2,Friendly,X,Y,True
+2024-08-08,Cape Verde,Curacao,0,2,Friendly,X,Y,True
+2024-09-09,Austria,Netherlands,3,0,Friendly,X,Y,True
+2024-10-10,Uzbekistan,Ivory Coast,1,2,Friendly,X,Y,True
+2024-11-11,Spain,Bosnia and Herzegovina,1,2,Friendly,X,Y,True
+2024-12-12,Uruguay,Bosnia and Herzegovina,0,1,Friendly,X,Y,True
+2024-01-13,Czech Republic,Iraq,3,1,Friendly,X,Y,True
+2024-02-14,Senegal,Canada,0,3,Friendly,X,Y,True
+2024-03-15,Uzbekistan,Jordan,0,4,Friendly,X,Y,True
+2024-04-16,Belgium,Austria,3,0,Friendly,X,Y,True
+2024-05-17,Norway,South Africa,1,0,Friendly,X,Y,True
+2024-06-18,Iraq,Haiti,4,0,Friendly,X,Y,True
+2024-07-19,Japan,Scotland,1,0,Friendly,X,Y,True
+2024-08-20,Netherlands,Ecuador,1,3,Friendly,X,Y,True
+2024-09-21,South Korea,Czech Republic,3,0,Friendly,X,Y,True
+2024-10-22,Iran,South Korea,2,3,Friendly,X,Y,True
+2024-11-23,Qatar,Paraguay,1,3,Friendly,X,Y,True
+2024-12-24,Germany,Portugal,1,1,Friendly,X,Y,True
+2024-01-25,Haiti,Germany,1,1,Friendly,X,Y,True
+2024-02-26,Curacao,Mexico,2,3,Friendly,X,Y,True
+2024-03-27,Ghana,Ecuador,0,0,Friendly,X,Y,True
+2024-04-28,Panama,South Korea,0,1,Friendly,X,Y,True
+2024-05-01,United States,Cape Verde,2,2,Friendly,X,Y,True
+2024-06-02,United States,Mexico,0,2,Friendly,X,Y,True
+2024-07-03,Japan,Tunisia,1,2,Friendly,X,Y,True
+2024-08-04,Jordan,Spain,0,4,Friendly,X,Y,True
+2024-09-05,Uzbekistan,Scotland,4,0,Friendly,X,Y,True
+2024-10-06,Ecuador,Senegal,0,0,Friendly,X,Y,True
+2024-11-07,Sweden,Jordan,0,1,Friendly,X,Y,True
+2024-12-08,Saudi Arabia,Ghana,2,0,Friendly,X,Y,True
+2024-01-09,United States,Haiti,4,2,Friendly,X,Y,True
+2024-02-10,Mexico,Qatar,2,0,Friendly,X,Y,True
+2024-03-11,Qatar,Senegal,3,3,Friendly,X,Y,True
+2024-04-12,Mexico,Morocco,3,3,Friendly,X,Y,True
+2024-05-13,France,Norway,1,1,Friendly,X,Y,True
+2024-06-14,Croatia,Iran,1,0,Friendly,X,Y,True
+2024-07-15,Iraq,Uruguay,1,0,Friendly,X,Y,True
+2024-08-16,Mexico,Portugal,0,1,Friendly,X,Y,True
+2024-09-17,Canada,Japan,1,1,Friendly,X,Y,True
+2024-10-18,Australia,France,0,1,Friendly,X,Y,True
+2024-11-19,Colombia,Egypt,2,2,Friendly,X,Y,True
+2024-12-20,Croatia,Senegal,1,3,Friendly,X,Y,True
+2024-01-21,Haiti,Brazil,5,0,Friendly,X,Y,True
+2024-02-22,Bosnia and Herzegovina,Tunisia,1,0,Friendly,X,Y,True
+2024-03-23,Portugal,Iran,2,1,Friendly,X,Y,True
+2024-04-24,Uzbekistan,United States,3,0,Friendly,X,Y,True
+2024-05-25,Bosnia and Herzegovina,Mexico,2,1,Friendly,X,Y,True
+2024-06-26,Bosnia and Herzegovina,United States,2,1,Friendly,X,Y,True
+2024-07-27,Portugal,South Africa,1,0,Friendly,X,Y,True
+2024-08-28,Haiti,DR Congo,0,4,Friendly,X,Y,True
+2024-09-01,England,Netherlands,1,3,Friendly,X,Y,True
+2024-10-02,Germany,Saudi Arabia,2,2,Friendly,X,Y,True
+2024-11-03,England,Uruguay,2,2,Friendly,X,Y,True
+2024-12-04,Sweden,South Africa,1,2,Friendly,X,Y,True
+2024-01-05,Netherlands,Bosnia and Herzegovina,0,1,Friendly,X,Y,True
+2024-02-06,Senegal,New Zealand,2,1,Friendly,X,Y,True
+2024-03-07,Haiti,Australia,1,1,Friendly,X,Y,True
+2024-04-08,Saudi Arabia,Algeria,2,2,Friendly,X,Y,True
+2024-05-09,Germany,Cape Verde,0,1,Friendly,X,Y,True
+2024-06-10,New Zealand,Japan,0,1,Friendly,X,Y,True
+2024-07-11,Haiti,United States,2,2,Friendly,X,Y,True
+2024-08-12,Japan,Netherlands,2,2,Friendly,X,Y,True
+2024-09-13,England,Bosnia and Herzegovina,1,1,Friendly,X,Y,True
+2024-10-14,Haiti,Portugal,1,0,Friendly,X,Y,True
+2024-11-15,Spain,Cape Verde,1,0,Friendly,X,Y,True
+2024-12-16,DR Congo,Uruguay,1,1,Friendly,X,Y,True
+2024-01-17,Tunisia,Jordan,1,0,Friendly,X,Y,True
+2024-02-18,Argentina,Uzbekistan,1,0,Friendly,X,Y,True
+2024-03-19,Cape Verde,Jordan,3,2,Friendly,X,Y,True
+2024-04-20,New Zealand,Iran,3,1,Friendly,X,Y,True
+2024-05-21,Saudi Arabia,Uzbekistan,2,2,Friendly,X,Y,True
+2024-06-22,Spain,England,0,0,Friendly,X,Y,True
+2024-07-23,Colombia,Tunisia,2,2,Friendly,X,Y,True
+2024-08-24,Argentina,Uzbekistan,1,2,Friendly,X,Y,True
+2024-09-25,Senegal,Spain,3,2,Friendly,X,Y,True
+2024-10-26,Germany,Belgium,1,1,Friendly,X,Y,True
+2024-11-27,United States,Haiti,1,1,Friendly,X,Y,True
+2024-12-28,Egypt,Uzbekistan,3,1,Friendly,X,Y,True
+2024-01-01,England,Mexico,2,0,Friendly,X,Y,True
+2024-02-02,Jordan,Mexico,3,1,Friendly,X,Y,True
+2024-03-03,United States,Iraq,0,1,Friendly,X,Y,True
+2024-04-04,Belgium,Argentina,2,1,Friendly,X,Y,True
+2024-05-05,Tunisia,England,0,1,Friendly,X,Y,True
+2024-06-06,Cape Verde,Jordan,1,3,Friendly,X,Y,True
+2024-07-07,Brazil,United States,1,1,Friendly,X,Y,True
+2024-08-08,Ivory Coast,Canada,2,3,Friendly,X,Y,True
+2024-09-09,Spain,Paraguay,3,2,Friendly,X,Y,True
+2024-10-10,Norway,Mexico,2,2,Friendly,X,Y,True
+2024-11-11,Mexico,Turkey,1,0,Friendly,X,Y,True
+2024-12-12,Austria,Germany,3,2,Friendly,X,Y,True
+2024-01-13,Portugal,Czech Republic,1,3,Friendly,X,Y,True
+2024-02-14,Australia,Egypt,3,1,Friendly,X,Y,True
+2024-03-15,Spain,Japan,3,0,Friendly,X,Y,True
+2024-04-16,England,United States,5,1,Friendly,X,Y,True
+2024-05-17,South Africa,Sweden,1,0,Friendly,X,Y,True
+2024-06-18,Senegal,Austria,0,0,Friendly,X,Y,True
+2024-07-19,Ivory Coast,Paraguay,1,1,Friendly,X,Y,True
+2024-08-20,Mexico,Jordan,2,1,Friendly,X,Y,True
+2024-09-21,Senegal,Portugal,0,1,Friendly,X,Y,True
+2024-10-22,England,Argentina,0,1,Friendly,X,Y,True
+2024-11-23,Scotland,Austria,3,1,Friendly,X,Y,True
+2024-12-24,Spain,United States,0,1,Friendly,X,Y,True
+2024-01-25,Morocco,Scotland,1,1,Friendly,X,Y,True
+2024-02-26,England,Czech Republic,0,0,Friendly,X,Y,True
+2024-03-27,Spain,Austria,3,0,Friendly,X,Y,True
+2024-04-28,Uruguay,Panama,4,1,Friendly,X,Y,True
+2024-05-01,Morocco,Turkey,2,1,Friendly,X,Y,True
+2024-06-02,Mexico,Austria,0,1,Friendly,X,Y,True
+2024-07-03,Switzerland,Germany,6,1,Friendly,X,Y,True
+2024-08-04,Czech Republic,Haiti,1,2,Friendly,X,Y,True
+2024-09-05,Tunisia,Norway,1,1,Friendly,X,Y,True
+2024-10-06,Mexico,Germany,2,1,Friendly,X,Y,True
+2024-11-07,Haiti,Algeria,0,1,Friendly,X,Y,True
+2024-12-08,Cape Verde,Iraq,4,0,Friendly,X,Y,True
+2024-01-09,Germany,Algeria,0,2,Friendly,X,Y,True
+2024-02-10,Norway,Germany,1,0,Friendly,X,Y,True
+2024-03-11,New Zealand,England,0,1,Friendly,X,Y,True
+2024-04-12,South Korea,Argentina,0,2,Friendly,X,Y,True
+2024-05-13,Jordan,Mexico,2,1,Friendly,X,Y,True
+2024-06-14,Egypt,Turkey,3,2,Friendly,X,Y,True
+2024-07-15,Argentina,Scotland,1,1,Friendly,X,Y,True
+2024-08-16,Cape Verde,Egypt,0,0,Friendly,X,Y,True
+2024-09-17,Germany,England,3,2,Friendly,X,Y,True
+2024-10-18,Sweden,South Korea,2,2,Friendly,X,Y,True
+2024-11-19,Croatia,New Zealand,0,1,Friendly,X,Y,True
+2024-12-20,Switzerland,Ivory Coast,0,0,Friendly,X,Y,True
+2024-01-21,Uruguay,Germany,2,3,Friendly,X,Y,True
+2024-02-22,Uzbekistan,Iraq,0,1,Friendly,X,Y,True
+2024-03-23,Panama,Iraq,0,3,Friendly,X,Y,True
+2024-04-24,France,Jordan,1,4,Friendly,X,Y,True
+2024-05-25,Germany,Portugal,1,3,Friendly,X,Y,True
+2024-06-26,Jordan,Spain,1,1,Friendly,X,Y,True
+2024-07-27,Senegal,Netherlands,2,1,Friendly,X,Y,True
+2024-08-28,Mexico,Uzbekistan,0,1,Friendly,X,Y,True
+2024-09-01,Turkey,Belgium,2,0,Friendly,X,Y,True
+2024-10-02,Mexico,Argentina,2,1,Friendly,X,Y,True
+2024-11-03,Saudi Arabia,Senegal,4,1,Friendly,X,Y,True
+2024-12-04,Norway,United States,0,2,Friendly,X,Y,True
+2024-01-05,Colombia,Scotland,1,2,Friendly,X,Y,True
+2024-02-06,Turkey,Norway,3,1,Friendly,X,Y,True
+2024-03-07,Brazil,Spain,1,2,Friendly,X,Y,True
+2024-04-08,Bosnia and Herzegovina,Japan,1,1,Friendly,X,Y,True
+2024-05-09,DR Congo,France,3,2,Friendly,X,Y,True
+2024-06-10,Ivory Coast,Mexico,1,2,Friendly,X,Y,True
+2024-07-11,Haiti,Jordan,2,0,Friendly,X,Y,True
+2024-08-12,Bosnia and Herzegovina,Jordan,2,0,Friendly,X,Y,True
+2024-09-13,Switzerland,Brazil,3,2,Friendly,X,Y,True
+2024-10-14,Netherlands,Turkey,0,2,Friendly,X,Y,True
+2024-11-15,Uruguay,Sweden,1,0,Friendly,X,Y,True
+2024-12-16,Qatar,Panama,2,1,Friendly,X,Y,True
+2024-01-17,South Korea,Germany,2,0,Friendly,X,Y,True
+2024-02-18,United States,Curacao,2,0,Friendly,X,Y,True
+2024-03-19,Haiti,Sweden,1,0,Friendly,X,Y,True
+2024-04-20,Iraq,Iran,3,1,Friendly,X,Y,True
+2024-05-21,Cape Verde,Jordan,1,1,Friendly,X,Y,True
+2024-06-22,Sweden,Spain,1,1,Friendly,X,Y,True
+2024-07-23,Belgium,Mexico,0,0,Friendly,X,Y,True
+2024-08-24,Spain,Australia,0,0,Friendly,X,Y,True
+2024-09-25,Brazil,New Zealand,1,0,Friendly,X,Y,True
+2024-10-26,Belgium,Germany,3,1,Friendly,X,Y,True
+2024-11-27,Australia,Haiti,2,0,Friendly,X,Y,True
+2024-12-28,Paraguay,Netherlands,2,3,Friendly,X,Y,True
+2024-01-01,Croatia,Qatar,0,1,Friendly,X,Y,True
+2024-02-02,Scotland,Uruguay,0,1,Friendly,X,Y,True
+2024-03-03,Australia,Colombia,2,1,Friendly,X,Y,True
+2024-04-04,Senegal,Paraguay,0,1,Friendly,X,Y,True
+2024-05-05,Bosnia and Herzegovina,New Zealand,2,3,Friendly,X,Y,True
+2024-06-06,Uzbekistan,Qatar,3,0,Friendly,X,Y,True
+2024-07-07,Morocco,England,4,2,Friendly,X,Y,True
+2024-08-08,Iraq,Algeria,1,0,Friendly,X,Y,True
+2024-09-09,Ivory Coast,Jordan,0,1,Friendly,X,Y,True
+2024-10-10,Turkey,Austria,2,2,Friendly,X,Y,True
+2024-11-11,Iraq,Ghana,0,1,Friendly,X,Y,True
+2024-12-12,Switzerland,Spain,4,0,Friendly,X,Y,True
+2024-01-13,Australia,Uzbekistan,1,3,Friendly,X,Y,True
+2024-02-14,Colombia,Spain,1,2,Friendly,X,Y,True
+2024-03-15,New Zealand,Senegal,1,0,Friendly,X,Y,True
+2024-04-16,Panama,Switzerland,1,1,Friendly,X,Y,True
+2024-05-17,Portugal,Colombia,2,0,Friendly,X,Y,True
+2024-06-18,Ghana,Ecuador,0,0,Friendly,X,Y,True
+2024-07-19,Argentina,Senegal,0,0,Friendly,X,Y,True
+2024-08-20,Jordan,New Zealand,1,0,Friendly,X,Y,True
+2024-09-21,Australia,Iraq,1,0,Friendly,X,Y,True
+2024-10-22,Turkey,Haiti,3,0,Friendly,X,Y,True
+2024-11-23,Czech Republic,Jordan,0,1,Friendly,X,Y,True
+2024-12-24,DR Congo,Japan,0,1,Friendly,X,Y,True
+2024-01-25,Czech Republic,Egypt,0,1,Friendly,X,Y,True
+2024-02-26,Turkey,Brazil,1,2,Friendly,X,Y,True
+2024-03-27,Mexico,Portugal,1,0,Friendly,X,Y,True
+2024-04-28,Argentina,Curacao,0,1,Friendly,X,Y,True
+2024-05-01,Germany,Argentina,0,1,Friendly,X,Y,True
+2024-06-02,DR Congo,Turkey,2,0,Friendly,X,Y,True
+2024-07-03,Belgium,Cape Verde,0,0,Friendly,X,Y,True
+2024-08-04,Norway,Brazil,2,1,Friendly,X,Y,True
+2024-09-05,England,Ivory Coast,0,0,Friendly,X,Y,True
+2024-10-06,Ghana,Curacao,4,0,Friendly,X,Y,True
+2024-11-07,Canada,Brazil,3,1,Friendly,X,Y,True
+2024-12-08,Mexico,Switzerland,0,2,Friendly,X,Y,True
+2024-01-09,Ecuador,Egypt,4,3,Friendly,X,Y,True
+2024-02-10,Haiti,Bosnia and Herzegovina,0,2,Friendly,X,Y,True
+2024-03-11,Iran,Austria,3,3,Friendly,X,Y,True
+2024-04-12,Panama,Germany,2,0,Friendly,X,Y,True
+2024-05-13,South Korea,Austria,1,2,Friendly,X,Y,True
+2024-06-14,DR Congo,Saudi Arabia,2,1,Friendly,X,Y,True
+2024-07-15,Ghana,Austria,2,0,Friendly,X,Y,True
+2024-08-16,England,Curacao,2,2,Friendly,X,Y,True
+2024-09-17,Germany,Uruguay,0,1,Friendly,X,Y,True
+2024-10-18,DR Congo,Curacao,2,0,Friendly,X,Y,True
+2024-11-19,Iraq,Sweden,1,2,Friendly,X,Y,True
+2024-12-20,Bosnia and Herzegovina,Haiti,3,3,Friendly,X,Y,True
+2024-01-21,Mexico,Uzbekistan,1,0,Friendly,X,Y,True
+2024-02-22,Algeria,Portugal,2,1,Friendly,X,Y,True
+2024-03-23,Brazil,Panama,1,0,Friendly,X,Y,True
+2024-04-24,Ecuador,Argentina,0,2,Friendly,X,Y,True
+2024-05-25,Ghana,Sweden,0,4,Friendly,X,Y,True
+2024-06-26,Ghana,Turkey,0,1,Friendly,X,Y,True
+2024-07-27,Uzbekistan,Tunisia,2,0,Friendly,X,Y,True
+2024-08-28,England,Algeria,1,1,Friendly,X,Y,True
+2024-09-01,Czech Republic,Canada,1,1,Friendly,X,Y,True
+2024-10-02,Scotland,Curacao,3,0,Friendly,X,Y,True
+2024-11-03,Paraguay,Senegal,2,1,Friendly,X,Y,True
+2024-12-04,Ghana,DR Congo,1,1,Friendly,X,Y,True
+2024-01-05,Curacao,Sweden,2,0,Friendly,X,Y,True
+2024-02-06,Netherlands,Czech Republic,3,1,Friendly,X,Y,True
+2024-03-07,Portugal,Tunisia,1,0,Friendly,X,Y,True
+2024-04-08,United States,Australia,1,1,Friendly,X,Y,True
+2024-05-09,Scotland,Spain,0,1,Friendly,X,Y,True
+2024-06-10,Argentina,Switzerland,2,4,Friendly,X,Y,True
+2024-07-11,Ivory Coast,Curacao,1,1,Friendly,X,Y,True
+2024-08-12,Turkey,Japan,0,0,Friendly,X,Y,True
+2024-09-13,France,Belgium,3,1,Friendly,X,Y,True
+2024-10-14,Brazil,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-11-15,New Zealand,South Africa,1,2,Friendly,X,Y,True
+2024-12-16,Algeria,Croatia,1,2,Friendly,X,Y,True
+2024-01-17,Algeria,Spain,1,2,Friendly,X,Y,True
+2024-02-18,Germany,Bosnia and Herzegovina,3,1,Friendly,X,Y,True
+2024-03-19,Qatar,Egypt,2,2,Friendly,X,Y,True
+2024-04-20,Spain,Saudi Arabia,3,0,Friendly,X,Y,True
+2024-05-21,Mexico,Canada,0,4,Friendly,X,Y,True
+2024-06-22,Colombia,Belgium,0,3,Friendly,X,Y,True
+2024-07-23,Mexico,Norway,1,0,Friendly,X,Y,True
+2024-08-24,South Africa,Germany,0,2,Friendly,X,Y,True
+2024-09-25,Netherlands,Paraguay,0,1,Friendly,X,Y,True
+2024-10-26,Austria,Scotland,1,0,Friendly,X,Y,True
+2024-11-27,Turkey,England,1,2,Friendly,X,Y,True
+2024-12-28,Bosnia and Herzegovina,DR Congo,1,1,Friendly,X,Y,True
+2024-01-01,Belgium,Haiti,2,4,Friendly,X,Y,True
+2024-02-02,Haiti,South Africa,1,2,Friendly,X,Y,True
+2024-03-03,Norway,France,1,0,Friendly,X,Y,True
+2024-04-04,Iraq,France,0,1,Friendly,X,Y,True
+2024-05-05,Scotland,South Africa,1,0,Friendly,X,Y,True
+2024-06-06,Uzbekistan,Croatia,0,2,Friendly,X,Y,True
+2024-07-07,Bosnia and Herzegovina,Germany,3,1,Friendly,X,Y,True
+2024-08-08,Colombia,Saudi Arabia,2,1,Friendly,X,Y,True
+2024-09-09,South Korea,England,0,0,Friendly,X,Y,True
+2024-10-10,Norway,England,2,0,Friendly,X,Y,True
+2024-11-11,Sweden,South Korea,0,1,Friendly,X,Y,True
+2024-12-12,South Korea,Iraq,1,0,Friendly,X,Y,True
+2024-01-13,France,Australia,2,1,Friendly,X,Y,True
+2024-02-14,Ghana,France,1,1,Friendly,X,Y,True
+2024-03-15,Qatar,Norway,3,0,Friendly,X,Y,True
+2024-04-16,Jordan,DR Congo,0,4,Friendly,X,Y,True
+2024-05-17,Austria,Turkey,3,0,Friendly,X,Y,True
+2024-06-18,Morocco,Panama,1,1,Friendly,X,Y,True
+2024-07-19,Iran,Ivory Coast,1,1,Friendly,X,Y,True
+2024-08-20,Scotland,Uzbekistan,2,0,Friendly,X,Y,True
+2024-09-21,Croatia,Tunisia,0,0,Friendly,X,Y,True
+2024-10-22,Brazil,Australia,0,1,Friendly,X,Y,True
+2024-11-23,Qatar,South Korea,1,1,Friendly,X,Y,True
+2024-12-24,Norway,South Korea,1,0,Friendly,X,Y,True
+2024-01-25,Netherlands,Tunisia,2,3,Friendly,X,Y,True
+2024-02-26,Cape Verde,Jordan,0,1,Friendly,X,Y,True
+2024-03-27,Colombia,Egypt,0,1,Friendly,X,Y,True
+2024-04-28,New Zealand,Germany,0,1,Friendly,X,Y,True
+2024-05-01,Netherlands,Brazil,1,1,Friendly,X,Y,True
+2024-06-02,Japan,France,0,1,Friendly,X,Y,True
+2024-07-03,Bosnia and Herzegovina,Germany,0,2,Friendly,X,Y,True
+2024-08-04,Brazil,Spain,1,3,Friendly,X,Y,True
+2024-09-05,Sweden,Ghana,0,0,Friendly,X,Y,True
+2024-10-06,Sweden,Czech Republic,2,1,Friendly,X,Y,True
+2024-11-07,Australia,Algeria,1,1,Friendly,X,Y,True
+2024-12-08,Belgium,Qatar,1,0,Friendly,X,Y,True
+2024-01-09,Belgium,Bosnia and Herzegovina,1,1,Friendly,X,Y,True
+2024-02-10,Curacao,Japan,0,2,Friendly,X,Y,True
+2024-03-11,Germany,Algeria,1,1,Friendly,X,Y,True
+2024-04-12,Croatia,Jordan,2,1,Friendly,X,Y,True
+2024-05-13,Iran,Argentina,2,0,Friendly,X,Y,True
+2024-06-14,Switzerland,Czech Republic,1,1,Friendly,X,Y,True
+2024-07-15,Brazil,Morocco,2,0,Friendly,X,Y,True
+2024-08-16,Saudi Arabia,Sweden,4,2,Friendly,X,Y,True
+2024-09-17,Morocco,Bosnia and Herzegovina,1,1,Friendly,X,Y,True
+2024-10-18,Australia,England,0,2,Friendly,X,Y,True
+2024-11-19,Turkey,Qatar,0,0,Friendly,X,Y,True
+2024-12-20,DR Congo,Ghana,2,1,Friendly,X,Y,True
+2024-01-21,Turkey,Saudi Arabia,1,3,Friendly,X,Y,True
+2024-02-22,Jordan,Bosnia and Herzegovina,0,2,Friendly,X,Y,True
+2024-03-23,Japan,England,2,1,Friendly,X,Y,True
+2024-04-24,Senegal,Algeria,1,1,Friendly,X,Y,True
+2024-05-25,Bosnia and Herzegovina,England,1,3,Friendly,X,Y,True
+2024-06-26,France,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-07-27,Turkey,Senegal,3,3,Friendly,X,Y,True
+2024-08-28,Uzbekistan,Cape Verde,1,0,Friendly,X,Y,True
+2024-09-01,South Africa,United States,1,1,Friendly,X,Y,True
+2024-10-02,Algeria,Ivory Coast,3,1,Friendly,X,Y,True
+2024-11-03,Australia,Iran,1,2,Friendly,X,Y,True
+2024-12-04,Jordan,United States,3,1,Friendly,X,Y,True
+2024-01-05,DR Congo,Colombia,1,0,Friendly,X,Y,True
+2024-02-06,DR Congo,Spain,1,1,Friendly,X,Y,True
+2024-03-07,Qatar,Spain,3,1,Friendly,X,Y,True
+2024-04-08,Mexico,Germany,1,0,Friendly,X,Y,True
+2024-05-09,Bosnia and Herzegovina,Ivory Coast,1,1,Friendly,X,Y,True
+2024-06-10,Qatar,England,1,2,Friendly,X,Y,True
+2024-07-11,England,Uzbekistan,4,1,Friendly,X,Y,True
+2024-08-12,Uruguay,Algeria,3,1,Friendly,X,Y,True
+2024-09-13,Uzbekistan,Austria,2,1,Friendly,X,Y,True
+2024-10-14,Algeria,Brazil,0,1,Friendly,X,Y,True
+2024-11-15,Curacao,DR Congo,1,2,Friendly,X,Y,True
+2024-12-16,South Africa,United States,2,2,Friendly,X,Y,True
+2024-01-17,Saudi Arabia,Czech Republic,0,0,Friendly,X,Y,True
+2024-02-18,United States,Paraguay,1,4,Friendly,X,Y,True
+2024-03-19,Uruguay,Sweden,1,0,Friendly,X,Y,True
+2024-04-20,Canada,Sweden,1,0,Friendly,X,Y,True
+2024-05-21,Uzbekistan,Netherlands,0,1,Friendly,X,Y,True
+2024-06-22,Egypt,Tunisia,1,2,Friendly,X,Y,True
+2024-07-23,Uruguay,Curacao,1,1,Friendly,X,Y,True
+2024-08-24,Czech Republic,Cape Verde,3,2,Friendly,X,Y,True
+2024-09-25,Qatar,Brazil,1,3,Friendly,X,Y,True
+2024-10-26,Croatia,Czech Republic,3,1,Friendly,X,Y,True
+2024-11-27,Iraq,Czech Republic,0,0,Friendly,X,Y,True
+2024-12-28,Paraguay,Saudi Arabia,0,1,Friendly,X,Y,True
+2024-01-01,Belgium,DR Congo,1,1,Friendly,X,Y,True
+2024-02-02,Australia,United States,1,1,Friendly,X,Y,True
+2024-03-03,Croatia,England,2,0,Friendly,X,Y,True
+2024-04-04,Haiti,Ivory Coast,1,0,Friendly,X,Y,True
+2024-05-05,Tunisia,Portugal,0,1,Friendly,X,Y,True
+2024-06-06,United States,Curacao,2,0,Friendly,X,Y,True
+2024-07-07,Paraguay,Scotland,1,2,Friendly,X,Y,True
+2024-08-08,New Zealand,Egypt,2,1,Friendly,X,Y,True
+2024-09-09,Qatar,Croatia,3,1,Friendly,X,Y,True
+2024-10-10,Curacao,Ghana,2,0,Friendly,X,Y,True
+2024-11-11,Scotland,Croatia,2,1,Friendly,X,Y,True
+2024-12-12,Croatia,Iran,1,0,Friendly,X,Y,True
+2024-01-13,Qatar,Switzerland,1,0,Friendly,X,Y,True
+2024-02-14,Netherlands,Cape Verde,1,1,Friendly,X,Y,True
+2024-03-15,Austria,Panama,1,1,Friendly,X,Y,True
+2024-04-16,Uruguay,Turkey,2,1,Friendly,X,Y,True
+2024-05-17,Ecuador,Paraguay,0,1,Friendly,X,Y,True
+2024-06-18,Paraguay,Netherlands,2,1,Friendly,X,Y,True
+2024-07-19,Ghana,Algeria,1,1,Friendly,X,Y,True
+2024-08-20,Canada,Argentina,0,1,Friendly,X,Y,True
+2024-09-21,Ivory Coast,Uzbekistan,0,1,Friendly,X,Y,True
+2024-10-22,Iran,Iraq,1,1,Friendly,X,Y,True
+2024-11-23,Jordan,Morocco,3,3,Friendly,X,Y,True
+2024-12-24,Australia,Tunisia,5,2,Friendly,X,Y,True
+2024-01-25,Sweden,Japan,0,2,Friendly,X,Y,True
+2024-02-26,Uzbekistan,South Korea,3,0,Friendly,X,Y,True
+2024-03-27,Spain,Panama,1,0,Friendly,X,Y,True
+2024-04-28,Spain,Ghana,2,1,Friendly,X,Y,True
+2024-05-01,Morocco,Ivory Coast,1,1,Friendly,X,Y,True
+2024-06-02,Mexico,Brazil,0,2,Friendly,X,Y,True
+2024-07-03,Ivory Coast,Spain,0,2,Friendly,X,Y,True
+2024-08-04,Mexico,Jordan,1,2,Friendly,X,Y,True
+2024-09-05,United States,Curacao,1,1,Friendly,X,Y,True
+2024-10-06,Germany,Belgium,0,2,Friendly,X,Y,True
+2024-11-07,Switzerland,Panama,1,3,Friendly,X,Y,True
+2024-12-08,Morocco,Iran,2,4,Friendly,X,Y,True
+2024-01-09,Argentina,South Africa,1,1,Friendly,X,Y,True
+2024-02-10,Iraq,Algeria,4,1,Friendly,X,Y,True
+2024-03-11,Ecuador,Egypt,1,0,Friendly,X,Y,True
+2024-04-12,Brazil,Czech Republic,1,2,Friendly,X,Y,True
+2024-05-13,Japan,Argentina,2,1,Friendly,X,Y,True
+2024-06-14,Uzbekistan,Morocco,2,1,Friendly,X,Y,True
+2024-07-15,Canada,Curacao,0,1,Friendly,X,Y,True
+2024-08-16,Canada,Tunisia,2,0,Friendly,X,Y,True
+2024-09-17,Morocco,Paraguay,0,0,Friendly,X,Y,True
+2024-10-18,Bosnia and Herzegovina,Algeria,2,1,Friendly,X,Y,True
+2024-11-19,Algeria,Jordan,3,2,Friendly,X,Y,True
+2024-12-20,Panama,Cape Verde,0,2,Friendly,X,Y,True
+2024-01-21,Canada,Brazil,2,0,Friendly,X,Y,True
+2024-02-22,Switzerland,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-03-23,Brazil,Cape Verde,0,1,Friendly,X,Y,True
+2024-04-24,Morocco,Austria,1,0,Friendly,X,Y,True
+2024-05-25,Panama,United States,4,1,Friendly,X,Y,True
+2024-06-26,Switzerland,Panama,1,1,Friendly,X,Y,True
+2024-07-27,Paraguay,Australia,1,4,Friendly,X,Y,True
+2024-08-28,Portugal,Egypt,2,2,Friendly,X,Y,True
+2024-09-01,Morocco,Algeria,2,1,Friendly,X,Y,True
+2024-10-02,Netherlands,Austria,0,1,Friendly,X,Y,True
+2024-11-03,Qatar,Argentina,2,1,Friendly,X,Y,True
+2024-12-04,Spain,Tunisia,0,2,Friendly,X,Y,True
+2024-01-05,Jordan,Switzerland,2,3,Friendly,X,Y,True
+2024-02-06,Egypt,England,2,1,Friendly,X,Y,True
+2024-03-07,Czech Republic,Uruguay,3,0,Friendly,X,Y,True
+2024-04-08,Algeria,Portugal,3,2,Friendly,X,Y,True
+2024-05-09,Austria,Senegal,0,1,Friendly,X,Y,True
+2024-06-10,Curacao,Austria,0,0,Friendly,X,Y,True
+2024-07-11,Senegal,France,0,3,Friendly,X,Y,True
+2024-08-12,Ivory Coast,England,0,3,Friendly,X,Y,True
+2024-09-13,Netherlands,Spain,1,1,Friendly,X,Y,True
+2024-10-14,Australia,Iran,0,1,Friendly,X,Y,True
+2024-11-15,England,Iraq,1,0,Friendly,X,Y,True
+2024-12-16,Paraguay,Curacao,1,0,Friendly,X,Y,True
+2024-01-17,Panama,Argentina,1,1,Friendly,X,Y,True
+2024-02-18,Colombia,Germany,1,2,Friendly,X,Y,True
+2024-03-19,France,Spain,0,0,Friendly,X,Y,True
+2024-04-20,Netherlands,Ecuador,1,3,Friendly,X,Y,True
+2024-05-21,Ivory Coast,South Africa,2,0,Friendly,X,Y,True
+2024-06-22,Brazil,Turkey,0,1,Friendly,X,Y,True
+2024-07-23,Switzerland,South Korea,3,0,Friendly,X,Y,True
+2024-08-24,Iraq,Algeria,2,0,Friendly,X,Y,True
+2024-09-25,England,Panama,2,1,Friendly,X,Y,True
+2024-10-26,Iran,Croatia,1,1,Friendly,X,Y,True
+2024-11-27,Panama,Bosnia and Herzegovina,1,3,Friendly,X,Y,True
+2024-12-28,Iraq,Cape Verde,0,0,Friendly,X,Y,True
+2024-01-01,Paraguay,Cape Verde,2,2,Friendly,X,Y,True
+2024-02-02,Ecuador,Egypt,1,1,Friendly,X,Y,True
+2024-03-03,Canada,Switzerland,3,1,Friendly,X,Y,True
+2024-04-04,Egypt,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-05-05,South Africa,Bosnia and Herzegovina,2,0,Friendly,X,Y,True
+2024-06-06,Japan,England,2,0,Friendly,X,Y,True
+2024-07-07,Austria,Senegal,0,2,Friendly,X,Y,True
+2024-08-08,Haiti,United States,1,2,Friendly,X,Y,True
+2024-09-09,Uruguay,Belgium,0,1,Friendly,X,Y,True
+2024-10-10,England,DR Congo,2,1,Friendly,X,Y,True
+2024-11-11,Bosnia and Herzegovina,Curacao,3,0,Friendly,X,Y,True
+2024-12-12,New Zealand,Portugal,1,1,Friendly,X,Y,True
+2024-01-13,Sweden,Ecuador,1,0,Friendly,X,Y,True
+2024-02-14,Algeria,Curacao,4,1,Friendly,X,Y,True
+2024-03-15,Iran,Uruguay,0,0,Friendly,X,Y,True
+2024-04-16,Ivory Coast,Iraq,2,1,Friendly,X,Y,True
+2024-05-17,Spain,Mexico,1,3,Friendly,X,Y,True
+2024-06-18,Uzbekistan,Algeria,1,2,Friendly,X,Y,True
+2024-07-19,Norway,Argentina,1,2,Friendly,X,Y,True
+2024-08-20,Morocco,Uruguay,1,0,Friendly,X,Y,True
+2024-09-21,Iran,Germany,3,0,Friendly,X,Y,True
+2024-10-22,Spain,France,0,0,Friendly,X,Y,True
+2024-11-23,Haiti,South Korea,3,1,Friendly,X,Y,True
+2024-12-24,Sweden,Colombia,3,3,Friendly,X,Y,True
+2024-01-25,Mexico,Belgium,4,1,Friendly,X,Y,True
+2024-02-26,Curacao,Algeria,2,2,Friendly,X,Y,True
+2024-03-27,Switzerland,Uruguay,0,0,Friendly,X,Y,True
+2024-04-28,Turkey,Argentina,0,3,Friendly,X,Y,True
+2024-05-01,Bosnia and Herzegovina,Paraguay,0,1,Friendly,X,Y,True
+2024-06-02,Norway,Iran,1,2,Friendly,X,Y,True
+2024-07-03,Turkey,Ghana,3,1,Friendly,X,Y,True
+2024-08-04,Mexico,Belgium,2,1,Friendly,X,Y,True
+2024-09-05,Paraguay,United States,0,2,Friendly,X,Y,True
+2024-10-06,Belgium,Sweden,0,1,Friendly,X,Y,True
+2024-11-07,Haiti,Austria,4,1,Friendly,X,Y,True
+2024-12-08,Austria,Brazil,1,1,Friendly,X,Y,True
+2024-01-09,Portugal,Germany,3,1,Friendly,X,Y,True
+2024-02-10,Czech Republic,Curacao,0,0,Friendly,X,Y,True
+2024-03-11,Mexico,Morocco,1,0,Friendly,X,Y,True
+2024-04-12,Turkey,Belgium,1,1,Friendly,X,Y,True
+2024-05-13,Spain,Ecuador,2,2,Friendly,X,Y,True
+2024-06-14,Portugal,Egypt,1,3,Friendly,X,Y,True
+2024-07-15,Switzerland,South Korea,2,1,Friendly,X,Y,True
+2024-08-16,Uzbekistan,South Africa,1,0,Friendly,X,Y,True
+2024-09-17,Uruguay,Colombia,3,0,Friendly,X,Y,True
+2024-10-18,Curacao,Uruguay,1,0,Friendly,X,Y,True
+2024-11-19,Germany,Algeria,1,0,Friendly,X,Y,True
+2024-12-20,Colombia,Netherlands,1,0,Friendly,X,Y,True
+2024-01-21,United States,Japan,2,4,Friendly,X,Y,True
+2024-02-22,Senegal,Iran,1,4,Friendly,X,Y,True
+2024-03-23,England,Curacao,1,1,Friendly,X,Y,True
+2024-04-24,Canada,Qatar,3,4,Friendly,X,Y,True
+2024-05-25,Belgium,Norway,4,0,Friendly,X,Y,True
+2024-06-26,France,Haiti,2,1,Friendly,X,Y,True
+2024-07-27,Morocco,Jordan,1,2,Friendly,X,Y,True
+2024-08-28,Ivory Coast,Japan,2,4,Friendly,X,Y,True
+2024-09-01,Belgium,DR Congo,2,1,Friendly,X,Y,True
+2024-10-02,England,Cape Verde,1,1,Friendly,X,Y,True
+2024-11-03,Senegal,Qatar,1,1,Friendly,X,Y,True
+2024-12-04,Japan,Cape Verde,0,2,Friendly,X,Y,True
+2024-01-05,Austria,Norway,1,0,Friendly,X,Y,True
+2024-02-06,Japan,United States,0,2,Friendly,X,Y,True
+2024-03-07,Croatia,Paraguay,3,0,Friendly,X,Y,True
+2024-04-08,Brazil,Uruguay,0,2,Friendly,X,Y,True
+2024-05-09,Germany,Ghana,1,2,Friendly,X,Y,True
+2024-06-10,Portugal,Iran,1,0,Friendly,X,Y,True
+2024-07-11,Egypt,Morocco,3,1,Friendly,X,Y,True
+2024-08-12,United States,Czech Republic,1,0,Friendly,X,Y,True
+2024-09-13,Turkey,Saudi Arabia,4,2,Friendly,X,Y,True
+2024-10-14,South Africa,Canada,1,0,Friendly,X,Y,True
+2024-11-15,Brazil,Austria,1,4,Friendly,X,Y,True
+2024-12-16,Haiti,Ecuador,2,1,Friendly,X,Y,True
+2024-01-17,Iran,Australia,0,1,Friendly,X,Y,True
+2024-02-18,Curacao,Scotland,1,1,Friendly,X,Y,True
+2024-03-19,DR Congo,Switzerland,1,1,Friendly,X,Y,True
+2024-04-20,Qatar,England,0,1,Friendly,X,Y,True
+2024-05-21,Sweden,Scotland,1,0,Friendly,X,Y,True
+2024-06-22,New Zealand,Colombia,0,2,Friendly,X,Y,True
+2024-07-23,Cape Verde,Scotland,3,0,Friendly,X,Y,True
+2024-08-24,Ecuador,Iraq,0,1,Friendly,X,Y,True
+2024-09-25,Switzerland,Haiti,0,1,Friendly,X,Y,True
+2024-10-26,Algeria,Australia,2,1,Friendly,X,Y,True
+2024-11-27,Curacao,Belgium,3,1,Friendly,X,Y,True
+2024-12-28,Algeria,Uruguay,1,3,Friendly,X,Y,True
+2024-01-01,Sweden,Switzerland,3,1,Friendly,X,Y,True
+2024-02-02,Norway,Portugal,3,1,Friendly,X,Y,True
+2024-03-03,Australia,Morocco,1,1,Friendly,X,Y,True
+2024-04-04,Austria,Saudi Arabia,3,2,Friendly,X,Y,True
+2024-05-05,Iran,South Korea,0,2,Friendly,X,Y,True
+2024-06-06,Algeria,Mexico,0,2,Friendly,X,Y,True
+2024-07-07,Canada,Germany,2,0,Friendly,X,Y,True
+2024-08-08,Senegal,Algeria,2,1,Friendly,X,Y,True
+2024-09-09,Panama,Mexico,2,0,Friendly,X,Y,True
+2024-10-10,Uzbekistan,Jordan,0,0,Friendly,X,Y,True
+2024-11-11,New Zealand,Ecuador,1,3,Friendly,X,Y,True
+2024-12-12,Canada,South Korea,0,1,Friendly,X,Y,True
+2024-01-13,Austria,Norway,4,2,Friendly,X,Y,True
+2024-02-14,England,Japan,0,2,Friendly,X,Y,True
+2024-03-15,England,New Zealand,2,0,Friendly,X,Y,True
+2024-04-16,Panama,Brazil,1,1,Friendly,X,Y,True
+2024-05-17,Australia,Brazil,0,2,Friendly,X,Y,True
+2024-06-18,France,Croatia,1,2,Friendly,X,Y,True
+2024-07-19,Scotland,Haiti,3,1,Friendly,X,Y,True
+2024-08-20,Germany,Czech Republic,0,0,Friendly,X,Y,True
+2024-09-21,Portugal,New Zealand,1,2,Friendly,X,Y,True
+2024-10-22,Iraq,Belgium,3,2,Friendly,X,Y,True
+2024-11-23,Scotland,Uzbekistan,4,1,Friendly,X,Y,True
+2024-12-24,Belgium,Bosnia and Herzegovina,2,3,Friendly,X,Y,True
+2024-01-25,Canada,Germany,0,1,Friendly,X,Y,True
+2024-02-26,Ghana,Netherlands,1,0,Friendly,X,Y,True
+2024-03-27,Germany,Paraguay,0,1,Friendly,X,Y,True
+2024-04-28,Belgium,Norway,4,1,Friendly,X,Y,True
+2024-05-01,Argentina,Japan,3,0,Friendly,X,Y,True
+2024-06-02,Saudi Arabia,Scotland,0,1,Friendly,X,Y,True
+2024-07-03,England,Saudi Arabia,1,2,Friendly,X,Y,True
+2024-08-04,Spain,Canada,1,2,Friendly,X,Y,True
+2024-09-05,Uzbekistan,Algeria,0,0,Friendly,X,Y,True
+2024-10-06,Turkey,Haiti,0,1,Friendly,X,Y,True
+2024-11-07,Jordan,New Zealand,2,4,Friendly,X,Y,True
+2024-12-08,United States,Jordan,1,2,Friendly,X,Y,True
+2024-01-09,New Zealand,Senegal,3,3,Friendly,X,Y,True
+2024-02-10,DR Congo,Netherlands,4,2,Friendly,X,Y,True
+2024-03-11,Bosnia and Herzegovina,Ghana,2,0,Friendly,X,Y,True
+2024-04-12,Iran,Ghana,0,0,Friendly,X,Y,True
+2024-05-13,South Korea,Portugal,1,1,Friendly,X,Y,True
+2024-06-14,Uzbekistan,Morocco,2,1,Friendly,X,Y,True
+2024-07-15,Paraguay,Austria,0,1,Friendly,X,Y,True
+2024-08-16,France,South Africa,2,0,Friendly,X,Y,True
+2024-09-17,Uzbekistan,Uruguay,0,2,Friendly,X,Y,True
+2024-10-18,Spain,Cape Verde,2,2,Friendly,X,Y,True
+2024-11-19,Sweden,Brazil,1,2,Friendly,X,Y,True
+2024-12-20,Egypt,Argentina,1,0,Friendly,X,Y,True
+2024-01-21,Norway,Turkey,0,4,Friendly,X,Y,True
+2024-02-22,Portugal,Japan,0,2,Friendly,X,Y,True
+2024-03-23,Iraq,DR Congo,3,1,Friendly,X,Y,True
+2024-04-24,Morocco,Australia,2,1,Friendly,X,Y,True
+2024-05-25,Czech Republic,Austria,0,1,Friendly,X,Y,True
+2024-06-26,Czech Republic,Argentina,0,0,Friendly,X,Y,True
+2024-07-27,Algeria,Sweden,1,1,Friendly,X,Y,True
+2024-08-28,Brazil,Morocco,3,0,Friendly,X,Y,True
+2024-09-01,Czech Republic,Senegal,1,1,Friendly,X,Y,True
+2024-10-02,United States,England,2,1,Friendly,X,Y,True
+2024-11-03,Belgium,United States,4,1,Friendly,X,Y,True
+2024-12-04,Ghana,Iran,1,1,Friendly,X,Y,True
+2024-01-05,Ecuador,Panama,0,1,Friendly,X,Y,True
+2024-02-06,Switzerland,Germany,1,1,Friendly,X,Y,True
+2024-03-07,Spain,Germany,3,0,Friendly,X,Y,True
+2024-04-08,England,Iran,1,1,Friendly,X,Y,True
+2024-05-09,Mexico,New Zealand,1,0,Friendly,X,Y,True
+2024-06-10,Switzerland,Czech Republic,2,6,Friendly,X,Y,True
+2024-07-11,Scotland,Algeria,1,2,Friendly,X,Y,True
+2024-08-12,Iraq,Scotland,1,4,Friendly,X,Y,True
+2024-09-13,Algeria,Colombia,0,0,Friendly,X,Y,True
+2024-10-14,Iraq,Saudi Arabia,1,1,Friendly,X,Y,True
+2024-11-15,Paraguay,Egypt,0,2,Friendly,X,Y,True
+2024-12-16,Tunisia,Scotland,1,0,Friendly,X,Y,True
+2024-01-17,Argentina,Ghana,2,1,Friendly,X,Y,True
+2024-02-18,Scotland,Croatia,2,0,Friendly,X,Y,True
+2024-03-19,Paraguay,Brazil,1,2,Friendly,X,Y,True
+2024-04-20,New Zealand,Curacao,0,2,Friendly,X,Y,True
+2024-05-21,Scotland,Croatia,3,3,Friendly,X,Y,True
+2024-06-22,Paraguay,Senegal,1,3,Friendly,X,Y,True
+2024-07-23,Ivory Coast,Mexico,1,0,Friendly,X,Y,True
+2024-08-24,Czech Republic,Scotland,1,0,Friendly,X,Y,True
+2024-09-25,Norway,Brazil,4,1,Friendly,X,Y,True
+2024-10-26,Morocco,Algeria,0,0,Friendly,X,Y,True
+2024-11-27,South Korea,Cape Verde,2,0,Friendly,X,Y,True
+2024-12-28,Turkey,Jordan,0,0,Friendly,X,Y,True
+2024-01-01,Algeria,Turkey,0,1,Friendly,X,Y,True
+2024-02-02,Panama,Austria,0,0,Friendly,X,Y,True
+2024-03-03,France,DR Congo,1,0,Friendly,X,Y,True
+2024-04-04,South Africa,Morocco,0,4,Friendly,X,Y,True
+2024-05-05,Qatar,Portugal,0,0,Friendly,X,Y,True
+2024-06-06,South Africa,Iran,2,1,Friendly,X,Y,True
+2024-07-07,Egypt,England,1,0,Friendly,X,Y,True
+2024-08-08,Mexico,Paraguay,1,2,Friendly,X,Y,True
+2024-09-09,Qatar,Netherlands,1,2,Friendly,X,Y,True
+2024-10-10,Senegal,Algeria,2,1,Friendly,X,Y,True
+2024-11-11,Ghana,Portugal,1,2,Friendly,X,Y,True
+2024-12-12,Portugal,Brazil,2,2,Friendly,X,Y,True
+2024-01-13,France,Uruguay,1,1,Friendly,X,Y,True
+2024-02-14,Croatia,Germany,1,4,Friendly,X,Y,True
+2024-03-15,Curacao,Senegal,4,1,Friendly,X,Y,True
+2024-04-16,Switzerland,Netherlands,1,1,Friendly,X,Y,True
+2024-05-17,Argentina,New Zealand,4,1,Friendly,X,Y,True
+2024-06-18,South Korea,Turkey,1,2,Friendly,X,Y,True
+2024-07-19,Curacao,Tunisia,0,2,Friendly,X,Y,True
+2024-08-20,United States,Germany,0,0,Friendly,X,Y,True
+2024-09-21,Austria,Algeria,3,3,Friendly,X,Y,True
+2024-10-22,South Africa,Senegal,0,1,Friendly,X,Y,True
+2024-11-23,Germany,Portugal,1,0,Friendly,X,Y,True
+2024-12-24,Sweden,Uzbekistan,0,0,Friendly,X,Y,True
+2024-01-25,France,Mexico,0,1,Friendly,X,Y,True
+2024-02-26,South Korea,Iraq,2,2,Friendly,X,Y,True
+2024-03-27,Bosnia and Herzegovina,Saudi Arabia,2,1,Friendly,X,Y,True
+2024-04-28,Morocco,Brazil,3,1,Friendly,X,Y,True
+2024-05-01,Egypt,Canada,1,1,Friendly,X,Y,True
+2024-06-02,Saudi Arabia,Spain,0,1,Friendly,X,Y,True
+2024-07-03,Argentina,Ghana,1,2,Friendly,X,Y,True
+2024-08-04,Croatia,United States,0,1,Friendly,X,Y,True
+2024-09-05,DR Congo,Japan,2,0,Friendly,X,Y,True
+2024-10-06,Portugal,Brazil,3,5,Friendly,X,Y,True
+2024-11-07,Mexico,Ivory Coast,0,1,Friendly,X,Y,True
+2024-12-08,Senegal,Egypt,0,1,Friendly,X,Y,True
+2024-01-09,Ecuador,Paraguay,1,2,Friendly,X,Y,True
+2024-02-10,Paraguay,Czech Republic,0,1,Friendly,X,Y,True
+2024-03-11,Paraguay,Iran,2,2,Friendly,X,Y,True
+2024-04-12,Saudi Arabia,Uruguay,1,1,Friendly,X,Y,True
+2024-05-13,France,Ecuador,1,1,Friendly,X,Y,True
+2024-06-14,Belgium,Switzerland,3,1,Friendly,X,Y,True
+2024-07-15,Spain,Haiti,1,1,Friendly,X,Y,True
+2024-08-16,Uruguay,Belgium,0,2,Friendly,X,Y,True
+2024-09-17,Saudi Arabia,Czech Republic,0,1,Friendly,X,Y,True
+2024-10-18,Netherlands,Canada,1,1,Friendly,X,Y,True
+2024-11-19,Argentina,Tunisia,2,1,Friendly,X,Y,True
+2024-12-20,Mexico,Iran,1,0,Friendly,X,Y,True
+2024-01-21,Saudi Arabia,Paraguay,2,1,Friendly,X,Y,True
+2024-02-22,Uzbekistan,Austria,1,4,Friendly,X,Y,True
+2024-03-23,Canada,Paraguay,2,1,Friendly,X,Y,True
+2024-04-24,Belgium,South Korea,1,0,Friendly,X,Y,True
+2024-05-25,South Africa,Uruguay,0,0,Friendly,X,Y,True
+2024-06-26,Netherlands,Turkey,3,3,Friendly,X,Y,True
+2024-07-27,Netherlands,Tunisia,1,1,Friendly,X,Y,True
+2024-08-28,Australia,United States,1,0,Friendly,X,Y,True
+2024-09-01,Ecuador,DR Congo,1,2,Friendly,X,Y,True
+2024-10-02,New Zealand,South Africa,3,1,Friendly,X,Y,True
+2024-11-03,Portugal,Egypt,1,1,Friendly,X,Y,True
+2024-12-04,Switzerland,Czech Republic,2,2,Friendly,X,Y,True
+2024-01-05,Germany,Austria,3,1,Friendly,X,Y,True
+2024-02-06,Curacao,Scotland,2,1,Friendly,X,Y,True
+2024-03-07,Germany,Curacao,1,1,Friendly,X,Y,True
+2024-04-08,Mexico,Bosnia and Herzegovina,2,0,Friendly,X,Y,True
+2024-05-09,Iraq,England,1,1,Friendly,X,Y,True
+2024-06-10,Colombia,Curacao,0,0,Friendly,X,Y,True
+2024-07-11,England,Czech Republic,1,1,Friendly,X,Y,True
+2024-08-12,Algeria,Belgium,1,2,Friendly,X,Y,True
+2024-09-13,Spain,Uruguay,2,0,Friendly,X,Y,True
+2024-10-14,New Zealand,Croatia,2,2,Friendly,X,Y,True
+2024-11-15,Jordan,Uruguay,1,1,Friendly,X,Y,True
+2024-12-16,Austria,Iran,2,0,Friendly,X,Y,True
+2024-01-17,Egypt,Jordan,1,1,Friendly,X,Y,True
+2024-02-18,Iran,Bosnia and Herzegovina,3,0,Friendly,X,Y,True
+2024-03-19,Haiti,Austria,0,0,Friendly,X,Y,True
+2024-04-20,Jordan,France,1,1,Friendly,X,Y,True
+2024-05-21,Austria,Belgium,2,0,Friendly,X,Y,True
+2024-06-22,United States,Croatia,2,2,Friendly,X,Y,True
+2024-07-23,Scotland,Croatia,0,1,Friendly,X,Y,True
+2024-08-24,South Korea,Ecuador,4,0,Friendly,X,Y,True
+2024-09-25,Austria,Brazil,0,0,Friendly,X,Y,True
+2024-10-26,Sweden,Spain,0,0,Friendly,X,Y,True
+2024-11-27,Spain,DR Congo,0,0,Friendly,X,Y,True
+2024-12-28,Iraq,Cape Verde,0,1,Friendly,X,Y,True
+2024-01-01,Bosnia and Herzegovina,England,0,1,Friendly,X,Y,True
+2024-02-02,Switzerland,South Africa,2,1,Friendly,X,Y,True
+2024-03-03,Czech Republic,Belgium,1,2,Friendly,X,Y,True
+2024-04-04,Argentina,United States,2,1,Friendly,X,Y,True
+2024-05-05,Colombia,Spain,2,3,Friendly,X,Y,True
+2024-06-06,Senegal,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-07-07,Turkey,Portugal,2,4,Friendly,X,Y,True
+2024-08-08,Algeria,United States,1,0,Friendly,X,Y,True
+2024-09-09,Panama,Uruguay,1,0,Friendly,X,Y,True
+2024-10-10,Iran,Sweden,0,3,Friendly,X,Y,True
+2024-11-11,Qatar,Cape Verde,0,3,Friendly,X,Y,True
+2024-12-12,Cape Verde,Uruguay,5,1,Friendly,X,Y,True
+2024-01-13,Brazil,Panama,3,1,Friendly,X,Y,True
+2024-02-14,Ivory Coast,South Africa,2,6,Friendly,X,Y,True
+2024-03-15,Iran,Ghana,1,3,Friendly,X,Y,True
+2024-04-16,Ghana,Norway,0,1,Friendly,X,Y,True
+2024-05-17,Saudi Arabia,Switzerland,5,2,Friendly,X,Y,True
+2024-06-18,Haiti,United States,0,2,Friendly,X,Y,True
+2024-07-19,Uruguay,Algeria,1,0,Friendly,X,Y,True
+2024-08-20,Iran,France,1,1,Friendly,X,Y,True
+2024-09-21,Qatar,Australia,3,2,Friendly,X,Y,True
+2024-10-22,Turkey,South Africa,1,4,Friendly,X,Y,True
+2024-11-23,Norway,Czech Republic,0,1,Friendly,X,Y,True
+2024-12-24,Ivory Coast,Austria,3,1,Friendly,X,Y,True
+2024-01-25,Austria,Egypt,1,0,Friendly,X,Y,True
+2024-02-26,South Africa,Bosnia and Herzegovina,1,2,Friendly,X,Y,True
+2024-03-27,Panama,Portugal,0,3,Friendly,X,Y,True
+2024-04-28,Paraguay,Uruguay,1,1,Friendly,X,Y,True
+2024-05-01,Argentina,Algeria,0,1,Friendly,X,Y,True
+2024-06-02,Iraq,Egypt,2,0,Friendly,X,Y,True
+2024-07-03,Belgium,England,1,1,Friendly,X,Y,True
+2024-08-04,England,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-09-05,Egypt,Germany,2,3,Friendly,X,Y,True
+2024-10-06,Colombia,Portugal,2,2,Friendly,X,Y,True
+2024-11-07,Croatia,Ecuador,1,1,Friendly,X,Y,True
+2024-12-08,Ivory Coast,Colombia,0,0,Friendly,X,Y,True
+2024-01-09,Turkey,Haiti,0,1,Friendly,X,Y,True
+2024-02-10,Tunisia,Scotland,0,1,Friendly,X,Y,True
+2024-03-11,Tunisia,Spain,1,1,Friendly,X,Y,True
+2024-04-12,Japan,Netherlands,1,2,Friendly,X,Y,True
+2024-05-13,Uruguay,Norway,0,2,Friendly,X,Y,True
+2024-06-14,Switzerland,Iraq,0,0,Friendly,X,Y,True
+2024-07-15,Uzbekistan,Panama,1,4,Friendly,X,Y,True
+2024-08-16,South Korea,Colombia,2,1,Friendly,X,Y,True
+2024-09-17,Uzbekistan,Portugal,0,0,Friendly,X,Y,True
+2024-10-18,Canada,Norway,3,1,Friendly,X,Y,True
+2024-11-19,Curacao,Ivory Coast,1,0,Friendly,X,Y,True
+2024-12-20,Paraguay,DR Congo,2,1,Friendly,X,Y,True
+2024-01-21,Senegal,Algeria,1,2,Friendly,X,Y,True
+2024-02-22,Spain,Norway,1,1,Friendly,X,Y,True
+2024-03-23,Sweden,Saudi Arabia,2,0,Friendly,X,Y,True
+2024-04-24,Qatar,Colombia,0,0,Friendly,X,Y,True
+2024-05-25,Haiti,Turkey,1,0,Friendly,X,Y,True
+2024-06-26,DR Congo,Senegal,3,0,Friendly,X,Y,True
+2024-07-27,Algeria,Bosnia and Herzegovina,5,2,Friendly,X,Y,True
+2024-08-28,England,Tunisia,1,3,Friendly,X,Y,True
+2024-09-01,Mexico,Cape Verde,3,0,Friendly,X,Y,True
+2024-10-02,Brazil,Ghana,2,2,Friendly,X,Y,True
+2024-11-03,Austria,Belgium,1,0,Friendly,X,Y,True
+2024-12-04,Japan,Egypt,4,4,Friendly,X,Y,True
+2024-01-05,Saudi Arabia,Spain,2,0,Friendly,X,Y,True
+2024-02-06,Iraq,Curacao,1,2,Friendly,X,Y,True
+2024-03-07,DR Congo,Mexico,0,2,Friendly,X,Y,True
+2024-04-08,Iran,Haiti,2,3,Friendly,X,Y,True
+2024-05-09,DR Congo,South Africa,1,2,Friendly,X,Y,True
+2024-06-10,Iran,Argentina,2,0,Friendly,X,Y,True
+2024-07-11,Tunisia,Paraguay,1,1,Friendly,X,Y,True
+2024-08-12,Japan,Colombia,2,0,Friendly,X,Y,True
+2024-09-13,United States,Portugal,0,2,Friendly,X,Y,True
+2024-10-14,Curacao,Croatia,4,3,Friendly,X,Y,True
+2024-11-15,Germany,Belgium,1,2,Friendly,X,Y,True
+2024-12-16,Austria,South Korea,1,2,Friendly,X,Y,True
+2024-01-17,Uzbekistan,Paraguay,3,2,Friendly,X,Y,True
+2024-02-18,Egypt,Canada,4,1,Friendly,X,Y,True
+2024-03-19,Czech Republic,Germany,1,0,Friendly,X,Y,True
+2024-04-20,Czech Republic,United States,0,1,Friendly,X,Y,True
+2024-05-21,Uzbekistan,Jordan,1,0,Friendly,X,Y,True
+2024-06-22,Ghana,Algeria,0,0,Friendly,X,Y,True
+2024-07-23,England,Mexico,3,3,Friendly,X,Y,True
+2024-08-24,Argentina,Tunisia,0,2,Friendly,X,Y,True
+2024-09-25,Uzbekistan,Haiti,2,0,Friendly,X,Y,True
+2024-10-26,Egypt,Saudi Arabia,1,2,Friendly,X,Y,True
+2024-11-27,England,Germany,2,2,Friendly,X,Y,True
+2024-12-28,Sweden,Jordan,1,1,Friendly,X,Y,True
+2024-01-01,Canada,Ghana,3,1,Friendly,X,Y,True
+2024-02-02,United States,Iraq,0,2,Friendly,X,Y,True
+2024-03-03,Australia,Ivory Coast,2,1,Friendly,X,Y,True
+2024-04-04,Croatia,Netherlands,1,1,Friendly,X,Y,True
+2024-05-05,England,Mexico,4,1,Friendly,X,Y,True
+2024-06-06,Norway,Switzerland,0,3,Friendly,X,Y,True
+2024-07-07,Ivory Coast,Portugal,3,0,Friendly,X,Y,True
+2024-08-08,Morocco,Uruguay,1,2,Friendly,X,Y,True
+2024-09-09,Spain,Germany,4,1,Friendly,X,Y,True
+2024-10-10,Netherlands,Czech Republic,2,1,Friendly,X,Y,True
+2024-11-11,Austria,Mexico,0,3,Friendly,X,Y,True
+2024-12-12,Czech Republic,Mexico,1,4,Friendly,X,Y,True
+2024-01-13,Curacao,Uruguay,1,2,Friendly,X,Y,True
+2024-02-14,Austria,Ecuador,2,0,Friendly,X,Y,True
+2024-03-15,Japan,Belgium,2,1,Friendly,X,Y,True
+2024-04-16,Brazil,Ghana,2,3,Friendly,X,Y,True
+2024-05-17,Qatar,Austria,1,1,Friendly,X,Y,True
+2024-06-18,Senegal,Sweden,2,2,Friendly,X,Y,True
+2024-07-19,Bosnia and Herzegovina,Cape Verde,0,1,Friendly,X,Y,True
+2024-08-20,New Zealand,Saudi Arabia,3,2,Friendly,X,Y,True
+2024-09-21,Austria,Ecuador,1,0,Friendly,X,Y,True
+2024-10-22,Uzbekistan,South Africa,0,1,Friendly,X,Y,True
+2024-11-23,Saudi Arabia,Jordan,4,2,Friendly,X,Y,True
+2024-12-24,Ivory Coast,South Africa,1,2,Friendly,X,Y,True
+2024-01-25,Netherlands,Canada,1,2,Friendly,X,Y,True
+2024-02-26,Morocco,Croatia,3,1,Friendly,X,Y,True
+2024-03-27,Iran,England,0,2,Friendly,X,Y,True
+2024-04-28,Qatar,Japan,3,2,Friendly,X,Y,True
+2024-05-01,Austria,France,0,1,Friendly,X,Y,True
+2024-06-02,Croatia,Algeria,0,2,Friendly,X,Y,True
+2024-07-03,Bosnia and Herzegovina,Cape Verde,1,1,Friendly,X,Y,True
+2024-08-04,Brazil,Japan,2,2,Friendly,X,Y,True
+2024-09-05,Canada,Qatar,1,1,Friendly,X,Y,True
+2024-10-06,England,Bosnia and Herzegovina,0,1,Friendly,X,Y,True
+2024-11-07,Tunisia,Panama,0,1,Friendly,X,Y,True
+2024-12-08,Argentina,Brazil,2,0,Friendly,X,Y,True
+2024-01-09,Iran,Uzbekistan,1,1,Friendly,X,Y,True
+2024-02-10,Senegal,Curacao,0,2,Friendly,X,Y,True
+2024-03-11,Ghana,Japan,0,2,Friendly,X,Y,True
+2024-04-12,Jordan,Haiti,1,1,Friendly,X,Y,True
+2024-05-13,Ivory Coast,Sweden,3,0,Friendly,X,Y,True
+2024-06-14,Germany,France,1,1,Friendly,X,Y,True
+2024-07-15,Bosnia and Herzegovina,Germany,0,1,Friendly,X,Y,True
+2024-08-16,Czech Republic,Paraguay,0,1,Friendly,X,Y,True
+2024-09-17,Australia,Ecuador,2,1,Friendly,X,Y,True
+2024-10-18,New Zealand,Morocco,1,0,Friendly,X,Y,True
+2024-11-19,Haiti,Senegal,0,2,Friendly,X,Y,True
+2024-12-20,New Zealand,Uzbekistan,2,0,Friendly,X,Y,True
+2024-01-21,Portugal,Mexico,0,2,Friendly,X,Y,True
+2024-02-22,Ecuador,Australia,1,1,Friendly,X,Y,True
+2024-03-23,Portugal,Paraguay,1,2,Friendly,X,Y,True
+2024-04-24,Canada,Brazil,1,2,Friendly,X,Y,True
+2024-05-25,Uruguay,Ecuador,0,2,Friendly,X,Y,True
+2024-06-26,Spain,Saudi Arabia,0,2,Friendly,X,Y,True
+2024-07-27,Switzerland,Morocco,1,1,Friendly,X,Y,True
+2024-08-28,Canada,Scotland,0,1,Friendly,X,Y,True
+2024-09-01,Ecuador,Ghana,3,1,Friendly,X,Y,True
+2024-10-02,Curacao,Brazil,1,0,Friendly,X,Y,True
+2024-11-03,United States,Canada,3,1,Friendly,X,Y,True
+2024-12-04,Paraguay,Iraq,2,3,Friendly,X,Y,True
+2024-01-05,Uruguay,Mexico,1,3,Friendly,X,Y,True
+2024-02-06,Sweden,South Africa,1,1,Friendly,X,Y,True
+2024-03-07,Austria,Tunisia,1,1,Friendly,X,Y,True
+2024-04-08,Algeria,Haiti,1,0,Friendly,X,Y,True
+2024-05-09,Netherlands,Brazil,0,0,Friendly,X,Y,True
+2024-06-10,Netherlands,Ghana,1,1,Friendly,X,Y,True
+2024-07-11,Japan,Ivory Coast,2,0,Friendly,X,Y,True
+2024-08-12,Panama,Ghana,0,1,Friendly,X,Y,True
+2024-09-13,Cape Verde,Germany,0,1,Friendly,X,Y,True
+2024-10-14,Ivory Coast,Mexico,2,1,Friendly,X,Y,True
+2024-11-15,Uzbekistan,United States,2,0,Friendly,X,Y,True
+2024-12-16,Ecuador,South Korea,1,2,Friendly,X,Y,True
+2024-01-17,Iraq,Ecuador,2,2,Friendly,X,Y,True
+2024-02-18,Morocco,Ghana,3,0,Friendly,X,Y,True
+2024-03-19,United States,Switzerland,2,2,Friendly,X,Y,True
+2024-04-20,Bosnia and Herzegovina,Ghana,0,2,Friendly,X,Y,True
+2024-05-21,Panama,Mexico,3,3,Friendly,X,Y,True
+2024-06-22,Saudi Arabia,Ecuador,1,2,Friendly,X,Y,True
+2024-07-23,Qatar,Norway,1,3,Friendly,X,Y,True
+2024-08-24,Spain,Iran,0,3,Friendly,X,Y,True
+2024-09-25,Uruguay,Norway,1,1,Friendly,X,Y,True
+2024-10-26,Turkey,Tunisia,2,0,Friendly,X,Y,True
+2024-11-27,Australia,DR Congo,1,1,Friendly,X,Y,True
+2024-12-28,New Zealand,Panama,3,2,Friendly,X,Y,True
+2024-01-01,Bosnia and Herzegovina,Algeria,0,3,Friendly,X,Y,True
+2024-02-02,Cape Verde,Qatar,2,0,Friendly,X,Y,True
+2024-03-03,Portugal,Germany,1,1,Friendly,X,Y,True
+2024-04-04,Algeria,Curacao,0,2,Friendly,X,Y,True
+2024-05-05,Switzerland,Japan,1,1,Friendly,X,Y,True
+2024-06-06,Iran,Uzbekistan,0,2,Friendly,X,Y,True
+2024-07-07,Turkey,Spain,3,0,Friendly,X,Y,True
+2024-08-08,Jordan,United States,3,0,Friendly,X,Y,True
+2024-09-09,Paraguay,Scotland,0,1,Friendly,X,Y,True
+2024-10-10,Colombia,Morocco,3,2,Friendly,X,Y,True
+2024-11-11,Switzerland,Uzbekistan,0,1,Friendly,X,Y,True
+2024-12-12,Belgium,England,2,0,Friendly,X,Y,True
+2024-01-13,Cape Verde,Turkey,1,1,Friendly,X,Y,True
+2024-02-14,DR Congo,Uzbekistan,0,4,Friendly,X,Y,True
+2024-03-15,Scotland,Uruguay,1,1,Friendly,X,Y,True
+2024-04-16,Austria,Algeria,1,0,Friendly,X,Y,True
+2024-05-17,Japan,Senegal,4,1,Friendly,X,Y,True
+2024-06-18,Turkey,Brazil,1,1,Friendly,X,Y,True
+2024-07-19,South Korea,Germany,1,1,Friendly,X,Y,True
+2024-08-20,Netherlands,Algeria,3,0,Friendly,X,Y,True
+2024-09-21,Belgium,South Africa,0,2,Friendly,X,Y,True
+2024-10-22,Qatar,Sweden,0,1,Friendly,X,Y,True
+2024-11-23,Saudi Arabia,Ecuador,1,2,Friendly,X,Y,True
+2024-12-24,Uzbekistan,Brazil,2,1,Friendly,X,Y,True
+2024-01-25,Curacao,Belgium,0,1,Friendly,X,Y,True
+2024-02-26,Switzerland,Senegal,4,5,Friendly,X,Y,True
+2024-03-27,Spain,DR Congo,3,1,Friendly,X,Y,True
+2024-04-28,Portugal,Uzbekistan,1,0,Friendly,X,Y,True
+2024-05-01,Switzerland,Bosnia and Herzegovina,2,1,Friendly,X,Y,True
+2024-06-02,Japan,Qatar,1,1,Friendly,X,Y,True
+2024-07-03,Turkey,Senegal,3,1,Friendly,X,Y,True
+2024-08-04,Spain,Japan,3,2,Friendly,X,Y,True
+2024-09-05,DR Congo,Jordan,1,2,Friendly,X,Y,True
+2024-10-06,Netherlands,Canada,0,1,Friendly,X,Y,True
+2024-11-07,Canada,Senegal,1,1,Friendly,X,Y,True
+2024-12-08,South Africa,Iran,4,0,Friendly,X,Y,True
+2024-01-09,Mexico,Sweden,1,0,Friendly,X,Y,True
+2024-02-10,Turkey,South Korea,2,2,Friendly,X,Y,True
+2024-03-11,Tunisia,United States,0,0,Friendly,X,Y,True
+2024-04-12,Czech Republic,Japan,2,2,Friendly,X,Y,True
+2024-05-13,Portugal,Panama,2,2,Friendly,X,Y,True
+2024-06-14,Canada,Norway,1,2,Friendly,X,Y,True
+2024-07-15,Netherlands,Algeria,0,1,Friendly,X,Y,True
+2024-08-16,Tunisia,Colombia,1,1,Friendly,X,Y,True
+2024-09-17,Croatia,South Africa,2,1,Friendly,X,Y,True
+2024-10-18,South Korea,Australia,3,2,Friendly,X,Y,True
+2024-11-19,Canada,France,2,1,Friendly,X,Y,True
+2024-12-20,Brazil,Bosnia and Herzegovina,3,4,Friendly,X,Y,True
+2024-01-21,France,Australia,2,1,Friendly,X,Y,True
+2024-02-22,Portugal,Norway,2,1,Friendly,X,Y,True
+2024-03-23,Austria,Morocco,1,2,Friendly,X,Y,True
+2024-04-24,Uruguay,Australia,0,0,Friendly,X,Y,True
+2024-05-25,Argentina,Cape Verde,3,1,Friendly,X,Y,True
+2024-06-26,South Africa,Canada,2,1,Friendly,X,Y,True
+2024-07-27,Saudi Arabia,Scotland,1,0,Friendly,X,Y,True
+2024-08-28,Curacao,Tunisia,2,0,Friendly,X,Y,True
+2024-09-01,Saudi Arabia,Ecuador,1,3,Friendly,X,Y,True
+2024-10-02,Brazil,Morocco,0,0,Friendly,X,Y,True
+2024-11-03,Ivory Coast,Netherlands,3,0,Friendly,X,Y,True
+2024-12-04,Spain,New Zealand,2,3,Friendly,X,Y,True
+2024-01-05,South Africa,Portugal,1,0,Friendly,X,Y,True
+2024-02-06,France,Qatar,2,0,Friendly,X,Y,True
+2024-03-07,Spain,Saudi Arabia,2,1,Friendly,X,Y,True
+2024-04-08,England,Portugal,0,1,Friendly,X,Y,True
+2024-05-09,Curacao,DR Congo,0,2,Friendly,X,Y,True
+2024-06-10,Ivory Coast,Scotland,1,1,Friendly,X,Y,True
+2024-07-11,Japan,Switzerland,2,4,Friendly,X,Y,True
+2024-08-12,Canada,DR Congo,2,2,Friendly,X,Y,True
+2024-09-13,Scotland,Morocco,0,2,Friendly,X,Y,True
+2024-10-14,Haiti,Uruguay,0,0,Friendly,X,Y,True
+2024-11-15,Norway,Czech Republic,0,2,Friendly,X,Y,True
+2024-12-16,Colombia,United States,3,1,Friendly,X,Y,True
+2024-01-17,Portugal,Curacao,2,0,Friendly,X,Y,True
+2024-02-18,Spain,Germany,1,1,Friendly,X,Y,True
+2024-03-19,Scotland,Czech Republic,2,2,Friendly,X,Y,True
+2024-04-20,Iraq,Portugal,1,0,Friendly,X,Y,True
+2024-05-21,Colombia,Jordan,2,2,Friendly,X,Y,True
+2024-06-22,Germany,Panama,0,2,Friendly,X,Y,True
+2024-07-23,Egypt,Scotland,1,0,Friendly,X,Y,True
+2024-08-24,Ecuador,Scotland,0,2,Friendly,X,Y,True
+2024-09-25,Ecuador,Uzbekistan,2,1,Friendly,X,Y,True
+2024-10-26,Ghana,Belgium,1,1,Friendly,X,Y,True
+2024-11-27,Spain,Austria,3,0,Friendly,X,Y,True
+2024-12-28,Japan,Brazil,0,1,Friendly,X,Y,True
+2024-01-01,Ecuador,Croatia,2,0,Friendly,X,Y,True
+2024-02-02,Haiti,Netherlands,0,3,Friendly,X,Y,True
+2024-03-03,Panama,England,1,3,Friendly,X,Y,True
+2024-04-04,Ecuador,United States,0,0,Friendly,X,Y,True
+2024-05-05,Paraguay,England,0,2,Friendly,X,Y,True
+2024-06-06,Uruguay,Netherlands,1,1,Friendly,X,Y,True
+2024-07-07,Croatia,Portugal,0,1,Friendly,X,Y,True
+2024-08-08,Japan,Ivory Coast,1,1,Friendly,X,Y,True
+2024-09-09,France,Jordan,1,2,Friendly,X,Y,True
+2024-10-10,Netherlands,Austria,1,1,Friendly,X,Y,True
+2024-11-11,Jordan,Brazil,3,0,Friendly,X,Y,True
+2024-12-12,South Africa,Norway,3,1,Friendly,X,Y,True
+2024-01-13,Ecuador,Scotland,1,3,Friendly,X,Y,True
+2024-02-14,Ecuador,Switzerland,3,1,Friendly,X,Y,True
+2024-03-15,Uruguay,South Africa,0,0,Friendly,X,Y,True
+2024-04-16,Turkey,Austria,1,2,Friendly,X,Y,True
+2024-05-17,United States,Germany,1,2,Friendly,X,Y,True
+2024-06-18,Cape Verde,Portugal,4,1,Friendly,X,Y,True
+2024-07-19,Mexico,Morocco,0,0,Friendly,X,Y,True
+2024-08-20,Panama,Paraguay,1,1,Friendly,X,Y,True
+2024-09-21,United States,Spain,2,1,Friendly,X,Y,True
+2024-10-22,Norway,Jordan,2,1,Friendly,X,Y,True
+2024-11-23,South Africa,Curacao,0,1,Friendly,X,Y,True
+2024-12-24,Czech Republic,Ghana,1,0,Friendly,X,Y,True
+2024-01-25,South Africa,Algeria,2,1,Friendly,X,Y,True
+2024-02-26,Spain,DR Congo,0,1,Friendly,X,Y,True
+2024-03-27,Mexico,Canada,2,0,Friendly,X,Y,True
+2024-04-28,Ecuador,DR Congo,2,2,Friendly,X,Y,True
+2024-05-01,Panama,Egypt,1,1,Friendly,X,Y,True
+2024-06-02,Jordan,Mexico,2,1,Friendly,X,Y,True
+2024-07-03,Iran,DR Congo,1,0,Friendly,X,Y,True
+2024-08-04,Mexico,Senegal,5,1,Friendly,X,Y,True
+2024-09-05,Saudi Arabia,Australia,3,0,Friendly,X,Y,True
+2024-10-06,Australia,Ivory Coast,2,0,Friendly,X,Y,True
+2024-11-07,Japan,South Africa,1,0,Friendly,X,Y,True
+2024-12-08,Austria,Panama,2,0,Friendly,X,Y,True
+2024-01-09,Panama,Paraguay,1,1,Friendly,X,Y,True
+2024-02-10,Iraq,South Africa,2,0,Friendly,X,Y,True
+2024-03-11,Iraq,Czech Republic,3,1,Friendly,X,Y,True
+2024-04-12,Paraguay,Morocco,0,1,Friendly,X,Y,True
+2024-05-13,Czech Republic,Canada,0,2,Friendly,X,Y,True
+2024-06-14,Spain,Austria,1,0,Friendly,X,Y,True
+2024-07-15,Czech Republic,Jordan,1,2,Friendly,X,Y,True
+2024-08-16,Germany,Switzerland,1,0,Friendly,X,Y,True
+2024-09-17,Argentina,Uruguay,1,2,Friendly,X,Y,True
+2024-10-18,South Korea,England,2,1,Friendly,X,Y,True
+2024-11-19,Portugal,Iraq,0,2,Friendly,X,Y,True
+2024-12-20,Iran,Qatar,1,1,Friendly,X,Y,True
+2024-01-21,Cape Verde,Curacao,2,2,Friendly,X,Y,True
+2024-02-22,Ghana,Portugal,1,1,Friendly,X,Y,True
+2024-03-23,Mexico,France,1,2,Friendly,X,Y,True
+2024-04-24,Ecuador,Algeria,1,2,Friendly,X,Y,True
+2024-05-25,Argentina,Belgium,2,1,Friendly,X,Y,True
+2024-06-26,Morocco,Croatia,1,1,Friendly,X,Y,True
+2024-07-27,Brazil,Switzerland,2,0,Friendly,X,Y,True
+2024-08-28,Uruguay,Jordan,0,0,Friendly,X,Y,True
+2024-09-01,Curacao,Austria,2,1,Friendly,X,Y,True
+2024-10-02,Cape Verde,Panama,1,0,Friendly,X,Y,True
+2024-11-03,Germany,Egypt,3,1,Friendly,X,Y,True
+2024-12-04,Algeria,Qatar,0,3,Friendly,X,Y,True
+2024-01-05,DR Congo,Cape Verde,1,2,Friendly,X,Y,True
+2024-02-06,Haiti,Austria,1,0,Friendly,X,Y,True
+2024-03-07,Uzbekistan,Argentina,0,0,Friendly,X,Y,True
+2024-04-08,Austria,Egypt,1,4,Friendly,X,Y,True
+2024-05-09,Uzbekistan,Haiti,0,0,Friendly,X,Y,True
+2024-06-10,Netherlands,Uruguay,0,0,Friendly,X,Y,True
+2024-07-11,Brazil,Ghana,1,1,Friendly,X,Y,True
+2024-08-12,South Korea,Iran,1,4,Friendly,X,Y,True
+2024-09-13,Portugal,Morocco,1,2,Friendly,X,Y,True
+2024-10-14,Sweden,Norway,2,3,Friendly,X,Y,True
+2024-11-15,England,Norway,0,1,Friendly,X,Y,True
+2024-12-16,Australia,Ecuador,2,1,Friendly,X,Y,True
+2024-01-17,United States,South Africa,1,1,Friendly,X,Y,True
+2024-02-18,Iran,Paraguay,2,1,Friendly,X,Y,True
+2024-03-19,Uzbekistan,Brazil,1,1,Friendly,X,Y,True
+2024-04-20,Qatar,Uruguay,1,2,Friendly,X,Y,True
+2024-05-21,Norway,Canada,1,1,Friendly,X,Y,True
+2024-06-22,Jordan,Netherlands,0,2,Friendly,X,Y,True
+2024-07-23,Tunisia,Germany,0,3,Friendly,X,Y,True
+2024-08-24,Austria,Switzerland,3,1,Friendly,X,Y,True
+2024-09-25,Saudi Arabia,Colombia,1,1,Friendly,X,Y,True
+2024-10-26,Norway,Turkey,1,0,Friendly,X,Y,True
+2024-11-27,Uruguay,Curacao,0,0,Friendly,X,Y,True
+2024-12-28,Curacao,Morocco,0,2,Friendly,X,Y,True
+2024-01-01,Panama,Mexico,3,3,Friendly,X,Y,True
+2024-02-02,Norway,Belgium,0,1,Friendly,X,Y,True
+2024-03-03,South Korea,Algeria,1,0,Friendly,X,Y,True
+2024-04-04,Iraq,Iran,0,0,Friendly,X,Y,True
+2024-05-05,Uruguay,Qatar,1,0,Friendly,X,Y,True
+2024-06-06,United States,Egypt,2,0,Friendly,X,Y,True
+2024-07-07,Norway,Belgium,0,1,Friendly,X,Y,True
+2024-08-08,New Zealand,Bosnia and Herzegovina,3,2,Friendly,X,Y,True
+2024-09-09,Scotland,Austria,1,0,Friendly,X,Y,True
+2024-10-10,Paraguay,DR Congo,0,1,Friendly,X,Y,True
+2024-11-11,Japan,DR Congo,1,0,Friendly,X,Y,True
+2024-12-12,Tunisia,Morocco,2,1,Friendly,X,Y,True
+2024-01-13,Senegal,Uzbekistan,1,0,Friendly,X,Y,True
+2024-02-14,Czech Republic,Senegal,1,3,Friendly,X,Y,True
+2024-03-15,Egypt,Switzerland,1,0,Friendly,X,Y,True
+2024-04-16,Tunisia,Scotland,3,1,Friendly,X,Y,True
+2024-05-17,Brazil,Iran,1,0,Friendly,X,Y,True
+2024-06-18,Argentina,Australia,0,1,Friendly,X,Y,True
+2024-07-19,Turkey,Bosnia and Herzegovina,1,1,Friendly,X,Y,True
+2024-08-20,Japan,England,0,1,Friendly,X,Y,True
+2024-09-21,Croatia,Curacao,1,1,Friendly,X,Y,True
+2024-10-22,Netherlands,Germany,1,2,Friendly,X,Y,True
+2024-11-23,Saudi Arabia,Austria,0,1,Friendly,X,Y,True
+2024-12-24,Sweden,Jordan,3,0,Friendly,X,Y,True
+2024-01-25,Australia,Czech Republic,0,2,Friendly,X,Y,True
+2024-02-26,Tunisia,Turkey,1,0,Friendly,X,Y,True
+2024-03-27,Ecuador,DR Congo,1,1,Friendly,X,Y,True
+2024-04-28,Egypt,Switzerland,2,1,Friendly,X,Y,True
+2024-05-01,Japan,Uruguay,2,2,Friendly,X,Y,True
+2024-06-02,Algeria,Iraq,2,1,Friendly,X,Y,True
+2024-07-03,Senegal,Colombia,1,1,Friendly,X,Y,True
+2024-08-04,Qatar,Uzbekistan,1,1,Friendly,X,Y,True
+2024-09-05,Qatar,Ghana,3,0,Friendly,X,Y,True
+2024-10-06,Sweden,South Korea,1,2,Friendly,X,Y,True
+2024-11-07,DR Congo,Cape Verde,0,1,Friendly,X,Y,True
+2024-12-08,Canada,Mexico,1,0,Friendly,X,Y,True
+2024-01-09,Germany,Ecuador,1,3,Friendly,X,Y,True
+2024-02-10,Panama,Qatar,2,3,Friendly,X,Y,True
+2024-03-11,Netherlands,Qatar,1,2,Friendly,X,Y,True
+2024-04-12,Egypt,Spain,0,0,Friendly,X,Y,True
+2024-05-13,Algeria,Netherlands,2,1,Friendly,X,Y,True
+2024-06-14,Canada,Ivory Coast,0,1,Friendly,X,Y,True
+2024-07-15,Colombia,Norway,1,0,Friendly,X,Y,True
+2024-08-16,Sweden,Spain,2,1,Friendly,X,Y,True
+2024-09-17,Haiti,Tunisia,0,0,Friendly,X,Y,True
+2024-10-18,Switzerland,Curacao,1,1,Friendly,X,Y,True
+2024-11-19,Canada,Cape Verde,2,1,Friendly,X,Y,True
+2024-12-20,Uruguay,Ghana,3,0,Friendly,X,Y,True
+2024-01-21,England,Jordan,1,1,Friendly,X,Y,True
+2024-02-22,Austria,Germany,2,2,Friendly,X,Y,True
+2024-03-23,Croatia,Austria,1,0,Friendly,X,Y,True
+2024-04-24,Spain,France,1,0,Friendly,X,Y,True
+2024-05-25,Cape Verde,DR Congo,2,3,Friendly,X,Y,True
+2024-06-26,France,Qatar,2,0,Friendly,X,Y,True
+2024-07-27,Colombia,Canada,1,0,Friendly,X,Y,True
+2024-08-28,Turkey,Switzerland,1,2,Friendly,X,Y,True
+2024-09-01,Germany,Haiti,0,1,Friendly,X,Y,True
+2024-10-02,Portugal,Turkey,3,2,Friendly,X,Y,True
+2024-11-03,Mexico,Egypt,0,1,Friendly,X,Y,True
+2024-12-04,Scotland,Algeria,2,0,Friendly,X,Y,True
+2024-01-05,Austria,South Africa,2,4,Friendly,X,Y,True
+2024-02-06,Saudi Arabia,Algeria,4,0,Friendly,X,Y,True
+2024-03-07,South Africa,Ivory Coast,1,2,Friendly,X,Y,True
+2024-04-08,Uruguay,Qatar,2,1,Friendly,X,Y,True
+2024-05-09,Senegal,Cape Verde,4,1,Friendly,X,Y,True
+2024-06-10,France,United States,0,0,Friendly,X,Y,True
+2024-07-11,Mexico,Brazil,1,1,Friendly,X,Y,True
+2024-08-12,Paraguay,France,0,2,Friendly,X,Y,True
+2024-09-13,Iraq,Netherlands,2,0,Friendly,X,Y,True
+2024-10-14,Uruguay,Mexico,2,2,Friendly,X,Y,True
+2024-11-15,New Zealand,Norway,2,1,Friendly,X,Y,True
+2024-12-16,Cape Verde,United States,1,3,Friendly,X,Y,True
+2024-01-17,Uzbekistan,Sweden,0,0,Friendly,X,Y,True
+2024-02-18,South Korea,Switzerland,1,2,Friendly,X,Y,True
+2024-03-19,Tunisia,Qatar,3,0,Friendly,X,Y,True
+2024-04-20,Germany,Paraguay,2,1,Friendly,X,Y,True
+2024-05-21,England,Paraguay,2,1,Friendly,X,Y,True
+2024-06-22,Colombia,Australia,3,4,Friendly,X,Y,True
+2024-07-23,Belgium,Uruguay,3,0,Friendly,X,Y,True
+2024-08-24,Mexico,Jordan,1,0,Friendly,X,Y,True
+2024-09-25,Curacao,Turkey,0,2,Friendly,X,Y,True
+2024-10-26,DR Congo,Japan,2,0,Friendly,X,Y,True
+2024-11-27,Japan,Haiti,2,2,Friendly,X,Y,True
+2024-12-28,Ecuador,Japan,2,1,Friendly,X,Y,True
+2024-01-01,Iran,Haiti,0,1,Friendly,X,Y,True
+2024-02-02,Brazil,South Korea,2,0,Friendly,X,Y,True
+2024-03-03,Panama,Canada,1,0,Friendly,X,Y,True
+2024-04-04,Croatia,Ghana,0,2,Friendly,X,Y,True
+2024-05-05,Scotland,Qatar,5,1,Friendly,X,Y,True
+2024-06-06,Algeria,Belgium,1,0,Friendly,X,Y,True
+2024-07-07,Cape Verde,Ecuador,1,0,Friendly,X,Y,True
+2024-08-08,Sweden,Morocco,3,1,Friendly,X,Y,True
+2024-09-09,Czech Republic,Scotland,1,0,Friendly,X,Y,True
+2024-10-10,Uruguay,Tunisia,2,1,Friendly,X,Y,True
+2024-11-11,Switzerland,South Korea,0,2,Friendly,X,Y,True
+2024-12-12,Sweden,Uruguay,1,0,Friendly,X,Y,True
+2024-01-13,Colombia,Iraq,1,0,Friendly,X,Y,True
+2024-02-14,Qatar,Norway,2,3,Friendly,X,Y,True
+2024-03-15,Austria,Panama,1,0,Friendly,X,Y,True
+2024-04-16,Qatar,Jordan,0,3,Friendly,X,Y,True
+2024-05-17,Brazil,Ivory Coast,1,1,Friendly,X,Y,True
+2024-06-18,Brazil,England,3,2,Friendly,X,Y,True
+2024-07-19,Uruguay,Portugal,0,0,Friendly,X,Y,True
+2024-08-20,Iran,DR Congo,3,1,Friendly,X,Y,True
+2024-09-21,Argentina,New Zealand,2,2,Friendly,X,Y,True
+2024-10-22,Morocco,Portugal,0,1,Friendly,X,Y,True
+2024-11-23,Uruguay,Portugal,0,1,Friendly,X,Y,True
+2024-12-24,Sweden,Czech Republic,1,0,Friendly,X,Y,True
+2024-01-25,Egypt,Iraq,2,2,Friendly,X,Y,True
+2024-02-26,Australia,Tunisia,2,0,Friendly,X,Y,True
+2024-03-27,Senegal,Canada,2,1,Friendly,X,Y,True
+2024-04-28,Belgium,Spain,3,0,Friendly,X,Y,True
+2024-05-01,Morocco,Saudi Arabia,2,0,Friendly,X,Y,True
+2024-06-02,Jordan,Czech Republic,2,1,Friendly,X,Y,True
+2024-07-03,Croatia,Japan,0,4,Friendly,X,Y,True
+2024-08-04,Austria,Scotland,2,0,Friendly,X,Y,True
+2024-09-05,Sweden,Canada,0,1,Friendly,X,Y,True
+2024-10-06,Morocco,Argentina,1,2,Friendly,X,Y,True
+2024-11-07,Turkey,Belgium,2,2,Friendly,X,Y,True
+2024-12-08,Germany,Norway,6,0,Friendly,X,Y,True
+2024-01-09,Ecuador,Iraq,2,1,Friendly,X,Y,True
+2024-02-10,Czech Republic,Haiti,0,2,Friendly,X,Y,True
+2024-03-11,Haiti,Brazil,0,0,Friendly,X,Y,True
+2024-04-12,New Zealand,Paraguay,1,2,Friendly,X,Y,True
+2024-05-13,Croatia,Iran,4,0,Friendly,X,Y,True
+2024-06-14,Egypt,Ghana,0,1,Friendly,X,Y,True
+2024-07-15,Saudi Arabia,Argentina,1,0,Friendly,X,Y,True
+2024-08-16,Germany,DR Congo,1,0,Friendly,X,Y,True
+2024-09-17,Algeria,Portugal,1,2,Friendly,X,Y,True
+2024-10-18,Austria,Spain,2,1,Friendly,X,Y,True
+2024-11-19,Egypt,Ivory Coast,0,4,Friendly,X,Y,True
+2024-12-20,Argentina,Canada,1,1,Friendly,X,Y,True
+2024-01-21,Haiti,DR Congo,1,4,Friendly,X,Y,True
+2024-02-22,DR Congo,South Africa,0,0,Friendly,X,Y,True
+2024-03-23,Saudi Arabia,England,2,1,Friendly,X,Y,True
+2024-04-24,England,Canada,3,0,Friendly,X,Y,True
+2024-05-25,Colombia,Croatia,2,2,Friendly,X,Y,True
+2024-06-26,Ecuador,Canada,2,0,Friendly,X,Y,True
+2024-07-27,Haiti,Jordan,1,1,Friendly,X,Y,True
+2024-08-28,Tunisia,New Zealand,1,2,Friendly,X,Y,True
+2024-09-01,Saudi Arabia,Bosnia and Herzegovina,1,0,Friendly,X,Y,True
+2024-10-02,Iran,United States,1,2,Friendly,X,Y,True
+2024-11-03,New Zealand,Austria,1,1,Friendly,X,Y,True
+2024-12-04,Uzbekistan,Curacao,0,0,Friendly,X,Y,True
+2024-01-05,Canada,Argentina,3,2,Friendly,X,Y,True
+2024-02-06,Canada,Ghana,1,0,Friendly,X,Y,True
+2024-03-07,Turkey,Ecuador,2,0,Friendly,X,Y,True
+2024-04-08,Germany,Bosnia and Herzegovina,1,1,Friendly,X,Y,True
+2024-05-09,Tunisia,Switzerland,2,1,Friendly,X,Y,True
+2024-06-10,Ghana,Curacao,1,2,Friendly,X,Y,True
+2024-07-11,Jordan,Bosnia and Herzegovina,0,0,Friendly,X,Y,True
+2024-08-12,Norway,Germany,0,1,Friendly,X,Y,True
+2024-09-13,Paraguay,Spain,2,4,Friendly,X,Y,True
+2024-10-14,Iran,Haiti,2,3,Friendly,X,Y,True
+2024-11-15,Australia,Japan,0,0,Friendly,X,Y,True
+2024-12-16,Haiti,Scotland,2,1,Friendly,X,Y,True
+2024-01-17,Austria,Ghana,2,1,Friendly,X,Y,True
+2024-02-18,Portugal,Uzbekistan,1,0,Friendly,X,Y,True
+2024-03-19,Uzbekistan,Saudi Arabia,0,2,Friendly,X,Y,True
+2024-04-20,Switzerland,Egypt,4,0,Friendly,X,Y,True
+2024-05-21,Norway,Qatar,0,4,Friendly,X,Y,True
+2024-06-22,Colombia,Cape Verde,3,1,Friendly,X,Y,True
+2024-07-23,Canada,DR Congo,3,0,Friendly,X,Y,True
+2024-08-24,Senegal,Bosnia and Herzegovina,2,1,Friendly,X,Y,True
+2024-09-25,Algeria,Norway,1,1,Friendly,X,Y,True
+2024-10-26,Uruguay,Belgium,1,1,Friendly,X,Y,True
+2024-11-27,Argentina,Austria,2,0,Friendly,X,Y,True
+2024-12-28,Brazil,Egypt,1,3,Friendly,X,Y,True
+2024-01-01,Scotland,Ecuador,2,4,Friendly,X,Y,True
+2024-02-02,Netherlands,Saudi Arabia,0,0,Friendly,X,Y,True
+2024-03-03,Colombia,Morocco,1,1,Friendly,X,Y,True
+2024-04-04,Germany,Tunisia,3,1,Friendly,X,Y,True
+2024-05-05,Algeria,Japan,0,1,Friendly,X,Y,True
+2024-06-06,Sweden,Saudi Arabia,2,3,Friendly,X,Y,True
+2024-07-07,South Africa,Croatia,0,1,Friendly,X,Y,True
+2024-08-08,Australia,Turkey,3,3,Friendly,X,Y,True
+2024-09-09,Colombia,Jordan,3,2,Friendly,X,Y,True
+2024-10-10,Croatia,Spain,1,1,Friendly,X,Y,True
+2024-11-11,New Zealand,Argentina,2,1,Friendly,X,Y,True
+2024-12-12,Norway,Haiti,2,0,Friendly,X,Y,True
+2024-01-13,Algeria,Jordan,1,1,Friendly,X,Y,True
+2024-02-14,Curacao,Austria,1,2,Friendly,X,Y,True
+2024-03-15,Scotland,DR Congo,1,1,Friendly,X,Y,True
+2024-04-16,Switzerland,France,2,2,Friendly,X,Y,True
+2024-05-17,Morocco,Iraq,1,2,Friendly,X,Y,True
+2024-06-18,Cape Verde,Austria,2,2,Friendly,X,Y,True
+2024-07-19,Senegal,Croatia,2,2,Friendly,X,Y,True
+2024-08-20,Colombia,Switzerland,1,0,Friendly,X,Y,True
+2024-09-21,Turkey,Panama,2,1,Friendly,X,Y,True
+2024-10-22,Ecuador,Jordan,1,0,Friendly,X,Y,True
+2024-11-23,Uzbekistan,Turkey,2,0,Friendly,X,Y,True
+2024-12-24,England,Paraguay,0,0,Friendly,X,Y,True
+2024-01-25,England,Qatar,3,0,Friendly,X,Y,True
+2024-02-26,Qatar,Iraq,3,2,Friendly,X,Y,True
+2024-03-27,Ivory Coast,Panama,2,0,Friendly,X,Y,True
+2024-04-28,Ghana,England,3,0,Friendly,X,Y,True
+2024-05-01,Panama,Ivory Coast,0,1,Friendly,X,Y,True
+2024-06-02,Colombia,Saudi Arabia,1,4,Friendly,X,Y,True
+2024-07-03,Panama,Iraq,1,0,Friendly,X,Y,True
+2024-08-04,Panama,Canada,0,1,Friendly,X,Y,True
+2024-09-05,Czech Republic,England,0,1,Friendly,X,Y,True
+2024-10-06,Qatar,Saudi Arabia,0,2,Friendly,X,Y,True
+2024-11-07,Austria,Tunisia,2,0,Friendly,X,Y,True
+2024-12-08,Croatia,United States,1,0,Friendly,X,Y,True
+2024-01-09,Brazil,South Korea,2,0,Friendly,X,Y,True
+2024-02-10,Sweden,Tunisia,1,2,Friendly,X,Y,True
+2024-03-11,Morocco,Netherlands,0,1,Friendly,X,Y,True
+2024-04-12,Ivory Coast,Morocco,0,1,Friendly,X,Y,True
+2024-05-13,Turkey,Scotland,0,2,Friendly,X,Y,True
+2024-06-14,Mexico,Saudi Arabia,1,3,Friendly,X,Y,True
+2024-07-15,Canada,Austria,1,1,Friendly,X,Y,True
+2024-08-16,Belgium,Sweden,1,3,Friendly,X,Y,True
+2024-09-17,Switzerland,Australia,1,2,Friendly,X,Y,True
+2024-10-18,Uzbekistan,Sweden,2,1,Friendly,X,Y,True
+2024-11-19,Belgium,Morocco,0,2,Friendly,X,Y,True
+2024-12-20,Qatar,Paraguay,2,2,Friendly,X,Y,True
+2024-01-21,Curacao,South Korea,2,1,Friendly,X,Y,True
+2024-02-22,Uruguay,Argentina,1,2,Friendly,X,Y,True
+2024-03-23,Uruguay,Ecuador,1,0,Friendly,X,Y,True
+2024-04-24,Egypt,Croatia,1,0,Friendly,X,Y,True
+2024-05-25,Iran,Canada,0,2,Friendly,X,Y,True
+2024-06-26,Curacao,New Zealand,4,2,Friendly,X,Y,True
+2024-07-27,Panama,Qatar,1,1,Friendly,X,Y,True
+2024-08-28,DR Congo,Cape Verde,1,0,Friendly,X,Y,True
+2024-09-01,New Zealand,Curacao,0,0,Friendly,X,Y,True
+2024-10-02,Iraq,Scotland,1,1,Friendly,X,Y,True
+2024-11-03,Norway,Curacao,3,2,Friendly,X,Y,True
+2024-12-04,Ghana,Algeria,0,1,Friendly,X,Y,True
+2024-01-05,Scotland,Uzbekistan,3,0,Friendly,X,Y,True
+2024-02-06,Germany,Canada,0,0,Friendly,X,Y,True
+2024-03-07,Iran,Ivory Coast,1,1,Friendly,X,Y,True
+2024-04-08,Tunisia,Portugal,4,0,Friendly,X,Y,True
+2024-05-09,England,Ecuador,0,1,Friendly,X,Y,True
+2024-06-10,Mexico,Croatia,1,1,Friendly,X,Y,True
+2024-07-11,Egypt,DR Congo,2,0,Friendly,X,Y,True
+2024-08-12,Argentina,Uruguay,1,1,Friendly,X,Y,True
+2024-09-13,Haiti,Switzerland,0,2,Friendly,X,Y,True
+2024-10-14,DR Congo,Egypt,3,1,Friendly,X,Y,True
+2024-11-15,Switzerland,Canada,1,1,Friendly,X,Y,True
+2024-12-16,Iran,Panama,1,2,Friendly,X,Y,True
+2024-01-17,Haiti,Netherlands,2,0,Friendly,X,Y,True
+2024-02-18,Belgium,Norway,3,0,Friendly,X,Y,True
+2024-03-19,Iraq,Uzbekistan,3,1,Friendly,X,Y,True
+2024-04-20,Uruguay,Switzerland,0,3,Friendly,X,Y,True
+2024-05-21,Norway,South Korea,0,0,Friendly,X,Y,True
+2024-06-22,Egypt,Morocco,0,2,Friendly,X,Y,True
+2024-07-23,England,Panama,0,1,Friendly,X,Y,True
+2024-08-24,Portugal,Ecuador,2,1,Friendly,X,Y,True
+2024-09-25,Bosnia and Herzegovina,New Zealand,0,3,Friendly,X,Y,True
+2024-10-26,Iran,Jordan,3,0,Friendly,X,Y,True
+2024-11-27,Jordan,Portugal,0,1,Friendly,X,Y,True
+2024-12-28,New Zealand,Panama,1,2,Friendly,X,Y,True
+2024-01-01,Germany,Tunisia,1,2,Friendly,X,Y,True
+2024-02-02,Algeria,Sweden,3,0,Friendly,X,Y,True
+2024-03-03,New Zealand,Senegal,0,2,Friendly,X,Y,True
+2024-04-04,Austria,Canada,1,1,Friendly,X,Y,True
+2024-05-05,Senegal,Colombia,0,1,Friendly,X,Y,True
+2024-06-06,England,South Korea,0,1,Friendly,X,Y,True
+2024-07-07,Morocco,Czech Republic,1,3,Friendly,X,Y,True
+2024-08-08,Paraguay,Mexico,2,1,Friendly,X,Y,True
+2024-09-09,Switzerland,Croatia,1,1,Friendly,X,Y,True
+2024-10-10,South Korea,Croatia,1,1,Friendly,X,Y,True
+2024-11-11,Haiti,DR Congo,1,1,Friendly,X,Y,True
+2024-12-12,Egypt,Belgium,2,3,Friendly,X,Y,True
+2024-01-13,Australia,South Korea,2,0,Friendly,X,Y,True
+2024-02-14,Iran,Spain,0,2,Friendly,X,Y,True
+2024-03-15,DR Congo,Ivory Coast,2,1,Friendly,X,Y,True
+2024-04-16,Ecuador,DR Congo,1,2,Friendly,X,Y,True
+2024-05-17,Cape Verde,Egypt,1,1,Friendly,X,Y,True
+2024-06-18,Netherlands,Bosnia and Herzegovina,1,2,Friendly,X,Y,True
+2024-07-19,Argentina,Iran,1,0,Friendly,X,Y,True
+2024-08-20,Turkey,New Zealand,1,0,Friendly,X,Y,True
+2024-09-21,Argentina,South Korea,4,0,Friendly,X,Y,True
+2024-10-22,Czech Republic,Jordan,1,0,Friendly,X,Y,True
+2024-11-23,South Korea,Tunisia,2,1,Friendly,X,Y,True
+2024-12-24,Czech Republic,Ecuador,2,1,Friendly,X,Y,True
+2024-01-25,Ecuador,Curacao,1,2,Friendly,X,Y,True
+2024-02-26,Sweden,Panama,0,1,Friendly,X,Y,True
+2024-03-27,Iraq,Senegal,1,0,Friendly,X,Y,True
+2024-04-28,Ecuador,Saudi Arabia,1,0,Friendly,X,Y,True
+2024-05-01,Canada,Netherlands,1,0,Friendly,X,Y,True
+2024-06-02,Australia,Austria,1,1,Friendly,X,Y,True
+2024-07-03,Scotland,Turkey,1,0,Friendly,X,Y,True
+2024-08-04,Netherlands,Norway,3,0,Friendly,X,Y,True
+2024-09-05,Algeria,Canada,0,0,Friendly,X,Y,True
+2024-10-06,France,Austria,1,0,Friendly,X,Y,True
+2024-11-07,Turkey,Iran,2,1,Friendly,X,Y,True
+2024-12-08,Brazil,Uruguay,3,1,Friendly,X,Y,True
+2024-01-09,Qatar,Japan,2,2,Friendly,X,Y,True
+2024-02-10,Ghana,Switzerland,4,1,Friendly,X,Y,True
+2024-03-11,Tunisia,Ivory Coast,3,1,Friendly,X,Y,True
+2024-04-12,Brazil,Croatia,1,0,Friendly,X,Y,True
+2024-05-13,Senegal,Norway,6,0,Friendly,X,Y,True
+2024-06-14,Qatar,Ghana,1,2,Friendly,X,Y,True
+2024-07-15,Sweden,Jordan,1,3,Friendly,X,Y,True
+2024-08-16,Uruguay,United States,0,1,Friendly,X,Y,True
+2024-09-17,Iraq,France,2,1,Friendly,X,Y,True
+2024-10-18,Norway,Curacao,1,1,Friendly,X,Y,True
+2024-11-19,Colombia,Turkey,1,1,Friendly,X,Y,True
+2024-12-20,United States,Brazil,2,2,Friendly,X,Y,True
+2024-01-21,Belgium,Mexico,0,1,Friendly,X,Y,True
+2024-02-22,Portugal,Norway,1,0,Friendly,X,Y,True
+2024-03-23,Japan,Mexico,2,2,Friendly,X,Y,True
+2024-04-24,Iraq,Egypt,1,1,Friendly,X,Y,True
+2024-05-25,Norway,Canada,1,0,Friendly,X,Y,True
+2024-06-26,Iraq,Croatia,2,3,Friendly,X,Y,True
+2024-07-27,Saudi Arabia,Panama,2,0,Friendly,X,Y,True
+2024-08-28,New Zealand,Panama,1,2,Friendly,X,Y,True
+2024-09-01,Spain,Australia,4,0,Friendly,X,Y,True
+2024-10-02,DR Congo,Uzbekistan,1,3,Friendly,X,Y,True
+2024-11-03,South Korea,Paraguay,1,3,Friendly,X,Y,True
+2024-12-04,Curacao,Portugal,0,0,Friendly,X,Y,True
+2024-01-05,Qatar,Belgium,0,0,Friendly,X,Y,True
+2024-02-06,Czech Republic,Spain,2,3,Friendly,X,Y,True
+2024-03-07,Austria,DR Congo,1,4,Friendly,X,Y,True
+2024-04-08,Iraq,Tunisia,0,0,Friendly,X,Y,True
+2024-05-09,Morocco,DR Congo,1,0,Friendly,X,Y,True
+2024-06-10,Netherlands,United States,1,3,Friendly,X,Y,True
+2024-07-11,Brazil,South Korea,2,1,Friendly,X,Y,True
+2024-08-12,France,Czech Republic,0,0,Friendly,X,Y,True
+2024-09-13,Ecuador,Norway,2,2,Friendly,X,Y,True
+2024-10-14,Cape Verde,Morocco,2,0,Friendly,X,Y,True
+2024-11-15,Austria,Switzerland,1,1,Friendly,X,Y,True
+2024-12-16,Croatia,Qatar,2,1,Friendly,X,Y,True
+2024-01-17,Jordan,Qatar,2,2,Friendly,X,Y,True
+2024-02-18,Norway,Curacao,2,1,Friendly,X,Y,True
+2024-03-19,Spain,Ivory Coast,1,1,Friendly,X,Y,True
+2024-04-20,Uzbekistan,Germany,0,1,Friendly,X,Y,True
+2024-05-21,Netherlands,Portugal,3,2,Friendly,X,Y,True
+2024-06-22,Uruguay,DR Congo,0,1,Friendly,X,Y,True
+2024-07-23,Curacao,Portugal,1,1,Friendly,X,Y,True
+2024-08-24,Ivory Coast,South Africa,3,0,Friendly,X,Y,True
+2024-09-25,Argentina,Norway,0,0,Friendly,X,Y,True
+2024-10-26,Jordan,England,1,1,Friendly,X,Y,True
+2024-11-27,Uruguay,Germany,2,3,Friendly,X,Y,True
+2024-12-28,Switzerland,DR Congo,1,1,Friendly,X,Y,True
+2024-01-01,Paraguay,United States,3,1,Friendly,X,Y,True
+2024-02-02,Spain,Iran,2,4,Friendly,X,Y,True
+2024-03-03,France,Belgium,2,0,Friendly,X,Y,True
+2024-04-04,Ivory Coast,Portugal,1,2,Friendly,X,Y,True
+2024-05-05,Morocco,Panama,1,0,Friendly,X,Y,True
+2024-06-06,New Zealand,Belgium,1,0,Friendly,X,Y,True
+2024-07-07,Tunisia,Curacao,0,0,Friendly,X,Y,True
+2024-08-08,DR Congo,Croatia,4,2,Friendly,X,Y,True
+2024-09-09,Spain,Bosnia and Herzegovina,0,2,Friendly,X,Y,True
+2024-10-10,Croatia,Curacao,0,3,Friendly,X,Y,True
+2024-11-11,Croatia,Morocco,1,0,Friendly,X,Y,True
+2024-12-12,Argentina,Belgium,1,2,Friendly,X,Y,True
+2024-01-13,Saudi Arabia,Curacao,0,0,Friendly,X,Y,True
+2024-02-14,Scotland,Belgium,0,1,Friendly,X,Y,True
+2024-03-15,Canada,Portugal,5,2,Friendly,X,Y,True
+2024-04-16,Japan,Ghana,2,1,Friendly,X,Y,True
+2024-05-17,Ghana,Algeria,1,0,Friendly,X,Y,True
+2024-06-18,Tunisia,South Korea,0,1,Friendly,X,Y,True
+2024-07-19,South Korea,Czech Republic,0,2,Friendly,X,Y,True
+2024-08-20,Saudi Arabia,New Zealand,0,1,Friendly,X,Y,True
+2024-09-21,Saudi Arabia,Netherlands,6,0,Friendly,X,Y,True
+2024-10-22,Paraguay,Saudi Arabia,1,1,Friendly,X,Y,True
+2024-11-23,Uruguay,Belgium,0,1,Friendly,X,Y,True
+2024-12-24,Austria,Morocco,1,3,Friendly,X,Y,True
+2024-01-25,Canada,Morocco,3,3,Friendly,X,Y,True
+2024-02-26,Uzbekistan,Colombia,1,1,Friendly,X,Y,True
+2024-03-27,South Korea,Spain,1,1,Friendly,X,Y,True
+2024-04-28,Paraguay,Argentina,0,1,Friendly,X,Y,True
+2024-05-01,Ivory Coast,Canada,0,2,Friendly,X,Y,True
+2024-06-02,Colombia,Portugal,0,1,Friendly,X,Y,True
+2024-07-03,Qatar,Iran,0,2,Friendly,X,Y,True
+2024-08-04,Saudi Arabia,Paraguay,0,0,Friendly,X,Y,True
+2024-09-05,Ghana,Sweden,1,1,Friendly,X,Y,True
+2024-10-06,Australia,Bosnia and Herzegovina,1,0,Friendly,X,Y,True
+2024-11-07,Spain,United States,1,0,Friendly,X,Y,True
+2024-12-08,Netherlands,Ivory Coast,2,1,Friendly,X,Y,True
+2024-01-09,Saudi Arabia,Tunisia,1,0,Friendly,X,Y,True
+2024-02-10,Canada,DR Congo,2,0,Friendly,X,Y,True
+2024-03-11,Tunisia,South Africa,2,1,Friendly,X,Y,True
+2024-04-12,Curacao,Haiti,1,3,Friendly,X,Y,True
+2024-05-13,South Korea,United States,2,3,Friendly,X,Y,True
+2024-06-14,United States,Norway,2,1,Friendly,X,Y,True
+2024-07-15,Switzerland,New Zealand,1,1,Friendly,X,Y,True
+2024-08-16,Jordan,Argentina,1,0,Friendly,X,Y,True
+2024-09-17,New Zealand,Scotland,1,0,Friendly,X,Y,True
+2024-10-18,Ghana,Colombia,1,1,Friendly,X,Y,True
+2024-11-19,Germany,Uzbekistan,1,3,Friendly,X,Y,True
+2024-12-20,Czech Republic,France,3,1,Friendly,X,Y,True
+2024-01-21,Austria,Switzerland,1,0,Friendly,X,Y,True
+2024-02-22,Brazil,Ecuador,2,0,Friendly,X,Y,True
+2024-03-23,Senegal,Qatar,0,0,Friendly,X,Y,True
+2024-04-24,Colombia,Senegal,2,1,Friendly,X,Y,True
+2024-05-25,Jordan,Qatar,2,4,Friendly,X,Y,True
+2024-06-26,South Africa,Saudi Arabia,0,1,Friendly,X,Y,True
+2024-07-27,Scotland,Mexico,0,5,Friendly,X,Y,True
+2024-08-28,South Africa,Iraq,1,2,Friendly,X,Y,True
+2024-09-01,Cape Verde,Bosnia and Herzegovina,2,0,Friendly,X,Y,True
+2024-10-02,Mexico,Uzbekistan,1,0,Friendly,X,Y,True
+2024-11-03,Haiti,United States,0,2,Friendly,X,Y,True
+2024-12-04,Canada,Australia,1,2,Friendly,X,Y,True
+2024-01-05,Morocco,Cape Verde,2,2,Friendly,X,Y,True
+2024-02-06,Turkey,Switzerland,0,2,Friendly,X,Y,True
+2024-03-07,Bosnia and Herzegovina,France,0,0,Friendly,X,Y,True
+2024-04-08,Iran,Ghana,1,2,Friendly,X,Y,True
+2024-05-09,Paraguay,Austria,2,1,Friendly,X,Y,True
+2024-06-10,Haiti,Croatia,1,2,Friendly,X,Y,True
+2024-07-11,DR Congo,New Zealand,1,3,Friendly,X,Y,True
+2024-08-12,England,Curacao,1,2,Friendly,X,Y,True
+2024-09-13,Haiti,South Africa,2,2,Friendly,X,Y,True
+2024-10-14,Mexico,Iraq,3,0,Friendly,X,Y,True
+2024-11-15,Jordan,Ghana,1,2,Friendly,X,Y,True
+2024-12-16,Bosnia and Herzegovina,Curacao,1,2,Friendly,X,Y,True
+2024-01-17,Czech Republic,DR Congo,1,0,Friendly,X,Y,True
+2024-02-18,Belgium,Tunisia,1,0,Friendly,X,Y,True
+2024-03-19,Portugal,Paraguay,2,1,Friendly,X,Y,True
+2024-04-20,France,United States,1,2,Friendly,X,Y,True
+2024-05-21,South Korea,Switzerland,1,2,Friendly,X,Y,True
+2024-06-22,Morocco,Egypt,1,2,Friendly,X,Y,True
+2024-07-23,Haiti,Canada,1,0,Friendly,X,Y,True
+2024-08-24,Tunisia,Brazil,0,0,Friendly,X,Y,True
+2024-09-25,Iraq,Paraguay,0,1,Friendly,X,Y,True
+2024-10-26,Haiti,Uruguay,0,2,Friendly,X,Y,True
+2024-11-27,Argentina,DR Congo,0,1,Friendly,X,Y,True
+2024-12-28,Switzerland,Panama,1,0,Friendly,X,Y,True
+2024-01-01,Cape Verde,Algeria,2,0,Friendly,X,Y,True
+2024-02-02,Saudi Arabia,Qatar,2,0,Friendly,X,Y,True
+2024-03-03,Iraq,England,1,2,Friendly,X,Y,True
+2024-04-04,Iraq,Colombia,1,0,Friendly,X,Y,True
+2024-05-05,Switzerland,Czech Republic,3,2,Friendly,X,Y,True
+2024-06-06,Senegal,Saudi Arabia,1,3,Friendly,X,Y,True
+2024-07-07,Ivory Coast,New Zealand,2,1,Friendly,X,Y,True
+2024-08-08,Algeria,Jordan,1,2,Friendly,X,Y,True
+2024-09-09,Saudi Arabia,Norway,0,2,Friendly,X,Y,True
+2024-10-10,Canada,France,1,4,Friendly,X,Y,True
+2024-11-11,Brazil,Mexico,1,3,Friendly,X,Y,True
+2024-12-12,South Korea,Cape Verde,0,0,Friendly,X,Y,True
+2024-01-13,Australia,Iraq,2,3,Friendly,X,Y,True
+2024-02-14,Bosnia and Herzegovina,France,3,3,Friendly,X,Y,True
+2024-03-15,Japan,Panama,1,0,Friendly,X,Y,True
+2024-04-16,Turkey,Sweden,2,1,Friendly,X,Y,True
+2024-05-17,South Africa,Senegal,0,2,Friendly,X,Y,True
+2024-06-18,France,Qatar,2,1,Friendly,X,Y,True
+2024-07-19,Argentina,Haiti,2,3,Friendly,X,Y,True
+2024-08-20,Norway,Belgium,1,0,Friendly,X,Y,True
+2024-09-21,Qatar,Czech Republic,0,2,Friendly,X,Y,True
+2024-10-22,Portugal,Belgium,2,3,Friendly,X,Y,True
+2024-11-23,Brazil,Senegal,1,1,Friendly,X,Y,True
+2024-12-24,Algeria,New Zealand,1,0,Friendly,X,Y,True
+2024-01-25,Ghana,Brazil,2,1,Friendly,X,Y,True
+2024-02-26,Australia,Scotland,0,4,Friendly,X,Y,True
+2024-03-27,United States,Croatia,2,1,Friendly,X,Y,True
+2024-04-28,South Korea,Uzbekistan,1,0,Friendly,X,Y,True
+2024-05-01,Saudi Arabia,Bosnia and Herzegovina,3,2,Friendly,X,Y,True
+2024-06-02,Ecuador,Iraq,1,2,Friendly,X,Y,True
+2024-07-03,Japan,Portugal,0,1,Friendly,X,Y,True
+2024-08-04,Switzerland,Senegal,0,0,Friendly,X,Y,True
+2024-09-05,Scotland,England,0,3,Friendly,X,Y,True
+2024-10-06,Ghana,Iran,0,1,Friendly,X,Y,True
+2024-11-07,Uzbekistan,Tunisia,2,0,Friendly,X,Y,True
+2024-12-08,Australia,Switzerland,0,0,Friendly,X,Y,True
+2024-01-09,Colombia,Germany,1,2,Friendly,X,Y,True
+2024-02-10,Canada,Bosnia and Herzegovina,1,3,Friendly,X,Y,True
+2024-03-11,Belgium,Cape Verde,0,0,Friendly,X,Y,True
+2024-04-12,Portugal,Japan,1,1,Friendly,X,Y,True
+2024-05-13,Czech Republic,Paraguay,1,2,Friendly,X,Y,True
+2024-06-14,Australia,Canada,0,1,Friendly,X,Y,True
+2024-07-15,Canada,Jordan,2,1,Friendly,X,Y,True
+2024-08-16,Canada,Haiti,2,0,Friendly,X,Y,True
+2024-09-17,Senegal,Morocco,0,2,Friendly,X,Y,True
+2024-10-18,Colombia,Iraq,0,2,Friendly,X,Y,True
+2024-11-19,Austria,Morocco,0,1,Friendly,X,Y,True
+2024-12-20,Croatia,Norway,1,4,Friendly,X,Y,True
+2024-01-21,Sweden,Germany,0,1,Friendly,X,Y,True
+2024-02-22,Ivory Coast,Canada,4,0,Friendly,X,Y,True
+2024-03-23,Canada,Argentina,0,0,Friendly,X,Y,True
+2024-04-24,Iran,United States,2,0,Friendly,X,Y,True
+2024-05-25,South Korea,Ghana,0,1,Friendly,X,Y,True
+2024-06-26,Egypt,South Africa,3,1,Friendly,X,Y,True
+2024-07-27,Ghana,Cape Verde,1,2,Friendly,X,Y,True
+2024-08-28,Saudi Arabia,South Korea,2,1,Friendly,X,Y,True
+2024-09-01,Germany,Uzbekistan,1,1,Friendly,X,Y,True
+2024-10-02,Ivory Coast,Jordan,2,2,Friendly,X,Y,True
+2024-11-03,Curacao,Qatar,2,2,Friendly,X,Y,True
+2024-12-04,Bosnia and Herzegovina,Jordan,1,0,Friendly,X,Y,True
+2024-01-05,Australia,Ivory Coast,1,1,Friendly,X,Y,True
+2024-02-06,Qatar,Jordan,0,0,Friendly,X,Y,True
+2024-03-07,Croatia,Jordan,1,0,Friendly,X,Y,True
+2024-04-08,Iran,Australia,1,1,Friendly,X,Y,True
+2024-05-09,Senegal,England,0,0,Friendly,X,Y,True
+2024-06-10,Uruguay,Ecuador,1,1,Friendly,X,Y,True
+2024-07-11,Croatia,France,3,2,Friendly,X,Y,True
+2024-08-12,Tunisia,Scotland,3,0,Friendly,X,Y,True

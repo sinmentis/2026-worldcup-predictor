@@ -22,4 +22,3 @@ def test_retilt_shifts_means_toward_targets_and_normalizes():
     assert eh < 1.8  # home expected goals dropped
     assert abs(ea - 1.1) < 0.05  # away roughly unchanged
     assert abs(tilted.matrix.sum() - 1.0) < 1e-9
-
