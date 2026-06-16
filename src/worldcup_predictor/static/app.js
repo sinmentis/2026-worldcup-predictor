@@ -67,8 +67,9 @@ function timeStr(d) {
   return d ? d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "待定";
 }
 
-// Live kickoff countdown, shown only when kickoff is within this window.
-const KICK_WINDOW_MS = 12 * 3600 * 1000;
+// Live kickoff status windows.
+const FUTURE_WINDOW_MS = 12 * 3600 * 1000; // show a countdown when kickoff is within 12h
+const LIVE_WINDOW_MS = 2.5 * 3600 * 1000; // treat a match as in-progress for ~2.5h after kickoff
 function countdownText(ms) {
   if (ms <= 0) return "进行中";
   const s = Math.floor(ms / 1000);
@@ -78,22 +79,43 @@ function countdownText(ms) {
   return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
+// Per-second refresh of every upcoming card's status: countdown -> 进行中 (live) -> 待出结果.
+function refreshStatuses() {
+  const cards = document.querySelectorAll(".match[data-kickoff]");
+  const now = Date.now();
+  cards.forEach((card) => {
+    const ms = new Date(card.dataset.kickoff).getTime() - now;
+    let txt = "";
+    let cls = "";
+    let live = false;
+    if (ms > 0) {
+      if (ms < FUTURE_WINDOW_MS) {
+        txt = "⏱ " + countdownText(ms);
+        cls = ms < 3600 * 1000 ? "soon" : "";
+      }
+    } else if (ms > -LIVE_WINDOW_MS) {
+      txt = "🔴 进行中";
+      cls = "live";
+      live = true;
+    } else {
+      txt = "⏳ 待出结果";
+      cls = "awaiting";
+    }
+    const st = card.querySelector(".matchstatus");
+    if (st) {
+      st.textContent = txt;
+      st.className = "matchstatus" + (cls ? " " + cls : "");
+      st.style.display = txt ? "" : "none";
+    }
+    card.classList.toggle("live", live);
+  });
+}
+
 let countdownTimer = null;
 function startCountdowns() {
   if (countdownTimer) clearInterval(countdownTimer);
-  const tick = () => {
-    const els = document.querySelectorAll(".countdown[data-kickoff]");
-    if (!els.length) { clearInterval(countdownTimer); countdownTimer = null; return; }
-    const now = Date.now();
-    els.forEach((el) => {
-      const ms = new Date(el.dataset.kickoff).getTime() - now;
-      el.textContent = "⏱ " + countdownText(ms);
-      el.classList.toggle("soon", ms > 0 && ms < 3600 * 1000);
-      el.classList.toggle("live", ms <= 0);
-    });
-  };
-  tick();
-  countdownTimer = setInterval(tick, 1000);
+  refreshStatuses();
+  countdownTimer = setInterval(refreshStatuses, 1000);
 }
 
 /* ---------------- upcoming ---------------- */
@@ -110,23 +132,16 @@ async function loadUpcoming() {
 
 function matchCardHtml(m) {
   const d = kickDate(m.kickoff);
-  let cd = "";
-  if (d) {
-    const ms = d.getTime() - Date.now();
-    if (ms > 0 && ms < KICK_WINDOW_MS) {
-      cd = `<div class="countdown" data-kickoff="${esc(m.kickoff)}">⏱ ${countdownText(ms)}</div>`;
-    }
-  }
   const fac = (m.factors || []).map((f) => {
     const dir = f.lambda_delta >= 0 ? "up" : "down";
     const arrow = f.lambda_delta >= 0 ? "▲" : "▼";
     return `<span class="chip ${dir}">${arrow} ${zh(f.team)} ${esc(f.description)}</span>`;
   }).join("");
-  return `<div class="match card" onclick="showDetail(${m.match_id})">
+  return `<div class="match card" ${d ? `data-kickoff="${esc(m.kickoff)}"` : ""} onclick="showDetail(${m.match_id})">
     ${teamCell(m.home_team, "")}
     <div class="mid">
       <div class="kick">${m.group ? esc(m.group) + "组 · " : ""}${esc(timeStr(d))}</div>
-      ${cd}
+      <div class="matchstatus" style="display:none"></div>
       <span class="scoreline">${esc(m.ml_home)}-${esc(m.ml_away)}</span>
       <div class="xg">预期 ${m.exp_home_goals.toFixed(2)} : ${m.exp_away_goals.toFixed(2)}</div>
     </div>
