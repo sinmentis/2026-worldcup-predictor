@@ -128,6 +128,16 @@ CREATE TABLE IF NOT EXISTS odds (
     fetched_at REAL,
     UNIQUE(match_id, bookmaker)
 );
+CREATE TABLE IF NOT EXISTS odds_totals (
+    id INTEGER PRIMARY KEY,
+    match_id INTEGER,
+    bookmaker TEXT NOT NULL,
+    line REAL NOT NULL,
+    price_over REAL,
+    price_under REAL,
+    fetched_at REAL,
+    UNIQUE(match_id, bookmaker, line)
+);
 """
 
 

@@ -9,6 +9,7 @@ actually bet) and a fractional-Kelly stake. The market is usually right, so thes
 
 from __future__ import annotations
 
+import datetime
 import sqlite3
 import statistics
 from typing import Any
@@ -16,9 +17,14 @@ from typing import Any
 from worldcup_predictor import config
 from worldcup_predictor.goal_model import GoalModel
 from worldcup_predictor.odds import implied_probs
-from worldcup_predictor.predict import predict_match
+from worldcup_predictor.predict import adjusted_grid, predict_match
 
 OUTCOME_LABELS = ["home", "draw", "away"]
+
+
+def _now_z() -> str:
+    """Current UTC time as an ISO-Zulu string, comparable to stored kickoff timestamps."""
+    return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def best_prices(conn: sqlite3.Connection, match_id: int) -> list[tuple[float, str | None]]:
@@ -65,8 +71,9 @@ def value_bets(
     rows = conn.execute(
         "SELECT DISTINCT m.id, m.home_team, m.away_team, m.group_id, m.kickoff, m.neutral "
         "FROM matches m JOIN odds o ON o.match_id = m.id "
-        "WHERE m.status='SCHEDULED' "
-        "ORDER BY (m.kickoff IS NULL), m.kickoff, m.id"
+        "WHERE m.status='SCHEDULED' AND (m.kickoff IS NULL OR m.kickoff > ?) "
+        "ORDER BY (m.kickoff IS NULL), m.kickoff, m.id",
+        (_now_z(),),
     ).fetchall()
     bets: list[dict[str, Any]] = []
     for r in rows:
@@ -93,9 +100,112 @@ def value_bets(
                     "away_team": r["away_team"],
                     "group": r["group_id"],
                     "kickoff": r["kickoff"],
+                    "market": "1x2",
                     "outcome": OUTCOME_LABELS[i],
+                    "line": None,
                     "our_prob": our[i],
                     "market_prob": consensus[i],
+                    "edge": edge,
+                    "best_price": price if price > 1.0 else None,
+                    "bookmaker": book,
+                    "ev": ev,
+                    "kelly": kelly,
+                }
+            )
+    bets.sort(key=lambda b: b["edge"], reverse=True)
+    return bets
+
+
+def _best_total_prices(
+    conn: sqlite3.Connection, match_id: int, line: float
+) -> tuple[tuple[float, str | None], tuple[float, str | None]]:
+    rows = conn.execute(
+        "SELECT bookmaker, price_over, price_under FROM odds_totals WHERE match_id=? AND line=?",
+        (match_id, line),
+    ).fetchall()
+    bo: tuple[float, str | None] = (0.0, None)
+    bu: tuple[float, str | None] = (0.0, None)
+    for r in rows:
+        if r["price_over"] and float(r["price_over"]) > bo[0]:
+            bo = (float(r["price_over"]), r["bookmaker"])
+        if r["price_under"] and float(r["price_under"]) > bu[0]:
+            bu = (float(r["price_under"]), r["bookmaker"])
+    return bo, bu
+
+
+def _totals_consensus(prices: list[tuple[float, float]]) -> tuple[float, float] | None:
+    """De-margined median over/under probability across books for one line."""
+    ov: list[float] = []
+    un: list[float] = []
+    for o, u in prices:
+        if o and u:
+            ro, ru = 1.0 / o, 1.0 / u
+            s = ro + ru
+            ov.append(ro / s)
+            un.append(ru / s)
+    if not ov:
+        return None
+    return statistics.median(ov), statistics.median(un)
+
+
+def value_bets_totals(
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    min_edge: float | None = None,
+    kelly_fraction: float | None = None,
+) -> list[dict[str, Any]]:
+    """Over/Under value: our Poisson total-goals probability vs the market consensus."""
+    edge_floor = config.VALUE_MIN_EDGE if min_edge is None else min_edge
+    kfrac = config.KELLY_FRACTION if kelly_fraction is None else kelly_fraction
+    rows = conn.execute(
+        "SELECT DISTINCT m.id, m.home_team, m.away_team, m.group_id, m.kickoff, m.neutral "
+        "FROM matches m JOIN odds_totals o ON o.match_id = m.id "
+        "WHERE m.status='SCHEDULED' AND (m.kickoff IS NULL OR m.kickoff > ?) "
+        "ORDER BY (m.kickoff IS NULL), m.kickoff, m.id",
+        (_now_z(),),
+    ).fetchall()
+    bets: list[dict[str, Any]] = []
+    for r in rows:
+        by_line: dict[float, list[tuple[float, float]]] = {}
+        for tr in conn.execute(
+            "SELECT line, price_over, price_under FROM odds_totals WHERE match_id=?", (r["id"],)
+        ).fetchall():
+            by_line.setdefault(float(tr["line"]), []).append((tr["price_over"], tr["price_under"]))
+        if not by_line:
+            continue
+        line = max(by_line, key=lambda label: len(by_line[label]))  # the most-quoted line
+        cons = _totals_consensus(by_line[line])
+        if cons is None:
+            continue
+        grid, _ = adjusted_grid(
+            conn, model, r["home_team"], r["away_team"], neutral=bool(r["neutral"])
+        )
+        our_over = grid.over(line)
+        our = {"over": our_over, "under": 1.0 - our_over}
+        cons_map = {"over": cons[0], "under": cons[1]}
+        best_over, best_under = _best_total_prices(conn, r["id"], line)
+        best_map = {"over": best_over, "under": best_under}
+        for side in ("over", "under"):
+            edge = our[side] - cons_map[side]
+            if edge < edge_floor:
+                continue
+            price, book = best_map[side]
+            ev = our[side] * price - 1.0 if price > 1.0 else None
+            kelly = (
+                max(0.0, (our[side] * price - 1.0) / (price - 1.0)) * kfrac if price > 1.0 else 0.0
+            )
+            bets.append(
+                {
+                    "match_id": r["id"],
+                    "home_team": r["home_team"],
+                    "away_team": r["away_team"],
+                    "group": r["group_id"],
+                    "kickoff": r["kickoff"],
+                    "market": "totals",
+                    "outcome": side,
+                    "line": line,
+                    "our_prob": our[side],
+                    "market_prob": cons_map[side],
                     "edge": edge,
                     "best_price": price if price > 1.0 else None,
                     "bookmaker": book,

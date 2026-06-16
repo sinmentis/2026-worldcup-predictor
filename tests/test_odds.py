@@ -107,3 +107,43 @@ def test_fetch_odds_with_monkeypatched_http(tmp_path, monkeypatch):
 
     monkeypatch.setattr(odds.httpx, "get", lambda *a, **k: _Resp())
     assert odds.fetch_odds(conn, key="dummy") == 2
+
+
+TOTALS_PAYLOAD = [
+    {
+        "home_team": "Brazil",
+        "away_team": "Morocco",
+        "bookmakers": [
+            {
+                "key": "pinnacle",
+                "markets": [
+                    {
+                        "key": "totals",
+                        "outcomes": [
+                            {"name": "Over", "price": 1.90, "point": 2.5},
+                            {"name": "Under", "price": 1.95, "point": 2.5},
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+]
+
+
+def test_parse_and_store_totals(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,neutral,status)"
+        " VALUES (1,'group','A','Brazil','Morocco',1,'SCHEDULED')"
+    )
+    conn.commit()
+    parsed = odds.parse_totals_payload(TOTALS_PAYLOAD)
+    assert len(parsed) == 1 and parsed[0]["lines"][0]["line"] == 2.5
+    n = odds.store_totals(conn, parsed)
+    assert n == 1
+    row = conn.execute(
+        "SELECT line, price_over, price_under FROM odds_totals WHERE match_id=1"
+    ).fetchone()
+    assert row["line"] == 2.5 and row["price_over"] == 1.90 and row["price_under"] == 1.95

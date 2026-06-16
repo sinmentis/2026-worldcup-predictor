@@ -98,3 +98,12 @@ def test_odds_table_exists(tmp_path):
             "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
             " VALUES (1,'x',1.6,3.4,5.5,0)"
         )
+
+
+def test_odds_totals_table_exists(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    names = {
+        r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    }
+    assert "odds_totals" in names

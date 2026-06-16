@@ -106,8 +106,12 @@ def value_bets(
     for b in bets:
         ev = f"{b['ev']:+.0%}" if b["ev"] is not None else "n/a"
         price = f"{b['best_price']:.2f}" if b["best_price"] else "n/a"
+        if b["market"] == "totals":
+            pick = f"{'Over' if b['outcome'] == 'over' else 'Under'} {b['line']}"
+        else:
+            pick = b["outcome"]
         typer.echo(
-            f"{b['home_team']} v {b['away_team']}  {b['outcome']:<5} "
+            f"{b['home_team']} v {b['away_team']}  [{b['market']}] {pick:<10} "
             f"our={b['our_prob']:.0%} mkt={b['market_prob']:.0%} edge={b['edge']:+.0%}  "
             f"best {price} ({b['bookmaker']}) EV={ev} kelly={b['kelly']:.1%}"
         )

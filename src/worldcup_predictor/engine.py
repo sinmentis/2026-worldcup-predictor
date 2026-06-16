@@ -196,7 +196,12 @@ def get_value_bets(
     kelly_fraction: float | None = None,
 ) -> list[dict[str, Any]]:
     model = get_model(conn)
-    return _valuebet.value_bets(conn, model, min_edge=min_edge, kelly_fraction=kelly_fraction)
+    bets = _valuebet.value_bets(conn, model, min_edge=min_edge, kelly_fraction=kelly_fraction)
+    bets += _valuebet.value_bets_totals(
+        conn, model, min_edge=min_edge, kelly_fraction=kelly_fraction
+    )
+    bets.sort(key=lambda b: b["edge"], reverse=True)
+    return bets
 
 
 def get_unprocessed_news(conn: sqlite3.Connection, limit: int = 20) -> list[dict[str, Any]]:

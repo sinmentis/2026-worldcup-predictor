@@ -106,3 +106,38 @@ def test_value_bets_empty_without_odds(tmp_path):
     conn = _conn(tmp_path)
     model = _model()
     assert valuebet.value_bets(conn, model) == []
+
+
+def test_value_bets_totals_flags_over(tmp_path):
+    conn = _conn(tmp_path)
+    model = _model()  # Strong vs Weak: high-scoring, P(over 2.5) high
+    conn.execute(
+        "INSERT INTO odds_totals(match_id,bookmaker,line,price_over,price_under,fetched_at)"
+        " VALUES (1,'a',2.5,2.2,1.7,0),(1,'b',2.5,2.1,1.75,0)"
+    )
+    conn.commit()
+    bets = valuebet.value_bets_totals(conn, model, min_edge=0.05)
+    over = [b for b in bets if b["outcome"] == "over"]
+    assert over, "expected an over value bet (our P(over) >> market)"
+    b = over[0]
+    assert b["market"] == "totals" and b["line"] == 2.5
+    assert b["edge"] > 0.05 and b["our_prob"] > b["market_prob"]
+    assert b["best_price"] == 2.2  # best (highest) over price across books
+
+
+def test_value_bets_totals_empty_without_odds(tmp_path):
+    conn = _conn(tmp_path)
+    assert valuebet.value_bets_totals(conn, _model()) == []
+
+
+def test_value_bets_excludes_started_matches(tmp_path):
+    conn = _conn(tmp_path)
+    conn.execute(
+        "UPDATE matches SET kickoff='2020-01-01T00:00:00Z' WHERE id=1"
+    )  # already kicked off
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'a',2.0,3.5,4.0,0)"
+    )
+    conn.commit()
+    assert valuebet.value_bets(conn, _model(), min_edge=0.05) == []  # stale odds -> excluded

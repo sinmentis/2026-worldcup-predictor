@@ -350,6 +350,9 @@ async function loadValue() {
     return;
   }
   const OUT = { home: "主胜", draw: "平局", away: "客胜" };
+  const betLabel = (b) =>
+    b.market === "totals" ? `${b.outcome === "over" ? "大" : "小"}${b.line}` : (OUT[b.outcome] || esc(b.outcome));
+  const tag = (b) => (b.market === "totals" ? `<span class="vbet-mkt">大小球</span>` : `<span class="vbet-mkt h2h">胜平负</span>`);
   let list = "";
   let lastDay = null;
   for (const b of bets) {
@@ -358,7 +361,7 @@ async function loadValue() {
     if (dk !== lastDay) { list += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
     list += `<div class="vbet card">
       <div class="vbet-match">${flag(b.home_team)} ${zh(b.home_team)} <span class="muted">vs</span> ${zh(b.away_team)} ${flag(b.away_team)} <span class="muted vbet-time">${esc(timeStr(d))}</span></div>
-      <div class="vbet-pick">押 <b>${OUT[b.outcome] || esc(b.outcome)}</b>${b.best_price ? ` @ <b>${b.best_price.toFixed(2)}</b> <span class="muted">(${esc(b.bookmaker || "")})</span>` : ""}</div>
+      <div class="vbet-pick">${tag(b)} 押 <b>${betLabel(b)}</b>${b.best_price ? ` @ <b>${b.best_price.toFixed(2)}</b> <span class="muted">(${esc(b.bookmaker || "")})</span>` : ""}</div>
       <div class="vbet-stats">
         <span>我们 <b>${pct0(b.our_prob)}</b></span>
         <span class="muted">市场 ${pct0(b.market_prob)}</span>
