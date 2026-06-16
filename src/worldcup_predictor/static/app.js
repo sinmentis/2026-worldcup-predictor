@@ -67,6 +67,35 @@ function timeStr(d) {
   return d ? d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "待定";
 }
 
+// Live kickoff countdown, shown only when kickoff is within this window.
+const KICK_WINDOW_MS = 12 * 3600 * 1000;
+function countdownText(ms) {
+  if (ms <= 0) return "进行中";
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+let countdownTimer = null;
+function startCountdowns() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  const tick = () => {
+    const els = document.querySelectorAll(".countdown[data-kickoff]");
+    if (!els.length) { clearInterval(countdownTimer); countdownTimer = null; return; }
+    const now = Date.now();
+    els.forEach((el) => {
+      const ms = new Date(el.dataset.kickoff).getTime() - now;
+      el.textContent = "⏱ " + countdownText(ms);
+      el.classList.toggle("soon", ms > 0 && ms < 3600 * 1000);
+      el.classList.toggle("live", ms <= 0);
+    });
+  };
+  tick();
+  countdownTimer = setInterval(tick, 1000);
+}
+
 /* ---------------- upcoming ---------------- */
 let UPCOMING = [];
 let UP_REMAINING = 0;
@@ -81,6 +110,13 @@ async function loadUpcoming() {
 
 function matchCardHtml(m) {
   const d = kickDate(m.kickoff);
+  let cd = "";
+  if (d) {
+    const ms = d.getTime() - Date.now();
+    if (ms > 0 && ms < KICK_WINDOW_MS) {
+      cd = `<div class="countdown" data-kickoff="${esc(m.kickoff)}">⏱ ${countdownText(ms)}</div>`;
+    }
+  }
   const fac = (m.factors || []).map((f) => {
     const dir = f.lambda_delta >= 0 ? "up" : "down";
     const arrow = f.lambda_delta >= 0 ? "▲" : "▼";
@@ -90,6 +126,7 @@ function matchCardHtml(m) {
     ${teamCell(m.home_team, "")}
     <div class="mid">
       <div class="kick">${m.group ? esc(m.group) + "组 · " : ""}${esc(timeStr(d))}</div>
+      ${cd}
       <span class="scoreline">${esc(m.ml_home)}-${esc(m.ml_away)}</span>
       <div class="xg">预期 ${m.exp_home_goals.toFixed(2)} : ${m.exp_away_goals.toFixed(2)}</div>
     </div>
@@ -152,6 +189,8 @@ function renderUpcoming() {
   if (ic) ic.onchange = (e) => { upFilter.onlyIntel = e.target.checked; renderUpcoming(); };
   const c = document.getElementById("f-clear");
   if (c) c.onclick = () => { upFilter.group = ""; upFilter.team = ""; upFilter.onlyIntel = false; renderUpcoming(); };
+
+  startCountdowns();
 }
 
 /* ---------------- forecast ---------------- */

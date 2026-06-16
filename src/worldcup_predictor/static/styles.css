@@ -190,6 +190,12 @@ code {
 }
 .scoreline.actual { background: linear-gradient(92deg, rgba(34,211,238,.18), rgba(52,211,153,.18)); }
 .xg { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.countdown {
+  font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
+  letter-spacing: .5px; color: var(--accent2); margin: 2px 0 4px;
+}
+.countdown.soon { color: var(--gold); }
+.countdown.live { color: var(--loss); animation: pulse 1.6s infinite; }
 
 /* probability tri-bar */
 .probbar {
