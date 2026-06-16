@@ -179,7 +179,11 @@ def _knockout_winner(
         return a
     if r < p_h + p_a:
         return b
-    return a if rng.random() < 0.5 else b  # penalties ~ 50/50
+    # Drawn after regulation: the stronger side is likelier to win extra time + the shootout,
+    # weighted by each team's regulation win share (degrades to a coin flip for even matches).
+    denom = p_h + p_a
+    share = p_h / denom if denom > 0 else 0.5
+    return a if rng.random() < share else b
 
 
 def _load_played_groups(

@@ -86,3 +86,23 @@ def test_simulation_conditions_on_finished_group_matches(tmp_path):
     result = simulate_tournament(conn, model, n=300, seed=5)
     assert result["Mexico"]["advance"] > 0.999  # 9 pts, group fully decided
     assert result["Czech Republic"]["advance"] == 0.0  # 4th place never qualifies
+
+
+def test_knockout_shootout_favours_stronger_team():
+    from worldcup_predictor.simulate import _knockout_winner
+
+    rng = np.random.default_rng(0)
+    # draw-heavy match (p_draw 0.85) where A is clearly stronger than B in regulation
+    probs = {("A", "B"): (0.10, 0.85, 0.05)}
+    wins_a = sum(_knockout_winner("A", "B", probs, {}, rng) == "A" for _ in range(20000))
+    # share = 0.10/0.15 = 0.667; expected A win rate ~ 0.10 + 0.85*0.667 ≈ 0.667
+    assert 0.62 < wins_a / 20000 < 0.72  # clearly above a 50/50 coin flip
+
+
+def test_knockout_shootout_even_match_is_coinflip():
+    from worldcup_predictor.simulate import _knockout_winner
+
+    rng = np.random.default_rng(1)
+    probs = {("A", "B"): (0.075, 0.85, 0.075)}  # symmetric -> ~50/50
+    wins_a = sum(_knockout_winner("A", "B", probs, {}, rng) == "A" for _ in range(20000))
+    assert 0.45 < wins_a / 20000 < 0.55
