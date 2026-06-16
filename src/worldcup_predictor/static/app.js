@@ -286,24 +286,36 @@ async function showDetail(id) {
 async function loadValue() {
   const el = document.getElementById("value");
   const data = await (await fetch("/api/value-bets")).json();
-  const bets = data.bets || [];
+  const bets = (data.bets || []).slice().sort((a, b) => {
+    const ka = a.kickoff || "9999", kb = b.kickoff || "9999";
+    if (ka !== kb) return ka < kb ? -1 : 1;
+    return b.edge - a.edge;  // within a day, best edge first
+  });
   if (!bets.length) {
     el.innerHTML = `<div class="empty">暂无价值投注。先在 <code>.env</code> 配置 <code>ODDS_API_KEY</code> 并运行 <code>worldcup fetch-odds</code> 拉取赔率；或当前没有超过阈值的 edge。</div>`;
     return;
   }
   const OUT = { home: "主胜", draw: "平局", away: "客胜" };
-  const rows = bets.map((b) => `<div class="vbet card">
-    <div class="vbet-match">${flag(b.home_team)} ${zh(b.home_team)} <span class="muted">vs</span> ${zh(b.away_team)} ${flag(b.away_team)}</div>
-    <div class="vbet-pick">押 <b>${OUT[b.outcome] || esc(b.outcome)}</b>${b.best_price ? ` @ <b>${b.best_price.toFixed(2)}</b> <span class="muted">(${esc(b.bookmaker || "")})</span>` : ""}</div>
-    <div class="vbet-stats">
-      <span>我们 <b>${pct0(b.our_prob)}</b></span>
-      <span class="muted">市场 ${pct0(b.market_prob)}</span>
-      <span class="vbet-edge">领先市场 +${(b.edge * 100).toFixed(1)}%</span>
-      ${b.ev != null ? `<span>最佳价 EV ${(b.ev * 100).toFixed(0)}%</span>` : ""}
-      <span class="vbet-kelly">建议仓位 ${(b.kelly * 100).toFixed(1)}%</span>
-    </div>
-  </div>`).join("");
-  el.innerHTML = `<h2>价值投注 <small>（我们的概率 vs 市场共识 · 市场通常更准，仅供参考）</small></h2>${rows}`;
+  let list = "";
+  let lastDay = null;
+  for (const b of bets) {
+    const d = kickDate(b.kickoff);
+    const dk = dayKey(d);
+    if (dk !== lastDay) { list += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
+    list += `<div class="vbet card">
+      <div class="vbet-match">${flag(b.home_team)} ${zh(b.home_team)} <span class="muted">vs</span> ${zh(b.away_team)} ${flag(b.away_team)} <span class="muted vbet-time">${esc(timeStr(d))}</span></div>
+      <div class="vbet-pick">押 <b>${OUT[b.outcome] || esc(b.outcome)}</b>${b.best_price ? ` @ <b>${b.best_price.toFixed(2)}</b> <span class="muted">(${esc(b.bookmaker || "")})</span>` : ""}</div>
+      <div class="vbet-stats">
+        <span>我们 <b>${pct0(b.our_prob)}</b></span>
+        <span class="muted">市场 ${pct0(b.market_prob)}</span>
+        <span class="vbet-edge">领先市场 +${(b.edge * 100).toFixed(1)}%</span>
+        ${b.ev != null ? `<span>最佳价 EV ${(b.ev * 100).toFixed(0)}%</span>` : ""}
+        <span class="vbet-kelly">建议仓位 ${(b.kelly * 100).toFixed(1)}%</span>
+      </div>
+    </div>`;
+  }
+  el.innerHTML = `<h2>价值投注 <small>（我们 vs 市场共识 · 市场通常更准，非稳赚）</small></h2>
+    <div class="vbet-note">⚠️「建议仓位」= 该注占你<b>总资金</b>的比例（1/4 Kelly，已保守）。只有当我们的概率确实比市场更准时才有正收益，而这<b>并无保证</b>——请当作研究候选、先纸面跟单，别无脑下注。</div>${list}`;
 }
 
 /* ---------------- tabs + live refresh ---------------- */
