@@ -36,6 +36,19 @@ const FLAG = {
 
 const STAGES = { group: "小组赛", R32: "32强", R16: "16强", QF: "八强", SF: "四强", "3RD": "季军赛", FINAL: "决赛" };
 
+// FIFA men's world ranking (latest real ranking, FIFA/Coca-Cola Dec 2025) for the 48 finalists.
+const RANK = {
+  "Spain": 1, "Argentina": 2, "France": 3, "England": 4, "Brazil": 5, "Portugal": 6,
+  "Netherlands": 7, "Belgium": 8, "Germany": 9, "Croatia": 10, "Morocco": 11, "Colombia": 13,
+  "United States": 14, "Mexico": 15, "Uruguay": 16, "Switzerland": 17, "Japan": 18, "Senegal": 19,
+  "Iran": 20, "South Korea": 22, "Ecuador": 23, "Austria": 24, "Turkey": 25, "Australia": 26,
+  "Canada": 27, "Sweden": 29, "Egypt": 32, "Panama": 34, "Algeria": 35, "Norway": 37,
+  "Czech Republic": 38, "Ivory Coast": 40, "Scotland": 41, "Tunisia": 45, "DR Congo": 46,
+  "Paraguay": 49, "Uzbekistan": 50, "Qatar": 56, "Iraq": 57, "South Africa": 60, "Saudi Arabia": 61,
+  "Jordan": 63, "Bosnia and Herzegovina": 64, "Cape Verde": 67, "Ghana": 73, "Curacao": 82,
+  "Haiti": 83, "New Zealand": 85,
+};
+
 function esc(v) {
   return String(v ?? "").replace(/[&<>"']/g, (c) => (
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
@@ -46,13 +59,19 @@ function zh(name) {
   return esc(ZH[name] || name);
 }
 function flag(name) { return FLAG[name] || "🏳️"; }
+function rankBadge(name) {
+  const r = RANK[name];
+  return r ? `<span class="rank" title="FIFA 排名">FIFA #${r}</span>` : "";
+}
+// team name with its FIFA-rank badge, for the many inline display spots.
+function zhr(name) { return `${zh(name)} ${rankBadge(name)}`; }
 function pct(x) { return (x * 100).toFixed(1) + "%"; }
 function pct0(x) { return Math.round(x * 100) + "%"; }
 
-// team cell: flag + zh name (+ small english). `away` reverses direction.
+// team cell: flag + zh name + FIFA rank (+ small english). `away` reverses direction.
 function teamCell(name, side) {
   return `<div class="side ${side || ""}"><span class="flag">${flag(name)}</span>
-    <span class="tname">${zh(name)}<span class="en">${esc(name)}</span></span></div>`;
+    <span class="tname">${zh(name)} ${rankBadge(name)}<span class="en">${esc(name)}</span></span></div>`;
 }
 
 function kickDate(iso) {
@@ -222,7 +241,7 @@ async function loadForecast() {
     const cls = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
     return `<div class="lb-row ${cls}">
       <div class="rank">${i + 1}</div>
-      <div class="lb-team"><span class="flag">${flag(r.team)}</span>${zh(r.team)}</div>
+      <div class="lb-team"><span class="flag">${flag(r.team)}</span>${zhr(r.team)}</div>
       <div class="track"><i style="width:${Math.max(3, (r.title_prob / max) * 100)}%"></i></div>
       <div class="lb-pct">${pct(r.title_prob)}</div>
     </div>`;
@@ -286,7 +305,7 @@ async function loadGroups() {
   const cards = await Promise.all(GROUPS.map(async (g) => {
     const rows = await (await fetch(`/api/groups/${g}/standings`)).json();
     const body = rows.map((r) => `<tr>
-      <td class="team"><span class="flag" style="font-size:18px">${flag(r.team)}</span>${zh(r.team)}</td>
+      <td class="team"><span class="flag" style="font-size:18px">${flag(r.team)}</span>${zhr(r.team)}</td>
       <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td>
       <td>${r.gd > 0 ? "+" + r.gd : r.gd}</td><td class="pts">${r.pts}</td></tr>`).join("");
     return `<div class="card group-card"><h3><span class="badge">${g}</span> ${g} 组</h3>
@@ -312,7 +331,7 @@ async function loadBracket() {
   for (const g of "ABCDEFGHIJKL".split("")) {
     const gt = data.groups[g] || [];
     gq += `<div class="card bk-group"><h4><span class="badge">${g}</span> ${g} 组</h4>` +
-      gt.map((t, i) => `<div class="bk-grow ${i < 2 ? "qual" : ""}"><span>${flag(t.team)} ${zh(t.team)}</span><span class="muted">${pct0(t.advance_prob)}</span></div>`).join("") +
+      gt.map((t, i) => `<div class="bk-grow ${i < 2 ? "qual" : ""}"><span>${flag(t.team)} ${zhr(t.team)}</span><span class="muted">${pct0(t.advance_prob)}</span></div>`).join("") +
       `</div>`;
   }
   gq += `</div>`;
@@ -320,7 +339,7 @@ async function loadBracket() {
   let hm = `<h3 class="bk-sub">晋级热图 <small>（${data.n_iter} 次模拟 · 每支队走到各轮的概率）</small></h3>
     <div class="bk-heat-wrap"><table class="bk-heat"><thead><tr><th>队伍</th>${ROUNDS.map((r) => `<th>${r[1]}</th>`).join("")}</tr></thead><tbody>`;
   for (const t of teams) {
-    hm += `<tr><td class="team">${flag(t.team)} ${zh(t.team)}</td>` +
+    hm += `<tr><td class="team">${flag(t.team)} ${zhr(t.team)}</td>` +
       ROUNDS.map((r) => `<td style="${heat(t[r[0]])}">${pct0(t[r[0]])}</td>`).join("") + `</tr>`;
   }
   hm += `</tbody></table></div>`;
@@ -336,7 +355,7 @@ async function showDetail(id) {
   if (!d.match) return;
   const m = d.match;
   const p = d.prediction;
-  let html = `<h3>${flag(m.home_team)} ${zh(m.home_team)} <span class="muted">vs</span> ${zh(m.away_team)} ${flag(m.away_team)}</h3>
+  let html = `<h3>${flag(m.home_team)} ${zhr(m.home_team)} <span class="muted">vs</span> ${zhr(m.away_team)} ${flag(m.away_team)}</h3>
     <p class="muted">阶段：${esc(STAGES[m.stage] || m.stage)}${m.kickoff ? " · " + esc(new Date(m.kickoff).toLocaleString("zh-CN")) : ""}</p>`;
   if (m.status === "FINISHED") html += `<p>最终比分：<b>${m.home_score} - ${m.away_score}</b></p>`;
   if (p) {
@@ -394,7 +413,7 @@ async function loadValue() {
     const dk = dayKey(d);
     if (dk !== lastDay) { list += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
     list += `<div class="vbet card">
-      <div class="vbet-match">${flag(b.home_team)} ${zh(b.home_team)} <span class="muted">vs</span> ${zh(b.away_team)} ${flag(b.away_team)} <span class="muted vbet-time">${esc(timeStr(d))}</span></div>
+      <div class="vbet-match">${flag(b.home_team)} ${zhr(b.home_team)} <span class="muted">vs</span> ${zhr(b.away_team)} ${flag(b.away_team)} <span class="muted vbet-time">${esc(timeStr(d))}</span></div>
       <div class="vbet-pick">${tag(b)} 押 <b>${betLabel(b)}</b>${b.best_price ? ` @ <b>${b.best_price.toFixed(2)}</b> <span class="muted">(${esc(b.bookmaker || "")})</span>` : ""}</div>
       <div class="vbet-stats">
         <span>我们 <b>${pct0(b.our_prob)}</b></span>
