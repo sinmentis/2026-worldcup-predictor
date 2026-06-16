@@ -133,3 +133,39 @@ def test_get_bracket_projection(tmp_path):
     assert all("group" in t for t in proj["teams"])
     # heatmap ordering: Argentina (deepest run) first
     assert proj["teams"][0]["team"] == "Argentina"
+
+
+def test_match_detail_h2h_and_odds(tmp_path):
+    conn = _conn(tmp_path)
+    conn.execute(
+        "UPDATE matches SET home_team='Brazil', away_team='Morocco', status='SCHEDULED' WHERE id=1"
+    )
+    conn.execute(
+        "INSERT INTO historical_matches(date,home_team,away_team,home_score,away_score,tournament)"
+        " VALUES ('2022-01-01','Brazil','Morocco',2,0,'f'),"
+        "('2021-01-01','Morocco','Brazil',1,1,'f')"
+    )
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'a',1.8,3.5,4.5,0)"
+    )
+    conn.commit()
+    d = engine.get_match_detail(conn, 1)
+    assert d["h2h"]["home_wins"] == 1 and d["h2h"]["draws"] == 1  # Brazil: 1 win, 1 draw
+    assert len(d["h2h"]["meetings"]) == 2
+    assert d["odds"]["n_books"] == 1 and "consensus" in d["odds"]
+    assert "scorelines" not in d  # no history loaded -> grid section skipped
+
+
+def test_top_scorelines_orders_by_prob():
+    import numpy as np
+
+    from worldcup_predictor.goal_model import ScoreGrid
+
+    mtx = np.zeros((3, 3))
+    mtx[1, 0] = 0.4
+    mtx[1, 1] = 0.3
+    mtx[0, 0] = 0.3
+    top = engine._top_scorelines(ScoreGrid(matrix=mtx), n=2)
+    assert top[0] == {"home": 1, "away": 0, "prob": 0.4}
+    assert len(top) == 2

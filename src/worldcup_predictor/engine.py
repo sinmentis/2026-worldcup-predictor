@@ -17,7 +17,7 @@ from worldcup_predictor import tune as _tune
 from worldcup_predictor import valuebet as _valuebet
 from worldcup_predictor.goal_model import GoalModel, history_frame
 from worldcup_predictor.models import IntelEvent
-from worldcup_predictor.predict import predict_match
+from worldcup_predictor.predict import adjusted_grid, predict_match
 from worldcup_predictor.simulate import simulate_tournament, standings_from_results
 
 
@@ -56,16 +56,76 @@ def get_knockout_bracket(conn: sqlite3.Connection) -> dict[str, list[dict[str, A
     return rounds
 
 
+def _top_scorelines(grid: Any, n: int = 6) -> list[dict[str, Any]]:
+    m = grid.matrix
+    flat = [(h, a, float(m[h, a])) for h in range(m.shape[0]) for a in range(m.shape[1])]
+    flat.sort(key=lambda x: x[2], reverse=True)
+    return [{"home": h, "away": a, "prob": p} for h, a, p in flat[:n]]
+
+
+def _head_to_head(conn: sqlite3.Connection, home: str, away: str, limit: int = 8) -> dict[str, Any]:
+    rows = conn.execute(
+        "SELECT date, home_team, away_team, home_score, away_score FROM historical_matches "
+        "WHERE (home_team=? AND away_team=?) OR (home_team=? AND away_team=?) "
+        "ORDER BY date DESC LIMIT ?",
+        (home, away, away, home, limit),
+    ).fetchall()
+    w = d = ln = 0
+    for r in rows:
+        if r["home_score"] is None or r["away_score"] is None:
+            continue
+        if r["home_team"] == home:
+            hg, ag = r["home_score"], r["away_score"]
+        else:
+            hg, ag = r["away_score"], r["home_score"]
+        if hg > ag:
+            w += 1
+        elif hg == ag:
+            d += 1
+        else:
+            ln += 1
+    return {"meetings": [dict(r) for r in rows], "home_wins": w, "draws": d, "away_wins": ln}
+
+
+def _match_odds_summary(conn: sqlite3.Connection, match_id: int) -> dict[str, Any]:
+    cons = _valuebet.consensus_probs(conn, match_id)
+    best = _valuebet.best_prices(conn, match_id)
+    n_books = conn.execute(
+        "SELECT COUNT(DISTINCT bookmaker) FROM odds WHERE match_id=?", (match_id,)
+    ).fetchone()[0]
+    out: dict[str, Any] = {"n_books": n_books}
+    if cons:
+        labels = ["home", "draw", "away"]
+        out["consensus"] = {labels[i]: cons[i] for i in range(3)}
+        out["best"] = {
+            labels[i]: {"price": best[i][0] or None, "book": best[i][1]} for i in range(3)
+        }
+    return out
+
+
 def get_match_detail(conn: sqlite3.Connection, match_id: int) -> dict[str, Any]:
     match = conn.execute("SELECT * FROM matches WHERE id=?", (match_id,)).fetchone()
     pred = conn.execute(
         "SELECT * FROM predictions WHERE match_id=? ORDER BY created_at DESC LIMIT 1",
         (match_id,),
     ).fetchone()
-    return {
+    out: dict[str, Any] = {
         "match": dict(match) if match else None,
         "prediction": dict(pred) if pred else None,
     }
+    if match and match["home_team"] and match["away_team"]:
+        home, away = match["home_team"], match["away_team"]
+        out["h2h"] = _head_to_head(conn, home, away)
+        out["odds"] = _match_odds_summary(conn, match_id)
+        try:
+            model = get_model(conn)
+            grid, _ = adjusted_grid(conn, model, home, away, neutral=bool(match["neutral"]))
+            out["scorelines"] = _top_scorelines(grid)
+            out["over25"] = grid.over(2.5)
+            out["btts"] = grid.btts()
+        except (ValueError, RuntimeError):
+            pass  # no fitted model (e.g. history not loaded) -> skip the grid section
+    return out
 
 
 def get_last_update_ts(conn: sqlite3.Connection) -> str | None:

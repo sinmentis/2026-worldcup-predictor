@@ -334,17 +334,39 @@ async function showDetail(id) {
   if (!res.ok) return;
   const d = await res.json();
   if (!d.match) return;
+  const m = d.match;
   const p = d.prediction;
-  document.getElementById("match-detail").innerHTML =
-    `<h3>${flag(d.match.home_team)} ${zh(d.match.home_team)} <span class="muted">vs</span> ${zh(d.match.away_team)} ${flag(d.match.away_team)}</h3>
-     <p class="muted">阶段：${esc(STAGES[d.match.stage] || d.match.stage)}${d.match.kickoff ? " · " + esc(new Date(d.match.kickoff).toLocaleString("zh-CN")) : ""}</p>
-     ${d.match.status === "FINISHED" ? `<p>最终比分：<b>${d.match.home_score} - ${d.match.away_score}</b></p>` : ""}
-     ${p ? `<div class="probbar" style="margin:10px 0">
-              <span class="h" style="flex-basis:${p.p_home * 100}%">${pct0(p.p_home)}</span>
-              <span class="d" style="flex-basis:${p.p_draw * 100}%">${pct0(p.p_draw)}</span>
-              <span class="a" style="flex-basis:${p.p_away * 100}%">${pct0(p.p_away)}</span></div>
-            <p>最可能比分：<b>${esc(p.ml_home)}-${esc(p.ml_away)}</b></p>
-            ${p.reasoning ? `<p class="muted">关键因素：${esc(p.reasoning)}</p>` : ""}` : "<p class='muted'>暂无预测。</p>"}`;
+  let html = `<h3>${flag(m.home_team)} ${zh(m.home_team)} <span class="muted">vs</span> ${zh(m.away_team)} ${flag(m.away_team)}</h3>
+    <p class="muted">阶段：${esc(STAGES[m.stage] || m.stage)}${m.kickoff ? " · " + esc(new Date(m.kickoff).toLocaleString("zh-CN")) : ""}</p>`;
+  if (m.status === "FINISHED") html += `<p>最终比分：<b>${m.home_score} - ${m.away_score}</b></p>`;
+  if (p) {
+    html += `<div class="probbar" style="margin:10px 0">
+      <span class="h" style="flex-basis:${p.p_home * 100}%">${pct0(p.p_home)}</span>
+      <span class="d" style="flex-basis:${p.p_draw * 100}%">${pct0(p.p_draw)}</span>
+      <span class="a" style="flex-basis:${p.p_away * 100}%">${pct0(p.p_away)}</span></div>`;
+  }
+  if (d.over25 != null) {
+    html += `<p class="muted">大于 2.5 球 <b>${pct0(d.over25)}</b> · 双方均进球 <b>${pct0(d.btts)}</b></p>`;
+  }
+  if (d.scorelines && d.scorelines.length) {
+    html += `<div class="md-sec"><div class="md-h">最可能比分</div><div class="md-scores">` +
+      d.scorelines.map((s) => `<span class="md-score">${s.home}-${s.away} <small>${pct0(s.prob)}</small></span>`).join("") + `</div></div>`;
+  }
+  if (d.h2h && d.h2h.meetings.length) {
+    const h = d.h2h;
+    html += `<div class="md-sec"><div class="md-h">历史交锋（${zh(m.home_team)}视角）</div>
+      <p class="muted">${h.home_wins} 胜 ${h.draws} 平 ${h.away_wins} 负（近 ${h.meetings.length} 场）</p>` +
+      h.meetings.slice(0, 5).map((g) => `<div class="md-h2h"><span class="muted">${esc((g.date || "").slice(0, 10))}</span> ${zh(g.home_team)} <b>${g.home_score ?? "-"}-${g.away_score ?? "-"}</b> ${zh(g.away_team)}</div>`).join("") + `</div>`;
+  }
+  if (d.odds && d.odds.consensus) {
+    const o = d.odds;
+    const bp = (k) => (o.best[k].price ? `${o.best[k].price.toFixed(2)}@${esc(o.best[k].book || "")}` : "-");
+    html += `<div class="md-sec"><div class="md-h">盘口（${o.n_books} 家）</div>
+      <p class="muted">主胜 ${pct0(o.consensus.home)} (最佳 ${bp("home")}) · 平 ${pct0(o.consensus.draw)} (${bp("draw")}) · 客胜 ${pct0(o.consensus.away)} (${bp("away")})</p></div>`;
+  }
+  if (p && p.reasoning) html += `<p class="muted">关键因素：${esc(p.reasoning)}</p>`;
+  if (!p) html += `<p class="muted">暂无预测。</p>`;
+  document.getElementById("match-detail").innerHTML = html;
   document.getElementById("match-modal").showModal();
 }
 
