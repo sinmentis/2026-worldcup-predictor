@@ -32,7 +32,7 @@ Think of SQLite as the device registers, the core engine as the driver, MCP as t
 Requirements: Python 3.12 and `uv`.
 
 ```bash
-cd /home/shunlyu/work/worldcup-predictor
+cd /path/to/worldcup-predictor
 uv sync
 cp .env.example .env
 ```
@@ -175,7 +175,7 @@ team signals), bounded by the existing `ADJUST_CLAMP`.
 The stdio MCP server exposes the engine through FastMCP tools:
 
 ```bash
-uv --directory /home/shunlyu/work/worldcup-predictor run worldcup-mcp
+uv --directory /path/to/worldcup-predictor run worldcup-mcp
 ```
 
 VS Code can use the checked-in `.vscode/mcp.json`:
@@ -185,7 +185,7 @@ VS Code can use the checked-in `.vscode/mcp.json`:
   "servers": {
     "worldcup-predictor": {
       "command": "uv",
-      "args": ["--directory", "/home/shunlyu/work/worldcup-predictor", "run", "worldcup-mcp"]
+      "args": ["--directory", "${workspaceFolder}", "run", "worldcup-mcp"]
     }
   }
 }
@@ -194,14 +194,14 @@ VS Code can use the checked-in `.vscode/mcp.json`:
 In GitHub Copilot CLI, add the same server command with `/mcp add` and point it at:
 
 ```bash
-uv --directory /home/shunlyu/work/worldcup-predictor run worldcup-mcp
+uv --directory /path/to/worldcup-predictor run worldcup-mcp
 ```
 
 The MCP tools include group standings, upcoming matches, result recording, match prediction, structured intel recording (player statuses and team-level signals), pending-intel review, and tournament simulation.
 
 ## Deployment templates
 
-Templates live under `deploy/`. They use the real checkout path `/home/shunlyu/work/worldcup-predictor` and the `.venv/bin/worldcup` entry points. They are examples only. Do not enable them until you have reviewed paths, environment, and log locations.
+Templates live under `deploy/`. Replace the placeholder checkout path `/path/to/worldcup-predictor` and `User=youruser` with your own, and review the `.venv/bin/worldcup` entry points. They are examples only. Do not enable them until you have reviewed paths, environment, and log locations.
 
 Cron example:
 

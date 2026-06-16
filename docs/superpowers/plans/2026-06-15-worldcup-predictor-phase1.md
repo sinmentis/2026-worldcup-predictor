@@ -18,7 +18,7 @@
 - Commit messages use Conventional Commits (`feat:`, `test:`, `chore:`, `fix:`, `docs:`).
 - Run `uv run pytest`, `uv run ruff check`, `uv run mypy src` before each commit once those exist.
 - All code/comments/commits in English. No secrets in the repo (API keys go in `.env`, gitignored).
-- Project root: `/home/shunlyu/work/worldcup-predictor`. Package import name: `worldcup_predictor`.
+- Project root: `/path/to/worldcup-predictor`. Package import name: `worldcup_predictor`.
 
 ## Module map (lock these names/signatures; later tasks depend on them)
 
@@ -50,13 +50,13 @@ tests/             # one test module per engine module
 ### Task 0.1: Initialize project with uv + git
 
 **Files:**
-- Create: `/home/shunlyu/work/worldcup-predictor/` (new dir)
+- Create: `/path/to/worldcup-predictor/` (new dir)
 - Create: `pyproject.toml`, `.gitignore`, `.python-version`, `README.md`, `src/worldcup_predictor/__init__.py`
 
 - [ ] **Step 1: Create project and venv**
 
 ```bash
-cd /home/shunlyu/work
+cd ~/work
 uv init --package --name worldcup-predictor worldcup-predictor
 cd worldcup-predictor
 echo "3.12" > .python-version
@@ -152,8 +152,8 @@ data/cache/
 mkdir -p src/worldcup_predictor/static tests docs/superpowers/specs docs/superpowers/plans data
 uv sync
 git init -q
-cp /home/shunlyu/.copilot/session-state/7735e119-46de-4a9a-9e88-5597f363b29c/files/design.md docs/superpowers/specs/2026-06-15-worldcup-predictor-design.md
-cp /home/shunlyu/.copilot/session-state/7735e119-46de-4a9a-9e88-5597f363b29c/plan.md docs/superpowers/plans/2026-06-15-worldcup-predictor-phase1.md
+cp ~/.copilot/session-state/<session-id>/files/design.md docs/superpowers/specs/2026-06-15-worldcup-predictor-design.md
+cp ~/.copilot/session-state/<session-id>/plan.md docs/superpowers/plans/2026-06-15-worldcup-predictor-phase1.md
 ```
 
 - [ ] **Step 5: Verify toolchain runs**
@@ -2730,7 +2730,7 @@ if __name__ == "__main__":
 - [ ] **Step 5: Register with the MCP client** (manual, document in README)
 
 - **GitHub Copilot CLI:** run `/mcp add` in a Copilot session, or add to the Copilot CLI MCP config, pointing the command at:
-  `uv --directory /home/shunlyu/work/worldcup-predictor run worldcup-mcp`
+  `uv --directory /path/to/worldcup-predictor run worldcup-mcp`
 - **VS Code:** create `.vscode/mcp.json`:
 
 ```json
@@ -2738,7 +2738,7 @@ if __name__ == "__main__":
   "servers": {
     "worldcup-predictor": {
       "command": "uv",
-      "args": ["--directory", "/home/shunlyu/work/worldcup-predictor", "run", "worldcup-mcp"]
+      "args": ["--directory", "/path/to/worldcup-predictor", "run", "worldcup-mcp"]
     }
   }
 }
@@ -3041,9 +3041,9 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 `deploy/crontab.example`:
 ```cron
 # Fetch finished results every 10 minutes during the tournament
-*/10 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-results >> /tmp/wc-fetch.log 2>&1
+*/10 * * * * /path/to/worldcup-predictor/.venv/bin/worldcup fetch-results >> /tmp/wc-fetch.log 2>&1
 # Nightly: refit ratings + re-run simulation
-30 4 * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup simulate --n 50000 >> /tmp/wc-sim.log 2>&1
+30 4 * * * cd /path/to/worldcup-predictor && .venv/bin/worldcup simulate --n 50000 >> /tmp/wc-sim.log 2>&1
 ```
 
 `deploy/worldcup-web.service`:
@@ -3052,9 +3052,9 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 Description=WorldCup Predictor Web UI
 After=network.target
 [Service]
-User=shunlyu
-WorkingDirectory=/home/shunlyu/work/worldcup-predictor
-ExecStart=/home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup serve --host 0.0.0.0 --port 8080
+User=youruser
+WorkingDirectory=/path/to/worldcup-predictor
+ExecStart=/path/to/worldcup-predictor/.venv/bin/worldcup serve --host 0.0.0.0 --port 8080
 Restart=on-failure
 [Install]
 WantedBy=multi-user.target
@@ -3083,8 +3083,8 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 # football-data.org free API key (https://www.football-data.org/client/register)
 FOOTBALL_DATA_TOKEN=
 # Optional: override data/db locations
-# WC_DATA_DIR=/home/shunlyu/work/worldcup-predictor/data
-# WC_DB_PATH=/home/shunlyu/work/worldcup-predictor/data/worldcup.db
+# WC_DATA_DIR=/path/to/worldcup-predictor/data
+# WC_DB_PATH=/path/to/worldcup-predictor/data/worldcup.db
 ```
 
 - [ ] **Step 2: Write `README.md`** covering: what it is, install (`uv sync`), quickstart

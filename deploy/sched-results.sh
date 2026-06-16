@@ -4,7 +4,7 @@
 set -u
 interval="$1"
 end_epoch="$2"
-repo="/home/shunlyu/work/worldcup-predictor"
+repo="$(cd "$(dirname "$0")/.." && pwd)"
 log="/tmp/wc-sched-results.log"
 db="$repo/data/worldcup.db"
 echo $$ > /tmp/wc-sched-results.pid

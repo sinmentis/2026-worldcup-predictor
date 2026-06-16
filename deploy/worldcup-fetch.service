@@ -5,6 +5,6 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=shunlyu
-WorkingDirectory=/home/shunlyu/work/worldcup-predictor
-ExecStart=/home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-results
+User=youruser
+WorkingDirectory=/path/to/worldcup-predictor
+ExecStart=/path/to/worldcup-predictor/.venv/bin/worldcup fetch-results

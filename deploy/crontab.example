@@ -1,18 +1,18 @@
 # Fetch finished results every 10 minutes during the tournament
-*/10 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-results >> /tmp/wc-fetch.log 2>&1
+*/10 * * * * /path/to/worldcup-predictor/.venv/bin/worldcup fetch-results >> /tmp/wc-fetch.log 2>&1
 # Twice daily: refresh kickoff times (and any results) from the fixtures endpoint
-0 6,18 * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-fixtures >> /tmp/wc-fixtures.log 2>&1
+0 6,18 * * * /path/to/worldcup-predictor/.venv/bin/worldcup fetch-fixtures >> /tmp/wc-fixtures.log 2>&1
 # Nightly: refit ratings + re-run simulation
-30 4 * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup simulate --n 50000 >> /tmp/wc-sim.log 2>&1
+30 4 * * * cd /path/to/worldcup-predictor && .venv/bin/worldcup simulate --n 50000 >> /tmp/wc-sim.log 2>&1
 # Weekly: re-fit the calibrator from a fresh walk-forward backtest
-0 5 * * 1 cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup backtest --fit-calibration >> /tmp/wc-backtest.log 2>&1
+0 5 * * 1 cd /path/to/worldcup-predictor && .venv/bin/worldcup backtest --fit-calibration >> /tmp/wc-backtest.log 2>&1
 # Weekly: auto-tune the recency decay (self-updating hyperparameters, guard-railed)
-30 5 * * 1 cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup tune --apply >> /tmp/wc-tune.log 2>&1
+30 5 * * 1 cd /path/to/worldcup-predictor && .venv/bin/worldcup tune --apply >> /tmp/wc-tune.log 2>&1
 # Fetch off-pitch news every 30 minutes (deterministic, no LLM)
-*/30 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-news >> /tmp/wc-news.log 2>&1
+*/30 * * * * /path/to/worldcup-predictor/.venv/bin/worldcup fetch-news >> /tmp/wc-news.log 2>&1
 # Fetch bookmaker odds every 6 hours (free tier is 500/month; ~120/month at this cadence)
-0 */6 * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-odds >> /tmp/wc-odds.log 2>&1
+0 */6 * * * /path/to/worldcup-predictor/.venv/bin/worldcup fetch-odds >> /tmp/wc-odds.log 2>&1
 # Paper-trading: log newly-flagged value bets after each odds refresh (no real money)
-5 */6 * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup paper-log >> /tmp/wc-paper.log 2>&1
+5 */6 * * * cd /path/to/worldcup-predictor && .venv/bin/worldcup paper-log >> /tmp/wc-paper.log 2>&1
 # Paper-trading: capture closing lines + settle finished bets every 15 minutes
-*/15 * * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup paper-settle >> /tmp/wc-paper.log 2>&1
+*/15 * * * * cd /path/to/worldcup-predictor && .venv/bin/worldcup paper-settle >> /tmp/wc-paper.log 2>&1

@@ -4,7 +4,7 @@ set -u
 kind="$1"
 interval="$2"
 end_epoch="$3"
-repo="/home/shunlyu/work/worldcup-predictor"
+repo="$(cd "$(dirname "$0")/.." && pwd)"
 log="/tmp/wc-sched-${kind}.log"
 echo $$ > "/tmp/wc-sched-${kind}.pid"
 echo "$(date '+%F %T') ${kind} schedule started (every ${interval}s until $(date -d @${end_epoch} '+%F %T'))" >> "$log"

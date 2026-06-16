@@ -2,7 +2,7 @@
   "servers": {
     "worldcup-predictor": {
       "command": "uv",
-      "args": ["--directory", "/home/shunlyu/work/worldcup-predictor", "run", "worldcup-mcp"]
+      "args": ["--directory", "${workspaceFolder}", "run", "worldcup-mcp"]
     }
   }
 }

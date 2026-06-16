@@ -3,9 +3,9 @@ Description=WorldCup Predictor Web UI
 After=network.target
 
 [Service]
-User=shunlyu
-WorkingDirectory=/home/shunlyu/work/worldcup-predictor
-ExecStart=/home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup serve --host 0.0.0.0 --port 8080
+User=youruser
+WorkingDirectory=/path/to/worldcup-predictor
+ExecStart=/path/to/worldcup-predictor/.venv/bin/worldcup serve --host 0.0.0.0 --port 8080
 Restart=on-failure
 
 [Install]

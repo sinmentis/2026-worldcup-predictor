@@ -14,7 +14,7 @@
 
 ## Conventions (every task)
 
-- Work DIRECTLY in `/home/shunlyu/work/worldcup-predictor` on `master`. Do NOT create a worktree/branch.
+- Work DIRECTLY in `/path/to/worldcup-predictor` on `master`. Do NOT create a worktree/branch.
 - TDD: failing test → run red → implement → run green → commit. Conventional Commits + trailer
   `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`.
 - `uv run pytest -q`, `uv run ruff check src tests`, `uv run ruff format src tests`, `uv run mypy src` (strict) — all green before each commit.
@@ -1086,7 +1086,7 @@ NEWSAPI_KEY=
 
 ```cron
 # Fetch off-pitch news every 30 minutes (deterministic, no LLM)
-*/30 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-news >> /tmp/wc-news.log 2>&1
+*/30 * * * * /path/to/worldcup-predictor/.venv/bin/worldcup fetch-news >> /tmp/wc-news.log 2>&1
 ```
 
 - [ ] **Step 3: Add a "Phase 2a — Off-pitch intelligence" section to `README.md`** documenting: the
