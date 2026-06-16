@@ -70,6 +70,12 @@ def bracket() -> dict[str, list[dict[str, Any]]]:
         return engine.get_knockout_bracket(conn)
 
 
+@app.get("/api/bracket-projection")
+def bracket_projection() -> dict[str, Any]:
+    with closing(_conn()) as conn:
+        return engine.get_bracket_projection(conn)
+
+
 @app.get("/api/forecast")
 def forecast() -> list[dict[str, Any]]:
     with closing(_conn()) as conn:

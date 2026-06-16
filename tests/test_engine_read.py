@@ -112,3 +112,24 @@ def test_get_upcoming_predictions_shape(tmp_path, monkeypatch):
     assert mm["home_team"] == "Strong"
     assert abs(mm["p_home"] + mm["p_draw"] + mm["p_away"] - 1.0) < 1e-6
     assert "factors" in mm
+
+
+def test_get_bracket_projection(tmp_path):
+    conn = _conn(tmp_path)
+    conn.execute(
+        "INSERT INTO sim_results(created_at,team,advance_prob,r16_prob,qf_prob,sf_prob,"
+        "final_prob,title_prob,n_iter) VALUES "
+        "(0,'Mexico',0.80,0.55,0.30,0.15,0.08,0.04,1000),"
+        "(0,'South Korea',0.60,0.35,0.18,0.08,0.03,0.01,1000),"
+        "(0,'Argentina',0.97,0.80,0.55,0.30,0.18,0.11,1000)"
+    )
+    conn.commit()
+    proj = engine.get_bracket_projection(conn)
+    assert proj["n_iter"] == 1000
+    # group A teams ranked by advance prob (Mexico ahead of South Korea)
+    a = proj["groups"]["A"]
+    names = [t["team"] for t in a]
+    assert names.index("Mexico") < names.index("South Korea")
+    assert all("group" in t for t in proj["teams"])
+    # heatmap ordering: Argentina (deepest run) first
+    assert proj["teams"][0]["team"] == "Argentina"

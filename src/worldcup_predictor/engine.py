@@ -81,6 +81,39 @@ def get_forecast(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
+def get_bracket_projection(conn: sqlite3.Connection) -> dict[str, Any]:
+    """Knockout projection: per-group advance odds + a round-by-round advancement heatmap."""
+    rows = conn.execute(
+        "SELECT team, advance_prob, r16_prob, qf_prob, sf_prob, final_prob, title_prob, n_iter "
+        "FROM sim_results"
+    ).fetchall()
+    if not rows:
+        return {"groups": {}, "teams": [], "n_iter": 0}
+    team_group = {t: g for g, teams in config.GROUPS.items() for t in teams}
+    teams = [{**dict(r), "group": team_group.get(r["team"], "?")} for r in rows]
+    groups = {
+        g: sorted(
+            (t for t in teams if t["group"] == g),
+            key=lambda x: x["advance_prob"],
+            reverse=True,
+        )
+        for g in config.GROUPS
+    }
+    teams_sorted = sorted(
+        teams,
+        key=lambda x: (
+            x["title_prob"],
+            x["final_prob"],
+            x["sf_prob"],
+            x["qf_prob"],
+            x["r16_prob"],
+            x["advance_prob"],
+        ),
+        reverse=True,
+    )
+    return {"groups": groups, "teams": teams_sorted, "n_iter": rows[0]["n_iter"]}
+
+
 def get_upcoming_predictions(conn: sqlite3.Connection, limit: int = 12) -> dict[str, Any]:
     """Scheduled matches ordered by real kickoff, each with our live prediction + factors."""
     limit = min(max(1, limit), 60)

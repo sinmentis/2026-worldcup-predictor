@@ -180,3 +180,25 @@ def test_value_bets_endpoint(tmp_path, monkeypatch):
     r = client.get("/api/value-bets")
     assert r.status_code == 200
     assert r.json()["bets"][0]["outcome"] == "home"
+
+
+def test_bracket_projection_endpoint(tmp_path, monkeypatch):
+    db_path = tmp_path / "web_bk.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
+    from worldcup_predictor import db
+
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO sim_results(created_at,team,advance_prob,r16_prob,qf_prob,sf_prob,"
+        "final_prob,title_prob,n_iter) VALUES (0,'Argentina',0.97,0.8,0.55,0.3,0.18,0.11,1000)"
+    )
+    conn.commit()
+    from worldcup_predictor.web_server import app
+
+    client = TestClient(app)
+    r = client.get("/api/bracket-projection")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["n_iter"] == 1000
+    assert body["teams"][0]["team"] == "Argentina"

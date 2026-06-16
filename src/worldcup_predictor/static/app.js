@@ -296,23 +296,35 @@ async function loadGroups() {
   grid.innerHTML = cards.join("");
 }
 
-/* ---------------- bracket ---------------- */
+/* ---------------- bracket / knockout projection ---------------- */
 async function loadBracket() {
-  const data = await (await fetch("/api/knockout/bracket")).json();
-  for (const stage of ["R32", "R16", "QF", "SF", "FINAL"]) {
-    const el = document.getElementById(stage);
-    el.querySelectorAll(".match-card").forEach((n) => n.remove());
-    (data[stage] || []).forEach((m) => {
-      const card = document.createElement("div");
-      card.className = "match-card";
-      const wh = m.home_score > m.away_score, wa = m.away_score > m.home_score;
-      card.innerHTML =
-        `<div class="${wh ? "winner" : ""}">${flag(m.home_team)} ${zh(m.home_team)}</div><div class="sc">${m.home_score ?? "–"}</div>
-         <div class="${wa ? "winner" : ""}">${flag(m.away_team)} ${zh(m.away_team)}</div><div class="sc">${m.away_score ?? "–"}</div>`;
-      card.onclick = () => showDetail(m.id);
-      el.appendChild(card);
-    });
+  const el = document.getElementById("bracket");
+  const data = await (await fetch("/api/bracket-projection")).json();
+  const teams = data.teams || [];
+  if (!teams.length) {
+    el.innerHTML = `<div class="empty">尚未运行模拟。请执行 <code>worldcup simulate</code> 生成晋级概率。</div>`;
+    return;
   }
+  const ROUNDS = [["advance_prob", "出线"], ["r16_prob", "16强"], ["qf_prob", "8强"], ["sf_prob", "4强"], ["final_prob", "决赛"], ["title_prob", "夺冠"]];
+  const heat = (p) => `background:rgba(52,211,153,${(0.06 + 0.82 * p).toFixed(3)})`;
+
+  let gq = `<h3 class="bk-sub">各组出线预测 <small>（绿底=最可能出线的两支）</small></h3><div class="bk-groups">`;
+  for (const g of "ABCDEFGHIJKL".split("")) {
+    const gt = data.groups[g] || [];
+    gq += `<div class="card bk-group"><h4><span class="badge">${g}</span> ${g} 组</h4>` +
+      gt.map((t, i) => `<div class="bk-grow ${i < 2 ? "qual" : ""}"><span>${flag(t.team)} ${zh(t.team)}</span><span class="muted">${pct0(t.advance_prob)}</span></div>`).join("") +
+      `</div>`;
+  }
+  gq += `</div>`;
+
+  let hm = `<h3 class="bk-sub">晋级热图 <small>（${data.n_iter} 次模拟 · 每支队走到各轮的概率）</small></h3>
+    <div class="bk-heat-wrap"><table class="bk-heat"><thead><tr><th>队伍</th>${ROUNDS.map((r) => `<th>${r[1]}</th>`).join("")}</tr></thead><tbody>`;
+  for (const t of teams) {
+    hm += `<tr><td class="team">${flag(t.team)} ${zh(t.team)}</td>` +
+      ROUNDS.map((r) => `<td style="${heat(t[r[0]])}">${pct0(t[r[0]])}</td>`).join("") + `</tr>`;
+  }
+  hm += `</tbody></table></div>`;
+  el.innerHTML = gq + hm;
 }
 
 /* ---------------- match modal ---------------- */
