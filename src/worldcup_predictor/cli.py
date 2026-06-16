@@ -117,6 +117,49 @@ def value_bets(
         )
 
 
+@app.command("paper-log")
+def paper_log(
+    min_edge: float = typer.Option(0.05), kelly_fraction: float = typer.Option(0.25)
+) -> None:
+    """Record current value-bet recommendations into the paper-trading ledger (no real money)."""
+    conn = _conn()
+    n = engine.log_paper_bets(conn, min_edge=min_edge, kelly_fraction=kelly_fraction)
+    typer.echo(f"Logged {n} new paper bet(s).")
+
+
+@app.command("paper-settle")
+def paper_settle() -> None:
+    """Capture the closing line for kicked-off bets and settle the finished ones."""
+    conn = _conn()
+    n = engine.settle_paper_bets(conn)
+    typer.echo(f"Settled {n} paper bet(s).")
+
+
+@app.command("paper-status")
+def paper_status() -> None:
+    """Show the paper-trading scoreboard: counts, ROI, hit-rate, and CLV."""
+    conn = _conn()
+    s = engine.get_paper_summary(conn)
+    a = s["aggregate"]
+    typer.echo(f"Paper bets: {a['n_total']} (open {a['n_open']}, settled {a['n_settled']}).")
+    if a.get("n_clv"):
+        typer.echo(
+            f"CLV: avg {a['avg_clv']:+.2%}  beat-close {a['beat_close_rate']:.0%}  "
+            f"(n={a['n_clv']})  -- positive = we beat the market's close"
+        )
+    if a.get("n_settled"):
+        roi_f = f"{a['roi_flat']:+.1%}" if a.get("roi_flat") is not None else "n/a"
+        roi_k = f"{a['roi_kelly']:+.1%}" if a.get("roi_kelly") is not None else "n/a"
+        hit = f"{a['hit_rate']:.0%}" if a.get("hit_rate") is not None else "n/a"
+        typer.echo(
+            f"Settled {a['n_settled']}: {a['wins']}W-{a['losses']}L-{a['pushes']}P  hit {hit}"
+        )
+        typer.echo(
+            f"ROI flat {roi_f} (P/L {a['pnl_flat']:+.2f}u)  |  "
+            f"ROI Kelly {roi_k} (P/L {a['pnl_kelly']:+.2f}u)"
+        )
+
+
 @app.command("intel-pending")
 def intel_pending() -> None:
     """List intel items awaiting approval (player statuses and team signals)."""

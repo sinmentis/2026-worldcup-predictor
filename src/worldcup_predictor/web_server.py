@@ -101,6 +101,12 @@ def value_bets(min_edge: float = 0.05) -> dict[str, Any]:
         return {"bets": engine.get_value_bets(conn, min_edge=min_edge)}
 
 
+@app.get("/api/paper-trades")
+def paper_trades() -> dict[str, Any]:
+    with closing(_conn()) as conn:
+        return engine.get_paper_summary(conn)
+
+
 @app.get("/api/matches/{match_id}")
 def match_detail(match_id: int) -> dict[str, Any]:
     with closing(_conn()) as conn:

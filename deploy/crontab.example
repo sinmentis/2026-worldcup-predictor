@@ -12,3 +12,7 @@
 */30 * * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-news >> /tmp/wc-news.log 2>&1
 # Fetch bookmaker odds every 6 hours (free tier is 500/month; ~120/month at this cadence)
 0 */6 * * * /home/shunlyu/work/worldcup-predictor/.venv/bin/worldcup fetch-odds >> /tmp/wc-odds.log 2>&1
+# Paper-trading: log newly-flagged value bets after each odds refresh (no real money)
+5 */6 * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup paper-log >> /tmp/wc-paper.log 2>&1
+# Paper-trading: capture closing lines + settle finished bets every 15 minutes
+*/15 * * * * cd /home/shunlyu/work/worldcup-predictor && .venv/bin/worldcup paper-settle >> /tmp/wc-paper.log 2>&1

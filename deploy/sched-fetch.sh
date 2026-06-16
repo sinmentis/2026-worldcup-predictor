@@ -12,6 +12,10 @@ cd "$repo" || exit 1
 export WC_DB_PATH="$repo/data/worldcup.db"
 while [ "$(date +%s)" -lt "$end_epoch" ]; do
   "$repo/.venv/bin/worldcup" "fetch-${kind}" >> "$log" 2>&1
+  # After refreshing odds, log any newly-flagged value bets into the paper-trading ledger.
+  if [ "$kind" = "odds" ]; then
+    "$repo/.venv/bin/worldcup" paper-log >> "$log" 2>&1
+  fi
   echo "$(date '+%F %T') ${kind} tick done" >> "$log"
   sleep "$interval"
 done

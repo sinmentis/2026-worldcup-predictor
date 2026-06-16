@@ -442,3 +442,53 @@ dialog button:hover { border-color: var(--accent); }
   .lb-row { grid-template-columns: 30px 1.4fr 2fr 56px; }
   main { padding: 16px; }
 }
+
+/* ---------------- paper-trading tracker ---------------- */
+.pt-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 14px 0 22px;
+}
+.pt-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.pt-k { font-size: 12px; letter-spacing: .5px; color: var(--muted); }
+.pt-v { font-size: 26px; font-weight: 800; margin: 4px 0 2px; }
+.pt-sub { font-size: 12px; color: var(--muted); }
+.pt-up { color: var(--win); }
+.pt-down { color: var(--loss); }
+.pt-h {
+  margin: 18px 0 8px;
+  font-size: 15px;
+  color: var(--accent2);
+  letter-spacing: .3px;
+}
+.pt-h small { color: var(--muted); font-weight: 500; }
+.pt-row .pt-score { font-weight: 700; color: var(--text); }
+.pt-res {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 6px;
+  border: 1px solid var(--border);
+}
+.pt-res.win { background: rgba(52,211,153,.14); color: var(--win); border-color: rgba(52,211,153,.3); }
+.pt-res.loss { background: rgba(251,113,133,.12); color: var(--loss); border-color: rgba(251,113,133,.3); }
+.pt-res.push { background: rgba(251,191,36,.12); color: var(--draw); border-color: rgba(251,191,36,.3); }
+.pt-pnl { margin-left: 8px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pt-clv {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.pt-clv.pt-up { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.28); }
+.pt-clv.pt-down { background: rgba(251,113,133,.08); border-color: rgba(251,113,133,.26); }

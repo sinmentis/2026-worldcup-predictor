@@ -428,9 +428,92 @@ async function loadValue() {
     <div class="vbet-note">⚠️「建议仓位」= 该注占你<b>总资金</b>的比例（1/4 Kelly，已保守）。只有当我们的概率确实比市场更准时才有正收益，而这<b>并无保证</b>——请当作研究候选、先纸面跟单，别无脑下注。</div>${list}`;
 }
 
+// Paper-trading: 0 real money. We log flagged value bets, fill in the closing line + result,
+// and surface CLV + ROI. CLV (did we beat the close?) is the real signal; ROI needs volume.
+async function loadPaper() {
+  const el = document.getElementById("paper");
+  const data = await (await fetch("/api/paper-trades")).json();
+  const a = data.aggregate || {};
+  const OUT = { home: "主胜", draw: "平局", away: "客胜" };
+  const RES = { win: "赢", loss: "输", push: "和" };
+  const betLabel = (b) =>
+    b.market === "totals" ? `${b.outcome === "over" ? "大" : "小"}${b.line}` : (OUT[b.outcome] || esc(b.outcome));
+  const mtag = (b) => (b.market === "totals" ? `<span class="vbet-mkt">大小球</span>` : `<span class="vbet-mkt h2h">胜平负</span>`);
+  const sign = (x) => (x > 0 ? "pt-up" : x < 0 ? "pt-down" : "");
+  const spct = (x) => (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%";
+  const su = (x) => (x >= 0 ? "+" : "") + x.toFixed(2) + "u";
+
+  if (!a.n_total) {
+    el.innerHTML = `<h2>纸面跟单 <small>（0 真金 · 只记录、不下注）</small></h2>
+      <div class="vbet-note">还没有任何记录。当「价值投注」里出现 edge 时，运行 <code>worldcup paper-log</code> 把它们记进这里；赛后 <code>worldcup paper-settle</code> 回填收盘水位与结果，自动算 CLV 和 ROI。<b>市场通常更准，这里大概率会让你清醒。</b></div>`;
+    return;
+  }
+
+  const cards = [];
+  if (a.n_clv) {
+    cards.push(`<div class="pt-card"><div class="pt-k">CLV 收盘水位差</div>
+      <div class="pt-v ${sign(a.avg_clv)}">${spct(a.avg_clv)}</div>
+      <div class="pt-sub">击败收盘 ${pct0(a.beat_close_rate)} · n=${a.n_clv}</div></div>`);
+  }
+  if (a.n_settled) {
+    cards.push(`<div class="pt-card"><div class="pt-k">ROI 固定注</div>
+      <div class="pt-v ${sign(a.roi_flat || 0)}">${a.roi_flat != null ? spct(a.roi_flat) : "—"}</div>
+      <div class="pt-sub">盈亏 ${su(a.pnl_flat)}</div></div>`);
+    cards.push(`<div class="pt-card"><div class="pt-k">ROI 凯利</div>
+      <div class="pt-v ${sign(a.roi_kelly || 0)}">${a.roi_kelly != null ? spct(a.roi_kelly) : "—"}</div>
+      <div class="pt-sub">盈亏 ${su(a.pnl_kelly)} · 本金 ${a.bankroll}u</div></div>`);
+    cards.push(`<div class="pt-card"><div class="pt-k">战绩</div>
+      <div class="pt-v">${a.wins}<span class="muted">-</span>${a.losses}<span class="muted">-</span>${a.pushes}</div>
+      <div class="pt-sub">命中 ${a.hit_rate != null ? pct0(a.hit_rate) : "—"}</div></div>`);
+  }
+  cards.push(`<div class="pt-card"><div class="pt-k">记录数</div>
+    <div class="pt-v">${a.n_total}</div>
+    <div class="pt-sub">待结 ${a.n_open} · 已结 ${a.n_settled}</div></div>`);
+
+  const rowHtml = (b, settled) => {
+    const d = kickDate(b.kickoff);
+    const res = settled && b.result ? `<span class="pt-res ${b.result}">${RES[b.result] || ""}</span>` : "";
+    const score = (b.home_score != null && b.away_score != null) ? ` <span class="pt-score">${b.home_score}-${b.away_score}</span>` : "";
+    const clv = b.clv != null
+      ? `<span class="pt-clv ${sign(b.clv)}" title="收盘水位差（无水）">CLV ${spct(b.clv)}</span>`
+      : `<span class="pt-clv muted">CLV 待定</span>`;
+    const pnl = settled && b.result ? `<span class="pt-pnl ${sign(b.pnl_flat)}">${su(b.pnl_flat)}</span>` : "";
+    return `<div class="vbet card pt-row">
+      <div class="vbet-match">${flag(b.home_team)} ${zhr(b.home_team)} <span class="muted">vs</span> ${zhr(b.away_team)} ${flag(b.away_team)}${score} <span class="muted vbet-time">${esc(timeStr(d))}</span></div>
+      <div class="vbet-pick">${mtag(b)} 押 <b>${betLabel(b)}</b> @ <b>${b.price_taken.toFixed(2)}</b> <span class="muted">(${esc(b.bookmaker || "")})</span> ${res}${pnl}</div>
+      <div class="vbet-stats">
+        <span>我们 <b>${pct0(b.our_prob)}</b></span><span class="muted">市场 ${pct0(b.market_prob)}</span>
+        ${b.closing_price != null ? `<span class="muted">收盘 ${b.closing_price.toFixed(2)}</span>` : ""}
+        ${clv}
+      </div></div>`;
+  };
+
+  const section = (title, list, settled) => {
+    if (!list || !list.length) return "";
+    let html = `<h3 class="pt-h">${title} <small>(${list.length})</small></h3>`;
+    let lastDay = null;
+    for (const b of list) {
+      const dk = dayKey(kickDate(b.kickoff));
+      if (dk !== lastDay) { html += `<div class="day-label">${esc(dk)}</div>`; lastDay = dk; }
+      html += rowHtml(b, settled);
+    }
+    return html;
+  };
+
+  const caveat = (a.n_settled || 0) < 20
+    ? `<div class="vbet-note">⚠️ 已结算仅 <b>${a.n_settled || 0}</b> 注，统计上<b>没有意义</b>，纯属热身。判断有没有 edge 看 <b>CLV</b> 比看输赢可靠（赢钱可能只是运气）。大概要 50–100 注才有参考价值。</div>`
+    : `<div class="vbet-note">⚠️ <b>CLV</b> 是「是否打赢市场」的领先指标，正 CLV 才说明我们抢在了市场前面。ROI 方差大，需要更大样本才算数。</div>`;
+
+  el.innerHTML = `<h2>纸面跟单 <small>（0 真金 · CLV / ROI 跟踪）</small></h2>
+    ${caveat}
+    <div class="pt-cards">${cards.join("")}</div>
+    ${section("待结算", data.open, false)}
+    ${section("已结算", data.settled, true)}`;
+}
+
 /* ---------------- tabs + live refresh ---------------- */
 const LOADERS = {
-  upcoming: loadUpcoming, forecast: loadForecast, value: loadValue,
+  upcoming: loadUpcoming, forecast: loadForecast, value: loadValue, paper: loadPaper,
   accuracy: loadAccuracy, groups: loadGroups, knockout: loadBracket,
 };
 let current = "upcoming";

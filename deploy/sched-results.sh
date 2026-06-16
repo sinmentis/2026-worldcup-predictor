@@ -17,6 +17,8 @@ finished_count() {
 while [ "$(date +%s)" -lt "$end_epoch" ]; do
   before=$(finished_count)
   "$repo/.venv/bin/worldcup" fetch-fixtures >> "$log" 2>&1
+  # Capture closing lines for kicked-off paper bets and settle any that just finished.
+  "$repo/.venv/bin/worldcup" paper-settle >> "$log" 2>&1
   after=$(finished_count)
   if [ "$after" -gt "$before" ]; then
     echo "$(date '+%F %T') new result(s): $before -> $after, re-simulating" >> "$log"

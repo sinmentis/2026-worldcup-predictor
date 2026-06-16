@@ -138,6 +138,30 @@ CREATE TABLE IF NOT EXISTS odds_totals (
     fetched_at REAL,
     UNIQUE(match_id, bookmaker, line)
 );
+CREATE TABLE IF NOT EXISTS paper_bets (
+    id INTEGER PRIMARY KEY,
+    match_id INTEGER NOT NULL,
+    market TEXT NOT NULL,            -- '1x2' | 'totals'
+    outcome TEXT NOT NULL,          -- home | draw | away | over | under
+    line REAL,                      -- totals line; NULL for 1x2
+    our_prob REAL NOT NULL,
+    market_prob REAL NOT NULL,      -- de-margined consensus at log time
+    edge REAL NOT NULL,
+    price_taken REAL NOT NULL,      -- best decimal price when first flagged (when you'd bet)
+    bookmaker TEXT,
+    kelly_frac REAL NOT NULL,       -- fraction-of-bankroll stake (already fractional Kelly)
+    logged_at REAL NOT NULL,
+    kickoff TEXT,
+    closing_price REAL,             -- best decimal price near kickoff (the closing line)
+    closing_market_prob REAL,       -- de-margined consensus at close
+    clv REAL,                       -- no-vig CLV: price_taken * closing_market_prob - 1
+    clv_price REAL,                 -- price CLV: price_taken / closing_price - 1
+    closed_at REAL,
+    result TEXT,                    -- 'win' | 'loss' | 'push'
+    pnl_flat REAL,                  -- units, flat 1u stake
+    pnl_kelly REAL,                 -- units, fractional-Kelly stake on the notional bankroll
+    settled_at REAL
+);
 """
 
 

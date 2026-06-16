@@ -202,3 +202,47 @@ def test_bracket_projection_endpoint(tmp_path, monkeypatch):
     body = r.json()
     assert body["n_iter"] == 1000
     assert body["teams"][0]["team"] == "Argentina"
+
+
+def test_paper_trades_endpoint(tmp_path, monkeypatch):
+    db_path = tmp_path / "web_paper.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
+    from worldcup_predictor import db, papertrade
+
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,kickoff,neutral,"
+        "home_score,away_score,status) VALUES "
+        "(1,'group','A','Spain','Brazil','2000-01-01T00:00:00Z',1,2,0,'FINISHED')"
+    )
+    conn.commit()
+    papertrade.log_bets(
+        conn,
+        [
+            {
+                "match_id": 1,
+                "market": "1x2",
+                "outcome": "home",
+                "line": None,
+                "our_prob": 0.6,
+                "market_prob": 0.5,
+                "edge": 0.1,
+                "best_price": 2.0,
+                "bookmaker": "soft",
+                "kelly": 0.1,
+                "kickoff": "2000-01-01T00:00:00Z",
+            }
+        ],
+    )
+    papertrade.settle(conn)
+
+    from worldcup_predictor.web_server import app
+
+    client = TestClient(app)
+    r = client.get("/api/paper-trades")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["aggregate"]["n_settled"] == 1
+    assert body["aggregate"]["wins"] == 1
+    assert body["settled"][0]["result"] == "win"

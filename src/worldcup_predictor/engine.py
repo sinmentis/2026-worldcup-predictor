@@ -11,6 +11,7 @@ from worldcup_predictor import evaluate as _eval
 from worldcup_predictor import intel as _intel
 from worldcup_predictor import news as _news
 from worldcup_predictor import odds as _odds
+from worldcup_predictor import papertrade as _paper
 from worldcup_predictor import player_status as _ps
 from worldcup_predictor import team_signal as _ts
 from worldcup_predictor import tune as _tune
@@ -295,6 +296,32 @@ def get_value_bets(
     )
     bets.sort(key=lambda b: b["edge"], reverse=True)
     return bets
+
+
+def log_paper_bets(
+    conn: sqlite3.Connection,
+    min_edge: float | None = None,
+    kelly_fraction: float | None = None,
+) -> int:
+    """Record the current value-bet recommendations into the paper-trading ledger.
+
+    Paper only -- no real money is staked.
+    """
+    bets = get_value_bets(conn, min_edge=min_edge, kelly_fraction=kelly_fraction)
+    n = _paper.log_bets(conn, bets)
+    db.touch_update(conn)
+    return n
+
+
+def settle_paper_bets(conn: sqlite3.Connection) -> int:
+    """Capture closing lines for kicked-off paper bets and settle the finished ones."""
+    n = _paper.settle(conn)
+    db.touch_update(conn)
+    return n
+
+
+def get_paper_summary(conn: sqlite3.Connection) -> dict[str, Any]:
+    return _paper.summary(conn)
 
 
 def get_unprocessed_news(conn: sqlite3.Connection, limit: int = 20) -> list[dict[str, Any]]:
