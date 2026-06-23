@@ -100,6 +100,8 @@ CREATE TABLE IF NOT EXISTS player_status (
     as_of REAL NOT NULL,
     pending INTEGER DEFAULT 0,
     notes TEXT,
+    affects TEXT NOT NULL DEFAULT 'attack'
+        CHECK (affects IN ('attack','defense','both')),
     UNIQUE(team, player)
 );
 CREATE TABLE IF NOT EXISTS team_signal (
@@ -115,6 +117,8 @@ CREATE TABLE IF NOT EXISTS team_signal (
     as_of REAL NOT NULL,
     pending INTEGER DEFAULT 0,
     notes TEXT,
+    affects TEXT NOT NULL DEFAULT 'attack'
+        CHECK (affects IN ('attack','defense','both')),
     UNIQUE(team, category)
 );
 CREATE TABLE IF NOT EXISTS odds (
@@ -174,8 +178,34 @@ def connect(path: Path | str | None = None) -> sqlite3.Connection:
     return conn
 
 
+_AFFECTS_TABLES = ("player_status", "team_signal")
+
+
+def _has_column(conn: sqlite3.Connection, table: str, column: str) -> bool:
+    return any(r[1] == column for r in conn.execute(f"PRAGMA table_info({table})"))
+
+
+def migrate(conn: sqlite3.Connection) -> None:
+    """Idempotently bring an existing DB up to schema. Safe on fresh and existing DBs.
+
+    `CREATE TABLE IF NOT EXISTS` is a no-op on an existing table, so a column added to
+    SCHEMA never reaches the live prod DB; this adds `affects` via ALTER where missing.
+    `ALTER TABLE ... ADD COLUMN ... NOT NULL DEFAULT 'attack'` backfills existing rows.
+    """
+    for table in _AFFECTS_TABLES:
+        exists = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)
+        ).fetchone()
+        if not exists:
+            continue
+        if not _has_column(conn, table, "affects"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN affects TEXT NOT NULL DEFAULT 'attack'")
+    conn.commit()
+
+
 def init_schema(conn: sqlite3.Connection) -> None:
-    conn.executescript(SCHEMA)
+    conn.executescript(SCHEMA)  # fresh DBs get `affects` (with CHECK)
+    migrate(conn)  # existing DBs get `affects` via ALTER
     conn.commit()
 
 
