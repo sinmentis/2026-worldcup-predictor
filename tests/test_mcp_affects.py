@@ -6,6 +6,7 @@ from worldcup_predictor import mcp_server
 
 def test_mcp_player_status_accepts_and_validates_affects(tmp_path, monkeypatch):
     monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "t.db"))
+    mcp_server._reset_conn()
     # valid defense tag is forwarded and stored active (official => gate passes)
     out = mcp_server.upsert_player_status(
         team="Germany",
@@ -36,6 +37,7 @@ def test_mcp_player_status_accepts_and_validates_affects(tmp_path, monkeypatch):
 
 def test_mcp_team_signal_accepts_affects(tmp_path, monkeypatch):
     monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "t.db"))
+    mcp_server._reset_conn()
     out = mcp_server.upsert_team_signal(
         team="Italy",
         category="tactical",
