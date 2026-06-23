@@ -160,3 +160,40 @@ def test_expired_signal_excluded_from_factor(tmp_path):
     delta, factors = ts.team_signal_factor(conn, "Brazil")
     assert delta == 0.0
     assert factors == []
+
+
+def test_signal_affects_defaults_to_attack(tmp_path):
+    conn = _conn(tmp_path)
+    ts.upsert_signal(
+        conn, "Brazil", "tactical", "weaken", "minor", 0.9, "https://fed", official=True
+    )
+    row = conn.execute("SELECT affects FROM team_signal WHERE team='Brazil'").fetchone()
+    assert row["affects"] == "attack"
+
+
+def test_signal_affects_defense_preserved_on_update(tmp_path):
+    conn = _conn(tmp_path)
+    ts.upsert_signal(
+        conn,
+        "Germany",
+        "tactical",
+        "weaken",
+        "minor",
+        0.9,
+        "https://a",
+        official=True,
+        affects="defense",
+    )
+    ts.upsert_signal(
+        conn, "Germany", "tactical", "weaken", "minor", 0.9, "https://b", official=True
+    )
+    row = conn.execute("SELECT affects FROM team_signal WHERE team='Germany'").fetchone()
+    assert row["affects"] == "defense"
+
+
+def test_signal_invalid_affects_raises(tmp_path):
+    conn = _conn(tmp_path)
+    with pytest.raises(ValueError):
+        ts.upsert_signal(
+            conn, "Brazil", "tactical", "weaken", "minor", 0.9, "https://a", affects="x"
+        )

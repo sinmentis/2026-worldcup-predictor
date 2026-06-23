@@ -22,6 +22,7 @@ from worldcup_predictor.models import IntelFactor
 from worldcup_predictor.player_status import (
     ACTIVE_CONF_THRESHOLD,
     ACTIVE_CRED_THRESHOLD,
+    AFFECTS,
     _default_valid_until,
     derive_credibility,
 )
@@ -58,6 +59,7 @@ def upsert_signal(
     official: bool = False,
     notes: str | None = None,
     valid_until: str | None = None,
+    affects: str | None = None,
 ) -> dict[str, object]:
     team = config.canonical_team(team)
     if category not in CATEGORIES:
@@ -70,9 +72,11 @@ def upsert_signal(
         raise ValueError("confidence must be in [0, 1]")
     if not source_url:
         raise ValueError("source_url is required; intel must be traceable")
+    if affects is not None and affects not in AFFECTS:
+        raise ValueError(f"affects must be one of {sorted(AFFECTS)}")
 
     row = conn.execute(
-        "SELECT sources, official, pending FROM team_signal WHERE team=? AND category=?",
+        "SELECT sources, official, pending, affects FROM team_signal WHERE team=? AND category=?",
         (team, category),
     ).fetchone()
     sources: list[str] = json.loads(row["sources"]) if row else []
@@ -85,19 +89,21 @@ def upsert_signal(
     # Non-demoting: an already-active (or human-approved) signal is never demoted by a
     # later lower-confidence corroboration; a pending one is promoted when the gate passes.
     pending = 0 if (was_active or gate_pass) else 1
+    affects_to_store = affects if affects is not None else (row["affects"] if row else "attack")
     if valid_until is None:
         valid_until = _default_valid_until(conn, team)
 
     conn.execute(
         "INSERT INTO team_signal"
         "(team,category,direction,magnitude_tier,credibility,sources,official,"
-        " valid_until,as_of,pending,notes)"
-        " VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+        " valid_until,as_of,pending,notes,affects)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
         " ON CONFLICT(team,category) DO UPDATE SET"
         " direction=excluded.direction, magnitude_tier=excluded.magnitude_tier,"
         " credibility=excluded.credibility, sources=excluded.sources,"
         " official=excluded.official, valid_until=excluded.valid_until,"
-        " as_of=excluded.as_of, pending=excluded.pending, notes=excluded.notes",
+        " as_of=excluded.as_of, pending=excluded.pending, notes=excluded.notes,"
+        " affects=excluded.affects",
         (
             team,
             category,
@@ -110,6 +116,7 @@ def upsert_signal(
             time.time(),
             pending,
             notes,
+            affects_to_store,
         ),
     )
     conn.commit()

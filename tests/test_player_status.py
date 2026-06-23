@@ -133,3 +133,56 @@ def test_approved_status_not_re_pended_by_low_confidence(tmp_path):
     ps.approve(conn, sid)
     ps.upsert_status(conn, "France", "X", "key", "out", 0.3, "https://a2")
     assert conn.execute("SELECT pending FROM player_status WHERE id=?", (sid,)).fetchone()[0] == 0
+
+
+def test_affects_defaults_to_attack(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(conn, "France", "Mbappe", "key", "out", 0.9, "https://fed", official=True)
+    row = conn.execute("SELECT affects FROM player_status WHERE player='Mbappe'").fetchone()
+    assert row["affects"] == "attack"
+
+
+def test_affects_defense_is_stored(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(
+        conn,
+        "Germany",
+        "Schlotterbeck",
+        "key",
+        "out",
+        0.9,
+        "https://fed",
+        official=True,
+        affects="defense",
+    )
+    row = conn.execute("SELECT affects FROM player_status WHERE player='Schlotterbeck'").fetchone()
+    assert row["affects"] == "defense"
+
+
+def test_affects_preserved_on_corroboration(tmp_path):
+    conn = _conn(tmp_path)
+    ps.upsert_status(
+        conn,
+        "Germany",
+        "Schlotterbeck",
+        "key",
+        "out",
+        0.9,
+        "https://a",
+        official=True,
+        affects="defense",
+    )
+    # later corroboration omits affects -> must NOT reset to 'attack'
+    ps.upsert_status(
+        conn, "Germany", "Schlotterbeck", "key", "out", 0.9, "https://b", official=True
+    )
+    row = conn.execute("SELECT affects FROM player_status WHERE player='Schlotterbeck'").fetchone()
+    assert row["affects"] == "defense"
+
+
+def test_invalid_affects_raises(tmp_path):
+    conn = _conn(tmp_path)
+    with pytest.raises(ValueError):
+        ps.upsert_status(
+            conn, "France", "Mbappe", "key", "out", 0.9, "https://a", affects="midfield"
+        )

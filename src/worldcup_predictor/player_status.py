@@ -9,6 +9,7 @@ from worldcup_predictor.models import IntelFactor
 
 TIERS = {"key", "regular", "fringe"}
 STATUSES = {"out", "doubtful", "suspended", "available"}
+AFFECTS = {"attack", "defense", "both"}
 
 MAGNITUDE_TABLE: dict[tuple[str, str], float] = {
     ("key", "out"): 0.72,
@@ -65,6 +66,7 @@ def upsert_status(
     official: bool = False,
     notes: str | None = None,
     valid_until: str | None = None,
+    affects: str | None = None,
 ) -> dict[str, object]:
     team = config.canonical_team(team)
     if tier not in TIERS:
@@ -75,6 +77,8 @@ def upsert_status(
         raise ValueError("confidence must be in [0, 1]")
     if not source_url:
         raise ValueError("source_url is required; intel must be traceable")
+    if affects is not None and affects not in AFFECTS:
+        raise ValueError(f"affects must be one of {sorted(AFFECTS)}")
 
     if status == "available":
         conn.execute("DELETE FROM player_status WHERE team=? AND player=?", (team, player))
@@ -82,7 +86,7 @@ def upsert_status(
         return {"status": "cleared", "team": team, "player": player}
 
     row = conn.execute(
-        "SELECT sources, official, pending FROM player_status WHERE team=? AND player=?",
+        "SELECT sources, official, pending, affects FROM player_status WHERE team=? AND player=?",
         (team, player),
     ).fetchone()
     sources: list[str] = json.loads(row["sources"]) if row else []
@@ -95,17 +99,20 @@ def upsert_status(
     # Corroboration only raises trust: an already-active (or human-approved) status is never
     # demoted by a later lower-confidence report; a pending one is promoted when the gate passes.
     pending = 0 if (was_active or gate_pass) else 1
+    affects_to_store = affects if affects is not None else (row["affects"] if row else "attack")
     if valid_until is None:
         valid_until = _default_valid_until(conn, team)
 
     conn.execute(
         "INSERT INTO player_status"
-        "(team,player,tier,status,credibility,sources,official,valid_until,as_of,pending,notes)"
-        " VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+        "(team,player,tier,status,credibility,sources,official,"
+        " valid_until,as_of,pending,notes,affects)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
         " ON CONFLICT(team,player) DO UPDATE SET"
         " tier=excluded.tier, status=excluded.status, credibility=excluded.credibility,"
         " sources=excluded.sources, official=excluded.official, valid_until=excluded.valid_until,"
-        " as_of=excluded.as_of, pending=excluded.pending, notes=excluded.notes",
+        " as_of=excluded.as_of, pending=excluded.pending, notes=excluded.notes,"
+        " affects=excluded.affects",
         (
             team,
             player,
@@ -118,6 +125,7 @@ def upsert_status(
             time.time(),
             pending,
             notes,
+            affects_to_store,
         ),
     )
     conn.commit()
