@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 from dataclasses import asdict
 from typing import Any
 
@@ -409,6 +410,9 @@ def reject_intel(conn: sqlite3.Connection, ref: int | str) -> None:
 _MODEL: GoalModel | None = None
 _MODEL_DB: str | None = None
 _MODEL_XI: float | None = None
+# Serialize fits so a cold cache under concurrent requests triggers ONE fit, not a
+# thundering herd of parallel Dixon-Coles fits that saturate the CPU and never settle.
+_MODEL_LOCK = threading.Lock()
 
 
 def _db_path(conn: sqlite3.Connection) -> str:
@@ -432,15 +436,21 @@ def get_model(conn: sqlite3.Connection, refit: bool = False) -> GoalModel:
     global _MODEL, _MODEL_DB, _MODEL_XI
     path = _db_path(conn)
     xi = _tune.current_xi(conn)
-    if _MODEL is None or refit or path != _MODEL_DB or xi != _MODEL_XI:
-        frame = history_frame(conn)
-        if frame.empty:
-            raise ValueError(
-                "No historical data loaded. Run 'worldcup load-history' before predicting."
-            )
-        _MODEL = GoalModel().fit(frame, xi=xi)
-        _MODEL_DB = path
-        _MODEL_XI = xi
+    # Fast path: a valid cached model needs no lock.
+    if not refit and _MODEL is not None and path == _MODEL_DB and xi == _MODEL_XI:
+        return _MODEL
+    # Slow path: serialize fits. Concurrent callers wait here, then the re-check below
+    # finds the freshly-cached model and skips refitting.
+    with _MODEL_LOCK:
+        if refit or _MODEL is None or path != _MODEL_DB or xi != _MODEL_XI:
+            frame = history_frame(conn)
+            if frame.empty:
+                raise ValueError(
+                    "No historical data loaded. Run 'worldcup load-history' before predicting."
+                )
+            _MODEL = GoalModel().fit(frame, xi=xi)
+            _MODEL_DB = path
+            _MODEL_XI = xi
     return _MODEL
 
 

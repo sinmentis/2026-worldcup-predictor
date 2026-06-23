@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import sqlite3
+import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
@@ -28,6 +29,18 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     # Ensure the schema exists once at startup instead of on every request.
     with closing(_conn()) as conn:
         db.init_schema(conn)
+
+    # Warm the goal-model cache in the background so the first live-prediction request
+    # after a restart doesn't trigger a slow cold Dixon-Coles fit on the request path.
+    # Requests that arrive during warming block on the fit-lock and reuse this fit.
+    def _warm_model() -> None:
+        try:
+            with closing(_conn()) as conn:
+                engine.get_model(conn)
+        except Exception:  # warming is best-effort; never crash startup
+            pass
+
+    threading.Thread(target=_warm_model, name="model-warm", daemon=True).start()
     yield
 
 
