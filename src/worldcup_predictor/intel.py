@@ -65,15 +65,19 @@ def _team_factor(conn: sqlite3.Connection, team: str) -> tuple[float, list[Intel
 def apply_intel(
     lam_h: float, lam_a: float, home: str, away: str, conn: sqlite3.Connection
 ) -> tuple[float, float, list[IntelFactor]]:
-    dh_e, fh_e = _team_factor(conn, home)  # legacy intel_events (manual overrides)
-    da_e, fa_e = _team_factor(conn, away)
-    dh_s, fh_s = player_status.team_status_factor(conn, home)  # state-based player availability
-    da_s, fa_s = player_status.team_status_factor(conn, away)
-    dh_t, fh_t = team_signal.team_signal_factor(conn, home)  # team-level off-pitch signals
-    da_t, fa_t = team_signal.team_signal_factor(conn, away)
     lo, hi = ADJUST_CLAMP
-    dh = max(lo, min(hi, dh_e + dh_s + dh_t))
-    da = max(lo, min(hi, da_e + da_s + da_t))
-    lam_h = max(LAMBDA_MIN, lam_h * (1 + dh))
-    lam_a = max(LAMBDA_MIN, lam_a * (1 + da))
-    return lam_h, lam_a, fh_e + fh_s + fh_t + fa_e + fa_s + fa_t
+    ev_atk_h, fe_h = _team_factor(conn, home)  # legacy intel_events: attack-only
+    ev_atk_a, fe_a = _team_factor(conn, away)
+    ps_atk_h, ps_def_h, fps_h = player_status.team_status_factor(conn, home)
+    ps_atk_a, ps_def_a, fps_a = player_status.team_status_factor(conn, away)
+    ts_atk_h, ts_def_h, fts_h = team_signal.team_signal_factor(conn, home)
+    ts_atk_a, ts_def_a, fts_a = team_signal.team_signal_factor(conn, away)
+
+    atk_home = max(lo, min(hi, ev_atk_h + ps_atk_h + ts_atk_h))
+    atk_away = max(lo, min(hi, ev_atk_a + ps_atk_a + ts_atk_a))
+    def_home = max(lo, min(hi, ps_def_h + ts_def_h))  # legacy events have no defence
+    def_away = max(lo, min(hi, ps_def_a + ts_def_a))
+
+    lam_h = max(LAMBDA_MIN, lam_h * (1 + atk_home) * (1 + def_away))
+    lam_a = max(LAMBDA_MIN, lam_a * (1 + atk_away) * (1 + def_home))
+    return lam_h, lam_a, fe_h + fps_h + fts_h + fe_a + fps_a + fts_a

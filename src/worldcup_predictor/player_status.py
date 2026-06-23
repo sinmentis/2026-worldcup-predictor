@@ -137,28 +137,47 @@ def upsert_status(
     }
 
 
-def team_status_factor(conn: sqlite3.Connection, team: str) -> tuple[float, list[IntelFactor]]:
+def team_status_factor(
+    conn: sqlite3.Connection, team: str
+) -> tuple[float, float, list[IntelFactor]]:
     team = config.canonical_team(team)
     today = date.today().isoformat()
     rows = conn.execute(
-        "SELECT player, tier, status, credibility FROM player_status "
+        "SELECT player, tier, status, credibility, COALESCE(affects,'attack') AS affects "
+        "FROM player_status "
         "WHERE team=? AND pending=0 AND (valid_until IS NULL OR valid_until >= ?)",
         (team, today),
     ).fetchall()
-    delta = 0.0
+    atk = 0.0
+    dfn = 0.0
     factors: list[IntelFactor] = []
     for r in rows:
-        contrib = float(r["credibility"]) * (status_mult(r["tier"], r["status"]) - 1.0)
-        delta += contrib
-        factors.append(
-            IntelFactor(
-                team=team,
-                description=f"{r['player']}: {r['status']} ({r['tier']})",
-                lambda_delta=contrib,
+        base = float(r["credibility"]) * (status_mult(r["tier"], r["status"]) - 1.0)
+        affects = r["affects"]
+        desc = f"{r['player']}: {r['status']} ({r['tier']})"
+        if affects == "attack":
+            atk += base
+            factors.append(IntelFactor(team=team, description=desc, lambda_delta=base))
+        elif affects == "defense":
+            dfn += -base
+            factors.append(
+                IntelFactor(
+                    team=team, description=f"{desc} [defense -> opponent]", lambda_delta=-base
+                )
             )
-        )
+        else:  # both
+            atk += 0.5 * base
+            dfn += 0.5 * (-base)
+            factors.append(IntelFactor(team=team, description=desc, lambda_delta=0.5 * base))
+            factors.append(
+                IntelFactor(
+                    team=team,
+                    description=f"{desc} [defense -> opponent]",
+                    lambda_delta=0.5 * (-base),
+                )
+            )
     lo, hi = ADJUST_CLAMP
-    return max(lo, min(hi, delta)), factors
+    return max(lo, min(hi, atk)), max(lo, min(hi, dfn)), factors
 
 
 def list_pending(conn: sqlite3.Connection) -> list[sqlite3.Row]:

@@ -66,17 +66,18 @@ def test_factor_strengthen_is_positive(tmp_path):
     ts.upsert_signal(
         conn, "Brazil", "tactical", "strengthen", "major", 0.9, "https://fed", official=True
     )
-    delta, factors = ts.team_signal_factor(conn, "Brazil")
+    delta, dfn, factors = ts.team_signal_factor(conn, "Brazil")
     # strengthen/major mult 1.06, credibility 0.95 => delta = 0.95 * (1.06 - 1) = +0.057
     assert abs(delta - (0.95 * (1.06 - 1.0))) < 1e-9
     assert delta > 0.0
+    assert dfn == 0.0
     assert len(factors) == 1
 
 
 def test_factor_weaken_is_negative(tmp_path):
     conn = _conn(tmp_path)
     ts.upsert_signal(conn, "Iran", "morale", "weaken", "major", 0.9, "https://fed", official=True)
-    delta, _ = ts.team_signal_factor(conn, "Iran")
+    delta, _dfn, _factors = ts.team_signal_factor(conn, "Iran")
     assert delta < 0.0
 
 
@@ -89,17 +90,19 @@ def test_two_categories_coexist_and_sum(tmp_path):
         conn, "Brazil", "fatigue", "weaken", "minor", 0.9, "https://fed", official=True
     )
     assert conn.execute("SELECT COUNT(*) FROM team_signal WHERE team='Brazil'").fetchone()[0] == 2
-    delta, factors = ts.team_signal_factor(conn, "Brazil")
+    delta, dfn, factors = ts.team_signal_factor(conn, "Brazil")
     expected = 0.95 * (1.02 - 1.0) + 0.95 * (0.97 - 1.0)
     assert abs(delta - expected) < 1e-9
     assert len(factors) == 2
+    assert dfn == 0.0
 
 
 def test_factor_ignores_pending(tmp_path):
     conn = _conn(tmp_path)
     ts.upsert_signal(conn, "Brazil", "form", "strengthen", "minor", 0.9, "https://a")  # pending
-    delta, factors = ts.team_signal_factor(conn, "Brazil")
+    delta, dfn, factors = ts.team_signal_factor(conn, "Brazil")
     assert delta == 0.0
+    assert dfn == 0.0
     assert factors == []
 
 
@@ -157,8 +160,9 @@ def test_expired_signal_excluded_from_factor(tmp_path):
         official=True,
         valid_until="2000-01-01",
     )
-    delta, factors = ts.team_signal_factor(conn, "Brazil")
+    delta, dfn, factors = ts.team_signal_factor(conn, "Brazil")
     assert delta == 0.0
+    assert dfn == 0.0
     assert factors == []
 
 

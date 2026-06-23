@@ -211,3 +211,86 @@ def test_apply_intel_sums_all_three_sources(tmp_path):
     teams_desc = {(f.team, f.description.split(":")[0]) for f in factors}
     assert ("Spain", "fatigue") in teams_desc  # team-signal factor present
     assert len(factors) == 3
+
+
+def test_defense_signal_raises_opponent_not_self(tmp_path):
+    from worldcup_predictor import player_status
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    # Key CB out, tagged defense: Germany's OWN lambda unchanged; opponent's lambda up.
+    player_status.upsert_status(
+        conn, "Germany", "CB", "key", "out", 0.9, "https://fed", official=True, affects="defense"
+    )
+    lh, la, factors = intel.apply_intel(2.0, 1.0, home="Germany", away="Ecuador", conn=conn)
+    # Germany (home) attack unchanged:
+    assert lh == 2.0
+    # Ecuador (away) scores more: cred 0.95, key/out mult 0.72 -> def = -0.95*(0.72-1) = +0.266
+    assert la == 1.0 * (1 + 0.95 * (1 - 0.72))
+    assert any("defense" in f.description for f in factors)
+
+
+def test_defense_strengthen_lowers_opponent(tmp_path):
+    from worldcup_predictor import team_signal
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    # A strong defence (strengthen) tagged defense lowers the opponent's lambda.
+    team_signal.upsert_signal(
+        conn,
+        "Italy",
+        "tactical",
+        "strengthen",
+        "major",
+        0.9,
+        "https://fed",
+        official=True,
+        affects="defense",
+    )
+    lh, la, _ = intel.apply_intel(2.0, 1.0, home="France", away="Italy", conn=conn)
+    # France (home) lambda is lowered by Italy's (away) defence: signal_mult strengthen/major = 1.06
+    # base = 0.95*(1.06-1)=+0.057 ; def = -base = -0.057 -> lam_h *= (1 - 0.057)
+    assert lh == 2.0 * (1 + (-(0.95 * (1.06 - 1.0))))
+    assert la == 1.0  # Italy's own attack unchanged
+
+
+def test_both_splits_half_each(tmp_path):
+    from worldcup_predictor import player_status
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    # regular/out, affects=both: own attack -base/2, opponent +(-base)/2 (=+|base|/2)
+    player_status.upsert_status(
+        conn, "Ghana", "DM", "regular", "out", 0.9, "https://fed", official=True, affects="both"
+    )
+    lh, la, _ = intel.apply_intel(2.0, 1.0, home="Ghana", away="USA", conn=conn)
+    base = 0.95 * (0.85 - 1.0)  # regular/out mult 0.85
+    assert lh == 2.0 * (1 + 0.5 * base)  # Ghana own attack, half
+    assert la == 1.0 * (1 + 0.5 * (-base))  # USA scores more, half
+
+
+def test_attack_and_defense_compose_in_one_match(tmp_path):
+    from worldcup_predictor import player_status, team_signal
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    # Home team has its OWN attacking loss AND the away team has a defensive loss.
+    player_status.upsert_status(
+        conn, "Spain", "ST", "key", "out", 0.9, "https://fed", official=True, affects="attack"
+    )
+    team_signal.upsert_signal(
+        conn,
+        "Qatar",
+        "tactical",
+        "weaken",
+        "moderate",
+        0.9,
+        "https://fed",
+        official=True,
+        affects="defense",
+    )
+    lh, la, _ = intel.apply_intel(2.0, 1.0, home="Spain", away="Qatar", conn=conn)
+    atk_spain = 0.95 * (0.72 - 1.0)  # key/out
+    def_qatar = -(0.95 * (0.93 - 1.0))  # weaken/moderate signal_mult 0.93 -> def positive
+    assert lh == 2.0 * (1 + atk_spain) * (1 + def_qatar)
+    assert la == 1.0  # Qatar's own attack unchanged (no attack signal)
