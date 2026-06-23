@@ -21,6 +21,11 @@ from worldcup_predictor.predict import adjusted_grid, predict_match
 
 OUTCOME_LABELS = ["home", "draw", "away"]
 
+# A "best" price more than this multiple of the cross-book median for the same outcome is
+# almost always corrupt/stale book data (e.g. a 4.8 home price when every other book is ~1.5),
+# not genuine value. Ignoring it stops one bad row from producing a phantom huge-EV bet.
+BEST_PRICE_OUTLIER_FACTOR = 2.0
+
 
 def _now_z() -> str:
     """Current UTC time as an ISO-Zulu string, comparable to stored kickoff timestamps."""
@@ -28,17 +33,33 @@ def _now_z() -> str:
 
 
 def best_prices(conn: sqlite3.Connection, match_id: int) -> list[tuple[float, str | None]]:
-    """Best (highest) decimal price per outcome across books, with the offering bookmaker."""
+    """Best (highest) decimal price per outcome across books, with the offering bookmaker.
+
+    Implausible outliers (more than ``BEST_PRICE_OUTLIER_FACTOR`` times the cross-book median
+    for that outcome) are ignored: a price that good is corrupt/stale data, not real value, and
+    would otherwise create a phantom huge-EV "value bet".
+    """
     rows = conn.execute(
         "SELECT bookmaker, price_home, price_draw, price_away FROM odds WHERE match_id=?",
         (match_id,),
     ).fetchall()
+    cols = ("price_home", "price_draw", "price_away")
+    medians: list[float | None] = []
+    for col in cols:
+        vals = [float(r[col]) for r in rows if r[col]]
+        medians.append(statistics.median(vals) if vals else None)
     best: list[tuple[float, str | None]] = [(0.0, None), (0.0, None), (0.0, None)]
     for r in rows:
-        for i, col in enumerate(("price_home", "price_draw", "price_away")):
+        for i, col in enumerate(cols):
             p = r[col]
-            if p and float(p) > best[i][0]:
-                best[i] = (float(p), r["bookmaker"])
+            if not p:
+                continue
+            price = float(p)
+            med = medians[i]
+            if med is not None and price > med * BEST_PRICE_OUTLIER_FACTOR:
+                continue  # implausible outlier — corrupt/stale book data, not value
+            if price > best[i][0]:
+                best[i] = (price, r["bookmaker"])
     return best
 
 

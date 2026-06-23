@@ -32,12 +32,19 @@ def parse_odds_payload(payload: list[dict[str, Any]]) -> list[dict[str, Any]]:
             prices = {o.get("name"): o.get("price") for o in market.get("outcomes", [])}
             ph, pa, pd_ = prices.get(raw_home), prices.get(raw_away), prices.get("Draw")
             if ph and pa and pd_:
+                fph, fpd, fpa = float(ph), float(pd_), float(pa)
+                # Drop structurally impossible soccer 1X2 rows (corrupt/stale book data that
+                # The Odds API occasionally returns): decimal prices must exceed 1.0, and the
+                # draw is never the single shortest (most-likely) outcome — a draw priced at or
+                # below both teams is garbage (e.g. draw 1.25 vs home 4.8 / away 9.7).
+                if min(fph, fpd, fpa) <= 1.0 or fpd <= min(fph, fpa):
+                    continue
                 books.append(
                     {
                         "bookmaker": bk.get("key") or bk.get("title") or "unknown",
-                        "price_home": float(ph),
-                        "price_draw": float(pd_),
-                        "price_away": float(pa),
+                        "price_home": fph,
+                        "price_draw": fpd,
+                        "price_away": fpa,
                     }
                 )
         if books:

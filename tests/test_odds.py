@@ -147,3 +147,50 @@ def test_parse_and_store_totals(tmp_path):
         "SELECT line, price_over, price_under FROM odds_totals WHERE match_id=1"
     ).fetchone()
     assert row["line"] == 2.5 and row["price_over"] == 1.90 and row["price_under"] == 1.95
+
+
+# A book whose draw is the shortest (most likely) price is structurally impossible for a
+# soccer 1X2 market — corrupt/stale data. parse must drop just that book, keep the sane ones.
+CORRUPT_PAYLOAD = [
+    {
+        "id": "9",
+        "commence_time": "2026-06-23T23:00:00Z",
+        "home_team": "Croatia",
+        "away_team": "Panama",
+        "bookmakers": [
+            {
+                "key": "sane",
+                "markets": [
+                    {
+                        "key": "h2h",
+                        "outcomes": [
+                            {"name": "Croatia", "price": 1.5},
+                            {"name": "Panama", "price": 7.25},
+                            {"name": "Draw", "price": 4.45},
+                        ],
+                    }
+                ],
+            },
+            {
+                "key": "corrupt",
+                "markets": [
+                    {
+                        "key": "h2h",
+                        "outcomes": [
+                            {"name": "Croatia", "price": 4.8},
+                            {"name": "Panama", "price": 9.7},
+                            {"name": "Draw", "price": 1.25},
+                        ],
+                    }
+                ],
+            },
+        ],
+    }
+]
+
+
+def test_parse_drops_corrupt_draw_favourite_book():
+    parsed = odds.parse_odds_payload(CORRUPT_PAYLOAD)
+    assert len(parsed) == 1
+    books = parsed[0]["books"]
+    assert [b["bookmaker"] for b in books] == ["sane"]

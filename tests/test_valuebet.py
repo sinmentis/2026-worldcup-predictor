@@ -141,3 +141,17 @@ def test_value_bets_excludes_started_matches(tmp_path):
     )
     conn.commit()
     assert valuebet.value_bets(conn, _model(), min_edge=0.05) == []  # stale odds -> excluded
+
+
+def test_best_prices_ignores_corrupt_outlier(tmp_path):
+    conn = _conn(tmp_path)
+    # Four sane books cluster ~1.5 on the home favourite; one corrupt book offers an
+    # impossible 4.8. best_prices must ignore the outlier, not flag it as the "best" price.
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'a',1.50,4.40,6.5,0),(1,'b',1.52,4.30,6.7,0),(1,'c',1.49,4.50,7.0,0),"
+        "(1,'d',1.54,4.50,7.6,0),(1,'bad',4.80,1.25,9.7,0)"
+    )
+    conn.commit()
+    best = valuebet.best_prices(conn, 1)
+    assert best[0] == (1.54, "d")  # outlier 4.80 ignored; sane best is 1.54
