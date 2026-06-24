@@ -84,6 +84,49 @@ async def test_upsert_team_signal_rejects_bad_category(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_corroborating_upsert_preserves_affects(tmp_path, monkeypatch):
+    # Regression: omitting `affects` on a corroborating upsert must NOT reset a
+    # previously-stored defense/both tag back to attack. The MCP default used to be
+    # "attack" and was always forwarded, silently clobbering the defensive channel.
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "mcp.db"))
+    mcp_server._reset_conn()
+
+    await mcp_server.mcp.call_tool(
+        "upsert_player_status",
+        {
+            "team": "Germany",
+            "player": "Test Defender",
+            "tier": "key",
+            "status": "out",
+            "confidence": 0.9,
+            "source_url": "https://a",
+            "official": True,
+            "affects": "defense",
+        },
+    )
+    # A corroborating report from a second source, NOT specifying affects.
+    await mcp_server.mcp.call_tool(
+        "upsert_player_status",
+        {
+            "team": "Germany",
+            "player": "Test Defender",
+            "tier": "key",
+            "status": "out",
+            "confidence": 0.9,
+            "source_url": "https://b",
+        },
+    )
+    row = (
+        mcp_server._conn()
+        .execute(
+            "SELECT affects FROM player_status WHERE team='Germany' AND player='Test Defender'"
+        )
+        .fetchone()
+    )
+    assert row["affects"] == "defense"  # preserved, not reset to attack
+
+
+@pytest.mark.asyncio
 async def test_get_group_standings_returns_valid_group(tmp_path, monkeypatch):
     monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "mcp.db"))
     mcp_server._reset_conn()

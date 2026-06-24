@@ -144,16 +144,18 @@ def upsert_player_status(
     source_url: str,
     official: bool = False,
     notes: str = "",
-    affects: str = "attack",
+    affects: str | None = None,
 ) -> dict[str, object]:
     """Record/update a player's current status from news, adjusting expected goals.
 
     tier: 'key' | 'regular' | 'fringe' (you judge importance from the article).
     status: 'out' | 'doubtful' | 'suspended' | 'available' ('available' clears a prior status).
-    affects: 'attack' (default — lowers this team's own scoring; forwards/wingers/attacking mids)
+    affects: 'attack' (lowers this team's own scoring; forwards/wingers/attacking mids)
              | 'defense' (raises the OPPONENT's expected goals; goalkeepers and defenders)
              | 'both' (half each; defensive midfielders / box-to-box). Position heuristic:
              GK/CB -> defense, DM/CM -> both, FWD/AM/W -> attack.
+             OMIT this argument when corroborating an existing row to preserve its channel;
+             it defaults to 'attack' only when creating a brand-new row.
     confidence in [0,1]; ALWAYS pass a real source_url. official=True only for
     club/federation sources. High confidence AND (>=2 sources OR official) applies
     immediately; otherwise it is queued for review.
@@ -162,7 +164,7 @@ def upsert_player_status(
         raise ToolError(f"tier must be one of {sorted(_ps.TIERS)}")
     if status not in _ps.STATUSES:
         raise ToolError(f"status must be one of {sorted(_ps.STATUSES)}")
-    if affects not in _ps.AFFECTS:
+    if affects is not None and affects not in _ps.AFFECTS:
         raise ToolError(f"affects must be one of {sorted(_ps.AFFECTS)}")
     if not source_url:
         raise ToolError("source_url is required; intel must be traceable.")
@@ -198,7 +200,7 @@ def upsert_team_signal(
     source_url: str,
     official: bool = False,
     notes: str = "",
-    affects: str = "attack",
+    affects: str | None = None,
 ) -> dict[str, object]:
     """Record a team-level, between-the-lines signal that nudges a team's expected goals.
 
@@ -209,8 +211,9 @@ def upsert_team_signal(
     direction: 'weaken' | 'strengthen'.
     magnitude_tier: 'major' | 'moderate' | 'minor' (these are deliberately soft; even
     'major' is far smaller than a key-player injury).
-    affects: 'attack' (default) | 'defense' (raises the opponent's expected goals —
-    defensive frailty) | 'both' (half each).
+    affects: 'attack' | 'defense' (raises the opponent's expected goals — defensive
+    frailty) | 'both' (half each). OMIT this argument when corroborating an existing row
+    to preserve its channel; it defaults to 'attack' only when creating a brand-new row.
     confidence in [0,1]; ALWAYS pass a real source_url. official=True only for
     club/federation sources.
 
@@ -225,7 +228,7 @@ def upsert_team_signal(
         raise ToolError(f"direction must be one of {sorted(_ts.DIRECTIONS)}")
     if magnitude_tier not in _ts.TIERS:
         raise ToolError(f"magnitude_tier must be one of {sorted(_ts.TIERS)}")
-    if affects not in _ps.AFFECTS:
+    if affects is not None and affects not in _ps.AFFECTS:
         raise ToolError(f"affects must be one of {sorted(_ps.AFFECTS)}")
     if not source_url:
         raise ToolError("source_url is required; intel must be traceable.")
