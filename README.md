@@ -1,249 +1,235 @@
-# worldcup-predictor
+# ⚽ World Cup Predictor
 
-FIFA World Cup 2026 prediction system with a deterministic Python engine, SQLite persistence, an MCP server for LLM clients, and a FastAPI web UI.
+> A deterministic, source-honest prediction engine for the FIFA World Cup 2026 — goal model, Monte Carlo, off-pitch intel, and value betting you can audit.
 
-## What it does
+**🔴 Live demo: [worldcup.shunlyu.com](https://worldcup.shunlyu.com)** — public, read-only, no sign-up.
 
-- Seeds the 48-team 2026 World Cup group stage fixture set.
-- Loads historical men's international results.
-- Predicts 1X2 probabilities, expected goals, and likely scorelines by fitting a
-  Dixon-Coles goal model through `penaltyblog`. (Elo ratings are computed and stored via
-  `worldcup rate` as a standalone strength view and a future lambda prior; the Phase-1
-  prediction pipeline uses Dixon-Coles directly, not Elo.)
-- Applies source-linked off-pitch intelligence adjustments that are stored in SQLite.
-- Runs Monte Carlo tournament simulations.
-- Scores finished predictions against simple baselines.
-- Exposes the engine through a Typer CLI, FastMCP stdio server, and FastAPI web UI.
+## What is this?
 
-The core engine is LLM-free. Cron or systemd should run deterministic jobs such as result fetching and simulations. GitHub Copilot CLI drives LLM-backed jobs such as reading news, turning it into structured `intel_event` records, and explaining predictions through the MCP tools.
+World Cup Predictor forecasts the 2026 tournament from first principles. It ingests
+~49,000 historical international matches and fits a Dixon-Coles goal model on the most
+recent years (recency-weighted), turns that into 1X2 probabilities, expected goals and
+likely scorelines, then runs a Monte Carlo simulation of the whole bracket to get title
+and round-by-round odds.
 
-## Architecture
+On top of the numbers, it folds in **off-pitch intelligence** (injuries, suspensions,
+tactical and morale signals) — every adjustment source-linked and human-gated — and
+hunts for **value bets** against the bookmaker market, tracked through a **paper-trading
+ledger that risks zero real money**.
 
-- **Core engine:** deterministic Python library under `src/worldcup_predictor`. It handles ingest, SQLite schema, ratings, Dixon-Coles prediction, intel adjustments, simulations, and evaluation.
-- **SQLite source of truth:** default database is `data/worldcup.db`. Override it with `WC_DB_PATH`; override the data directory with `WC_DATA_DIR`.
-- **MCP adapter:** `worldcup-mcp` is a thin FastMCP stdio server over engine functions. It does not own prediction logic.
-- **Web UI:** `worldcup-web` and `worldcup serve` start a FastAPI app with JSON endpoints, static UI assets, and server-sent events for update notifications. The UI reads from SQLite and does not compute model output itself.
-- **Automation split:** cron/systemd runs no-LLM jobs. Copilot CLI runs LLM jobs through MCP when unstructured intelligence or natural-language analysis is needed.
+The core engine is deterministic and LLM-free. An LLM (GitHub Copilot CLI) only reads
+the news and writes structured intel through an MCP server. The math stays reproducible.
 
-Think of SQLite as the device registers, the core engine as the driver, MCP as the ioctl-style control interface, and Copilot CLI as the userspace process calling into it.
+## ✨ Features
 
-## Install
+- 🎯 **Dixon-Coles goal model** → full score grid → 1X2 probabilities, expected goals, likely scorelines.
+- 🏆 **Monte Carlo tournament sim** → title, advancement and round-by-round odds. The fitted model is cached and warmed in the background on startup (a cold fit is ~2 min).
+- 🕵️ **Off-pitch intelligence** — source-linked player availability and team signals (tactical / morale / motivation / fatigue / form) nudge each team's scoring rate. A defensive channel means a key defender's absence raises the *opponent's* expected goals.
+- 🔒 **Credibility trust gate** — single-source intel stays *pending*; multi-source or official intel auto-activates. Humans stay in the loop.
+- 💸 **Value betting across three markets** — 1X2, totals (over/under) and handicap/Asian spreads — comparing the model to a de-margined bookmaker consensus (median across ~40 books) with edge, EV and fractional-Kelly stakes.
+- 📒 **Paper-trading ledger (no real money)** — auto-logs flagged bets, captures the closing line at kickoff, settles win/loss/push, and tracks CLV and ROI.
+- 📰 **News → intel pipeline** — free RSS feeds in, LLM-extracted structured intel out, via MCP.
+- 🌐 **Web UI** — forecast board, live per-match predictions, value bets, paper-trading ledger, accuracy vs. baseline, FIFA-rank badges, group standings and the knockout bracket.
+- ✅ **Quality bar** — `ruff`, `mypy --strict`, and 205 passing tests.
 
-Requirements: Python 3.12 and `uv`.
+## 🚀 Quickstart (≈60 seconds)
+
+You need **Python 3.12** and **[uv](https://docs.astral.sh/uv/)**.
 
 ```bash
-cd /path/to/worldcup-predictor
+# 1. Install dependencies and create your env file
 uv sync
 cp .env.example .env
-```
 
-Set `FOOTBALL_DATA_TOKEN` in `.env` if you want `fetch-results` to call football-data.org.
-
-## Quickstart
-
-Initialize the database, seed the 2026 fixtures, load historical results, and run a deterministic simulation:
-
-```bash
+# 2. Build the database and seed the 48-team, 72-fixture group stage
 uv run worldcup init-db
 uv run worldcup seed
-uv run worldcup load-history
+uv run worldcup load-history      # ~49k historical international results
+
+# 3. Simulate the tournament
 uv run worldcup simulate --n 50000
+
+# 4. Launch the web UI → http://127.0.0.1:8080
+uv run worldcup serve
 ```
 
-Equivalent chained form:
+> The first prediction or simulation triggers a one-time model fit (~2 min). After that
+> it's cached and fast. `serve` warms the model in the background on startup.
 
-```bash
-uv run worldcup init-db && uv run worldcup seed && uv run worldcup load-history && uv run worldcup simulate --n 50000
-```
-
-Start the web UI:
-
-```bash
-uv run worldcup-web
-```
-
-or:
+To expose it on your LAN:
 
 ```bash
 uv run worldcup serve --host 0.0.0.0 --port 8080
 ```
 
-Then open `http://localhost:8080`.
-
-The web UI has five tabs (Chinese): 即将开赛 (upcoming matches with our per-match prediction and
-the active off-pitch factors), 夺冠预测 (title odds), 战绩对比 (our original prediction vs the
-actual result, with a model-vs-baseline scoreboard), 小组积分 (group tables), and 淘汰赛 (bracket).
-JSON endpoints: `/api/upcoming-predictions`, `/api/accuracy`, `/api/forecast`,
-`/api/groups/{g}/standings`, `/api/knockout/bracket`, `/api/matches/{id}`.
-
-Useful CLI commands:
+### Handy commands
 
 ```bash
-uv run worldcup fetch-fixtures   # populate kickoff times (and results) from football-data.org
-uv run worldcup fetch-results
-uv run worldcup predict <match_id>
-uv run worldcup simulate --n 50000 --seed 123
-uv run worldcup evaluate
-uv run worldcup backtest --fit-calibration   # walk-forward skill/calibration + fit the calibrator
-uv run worldcup tune --apply                 # auto-tune the recency decay (Phase 2b; dry-run without --apply)
-uv run worldcup fetch-odds                   # pull bookmaker odds (needs ODDS_API_KEY in .env)
-uv run worldcup value-bets --min-edge 0.05   # outcomes where our model beats the market consensus
-```
+uv run worldcup fetch-fixtures        # kickoff times + results from football-data.org
+uv run worldcup fetch-results         # finished World Cup results
+uv run worldcup predict <match_id>    # predict and persist one fixture
+uv run worldcup evaluate              # score finished predictions vs baseline
+uv run worldcup backtest --fit-calibration   # walk-forward skill + fit the calibrator
+uv run worldcup tune --apply          # auto-tune recency decay (dry-run without --apply)
 
-### Value betting
+uv run worldcup fetch-odds            # bookmaker odds (needs ODDS_API_KEY)
+uv run worldcup value-bets --min-edge 0.05   # edge candidates across 1X2 / totals / spreads
 
-`worldcup fetch-odds` pulls h2h decimal odds for the World Cup from The Odds API (free 500
-req/month; set `ODDS_API_KEY` in `.env`) and maps them to fixtures by team pair. `value-bets`
-(and the 价值投注 web tab / `/api/value-bets`) de-margins each book, takes the median across books
-as the market consensus, and flags outcomes where our model's probability exceeds that consensus
-by `VALUE_MIN_EDGE`, reporting the EV at the best available price and a fractional-Kelly stake.
-The 40-book consensus is very sharp, so these are edge *candidates* to sanity-check (a large
-gap usually means a stale/erroneous line), not guaranteed profit.
+uv run worldcup paper-log             # log current value bets to the paper ledger
+uv run worldcup paper-settle          # capture closing lines + settle finished bets
+uv run worldcup paper-status          # ROI, hit-rate and CLV scoreboard
 
-### Model calibration, backtest, and auto-tuning
-
-`worldcup backtest` runs a walk-forward, no-look-ahead evaluation: for each refit window the
-goal model is trained only on matches before that window and used to predict it, yielding
-out-of-sample predictions. It reports RPS/Brier/log-loss versus a flat baseline plus a
-reliability curve and ECE (calibration error). With `--fit-calibration` it fits a small
-parametric calibrator (draw multiplier + temperature) that minimises out-of-sample RPS and
-stores it in `tuning_params`; `predict` then applies it to the 1X2 (identity until fitted).
-
-`worldcup tune` (Phase 2b) grid-searches the Dixon-Coles recency decay (`TIME_DECAY_XI`) over the
-same backtest and, with `--apply`, adopts the best out-of-sample value (guard-railed: only if it
-beats the current value by a margin). The tuned decay is stored in `tuning_params` and the model
-refits on change. Run it on a schedule for self-updating hyperparameters.
-
-Host nations (USA/Mexico/Canada) get a modest expected-goals bump (`config.HOST_ADVANTAGE`)
-since World Cup matches strip out home advantage.
-
-`load-history` can also load a local CSV:
-
-```bash
-uv run worldcup load-history --file path/to/results.csv
-```
-
-## Phase 2a — Off-pitch intelligence
-
-Phase 2a adds source-linked player-status intelligence to the deterministic prediction engine. Cron can run `worldcup fetch-news` to store raw RSS articles in SQLite. In a Copilot CLI session, ask it to process the latest news through MCP. The MCP flow is `get_unprocessed_news`, `upsert_player_status`, then `mark_news_processed`.
-
-The trust gate keeps weak intel out of predictions. A status becomes active only when confidence is high and it has either at least two sources or an official source. Single-source or lower-confidence items stay pending and have no model effect until reviewed.
-
-Status multipliers are defined by `MAGNITUDE_TABLE`:
-
-| Tier | `out` | `suspended` | `doubtful` |
-| --- | ---: | ---: | ---: |
-| `key` | 0.72 | 0.72 | 0.88 |
-| `regular` | 0.85 | 0.85 | 0.93 |
-| `fringe` | 0.96 | 0.96 | 0.98 |
-
-Review pending items with:
-
-```bash
-uv run worldcup intel-pending
-uv run worldcup intel-approve <ref>
+uv run worldcup fetch-news            # pull RSS articles into SQLite (cron-friendly)
+uv run worldcup intel-pending         # review intel awaiting approval
+uv run worldcup intel-approve <ref>   # ref is ps:<id> (player) or ts:<id> (signal)
 uv run worldcup intel-reject <ref>
 ```
 
-`intel-pending` prints a `ref` for each item: `ps:<id>` for a player status, `ts:<id>` for a
-team signal. Pass that `ref` to approve/reject (a bare number is still treated as a player id).
+Run `uv run worldcup --help` for the full list.
 
-Statuses expire at the team's next scheduled match when that date is known. If no kickoff is set, the default expiry is 14 days.
+## 🧠 How it works
 
-### Team-level signals (broadened intel)
+**1. The goal model.** A Dixon-Coles model (via [`penaltyblog`](https://pypi.org/project/penaltyblog/))
+learns each team's attack and defence strength from history, with recency weighting and a
+modest host-nation bump (World Cup matches strip out normal home advantage). For a fixture
+it produces a full grid of scorelines, which collapses into win/draw/win probabilities,
+expected goals and the most likely results.
 
-Player availability is only one kind of off-pitch signal. The `team_signal` store captures
-qualitative, between-the-lines team signals in both directions across five categories:
-`tactical`, `morale`, `motivation`, `fatigue`, and `form`. The MCP tool is `upsert_team_signal`;
-it records only forward-looking or beyond-the-result signals (not match recaps, which are
-ingested as results). One signal is kept per `(team, category)`.
+**2. Off-pitch adjustments.** Before predicting, the engine applies *active* intel for each
+team — player availability and qualitative team signals. Each item carries a soft multiplier
+on the relevant scoring rate. Attacking absences lower a team's own expected goals; defensive
+absences raise the opponent's. Strengthen swings are deliberately capped smaller than weaken
+swings, everything is bounded by a clamp, and only intel that clears the trust gate has any
+effect at all.
 
-These signals are deliberately soft, and strengthen swings are capped smaller than weaken swings:
+**3. The tournament simulation.** Monte Carlo plays out every group match and the entire
+knockout bracket tens of thousands of times, yielding title odds, advancement probabilities
+and a round-by-round heatmap.
 
-| Tier | `weaken` | `strengthen` |
-| --- | ---: | ---: |
-| `major` | 0.88 | 1.06 |
-| `moderate` | 0.93 | 1.04 |
-| `minor` | 0.97 | 1.02 |
+**4. Keeping it honest.** A walk-forward `backtest` measures out-of-sample skill (RPS, Brier,
+log-loss) against a flat baseline, reports calibration (reliability curve + ECE), and can fit
+a small calibrator. `tune` grid-searches the recency-decay hyperparameter with guardrails.
 
-They share the same trust gate, credibility rules, expiry, and pending review queue as player
-statuses, and feed the same per-team delta in `apply_intel` (legacy events + player statuses +
-team signals), bounded by the existing `ADJUST_CLAMP`.
+## 💸 Value betting & paper trading (the honest part)
 
-## MCP server
+The model also looks for **edges against the market**. For each fixture it de-margins every
+book's odds, takes the median across ~40 books as the consensus, and flags outcomes — in 1X2,
+over/under and handicap markets — where its own probability beats that consensus, reporting
+edge, EV at the best available price, and a fractional-Kelly stake.
 
-The stdio MCP server exposes the engine through FastMCP tools:
+**The market is usually right.** A ~40-book consensus is extremely sharp, so these are *edge
+candidates to sanity-check*, not guaranteed profit — a big gap most often means a stale or
+erroneous line.
+
+So nothing here bets real money. The **paper-trading ledger** logs flagged bets, captures the
+**closing line** at kickoff, settles them, and tracks **ROI and CLV (closing-line value)**.
+CLV — did you beat the price the market settled on? — is the honest edge signal; win/loss over
+a handful of bets is mostly luck. This is evidence-gathering *before* anyone risks capital.
+
+## 🤖 LLM + automation split
+
+The engine is deterministic; the LLM only handles language. The two never blur:
+
+- **No-LLM jobs (cron / systemd):** `fetch-results`, `fetch-fixtures`, `fetch-odds`,
+  `fetch-news`, `simulate`, `paper-settle`. Reproducible and schedulable.
+- **LLM jobs (GitHub Copilot CLI via MCP):** read raw news, extract structured source-linked
+  intel, explain predictions. The model math is never touched by an LLM.
+
+### MCP server
+
+`worldcup-mcp` is a thin [FastMCP](https://github.com/jlowin/fastmcp) stdio server over the
+engine. It exposes tools for group standings, upcoming matches, recording results, predicting
+matches, recording intel (player statuses and team signals, with the `affects` channel),
+reviewing pending intel, processing news, and running simulations — it owns no prediction logic.
 
 ```bash
 uv --directory /path/to/worldcup-predictor run worldcup-mcp
 ```
 
-VS Code can use the checked-in `.vscode/mcp.json`:
+VS Code picks up the checked-in `.vscode/mcp.json` automatically. In GitHub Copilot CLI, add
+the same command with `/mcp add`.
 
-```json
-{
-  "servers": {
-    "worldcup-predictor": {
-      "command": "uv",
-      "args": ["--directory", "${workspaceFolder}", "run", "worldcup-mcp"]
-    }
-  }
-}
+A typical news → intel flow: `get_unprocessed_news` → `upsert_player_status` /
+`upsert_team_signal` → `mark_news_processed`. New intel lands in the pending queue until it
+clears the trust gate or a human approves it.
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SQLite (data/worldcup.db) — single source of truth          │
+└─────────────────────────────────────────────────────────────┘
+        ▲                    ▲                    ▲
+        │                    │                    │
+┌───────────────┐   ┌────────────────┐   ┌─────────────────────┐
+│ Core engine   │   │ MCP adapter    │   │ Web UI (FastAPI)    │
+│ (deterministic│   │ worldcup-mcp   │   │ worldcup serve /    │
+│  Python lib)  │   │ thin FastMCP   │   │ worldcup-web        │
+│ ingest, model,│   │ wrapper for    │   │ JSON API + static   │
+│ intel, sim,   │   │ LLM clients    │   │ assets + SSE        │
+│ value, eval   │   │                │   │ (reads SQLite only) │
+└───────────────┘   └────────────────┘   └─────────────────────┘
 ```
 
-In GitHub Copilot CLI, add the same server command with `/mcp add` and point it at:
+- **SQLite is the source of truth** (`data/worldcup.db`). Everything else reads and writes it.
+- **The core engine** (`src/worldcup_predictor/`) is a deterministic library: ingest, schema,
+  ratings, Dixon-Coles prediction, intel adjustments, simulation, value betting, evaluation.
+- **The MCP adapter** is a stateless wrapper — it calls engine functions, owns no logic.
+- **The web UI** computes nothing itself: it serves cached engine output from SQLite as JSON,
+  static assets and server-sent events for live refresh.
+
+Key web endpoints: `/api/upcoming-predictions`, `/api/forecast`, `/api/value-bets`,
+`/api/paper-trades`, `/api/accuracy`, `/api/groups/{g}/standings`, `/api/knockout/bracket`,
+`/api/bracket-projection`, `/api/matches/{id}`, `/api/events`.
+
+The live site runs as systemd user services behind a Cloudflare Tunnel on an Azure VM;
+templates live under `deploy/` (review paths before enabling — they're examples).
+
+## ⚙️ Configuration
+
+Copy `.env.example` to `.env` and fill in what you need. All keys are optional — the system
+runs offline on bundled history and free RSS.
+
+| Variable | Purpose |
+| --- | --- |
+| `WC_DB_PATH` | Override the SQLite path (default `data/worldcup.db`). |
+| `WC_DATA_DIR` | Override the data directory (default `./data`). |
+| `FOOTBALL_DATA_TOKEN` | [football-data.org](https://www.football-data.org) key for `fetch-results` / `fetch-fixtures`. |
+| `ODDS_API_KEY` | [The Odds API](https://the-odds-api.com) key (free 500 req/month) for `fetch-odds` and value betting. |
+| `NEWSAPI_KEY` | Optional [NewsAPI](https://newsapi.org) key to supplement free RSS feeds. Not required. |
+
+## 🛠️ Development
 
 ```bash
-uv --directory /path/to/worldcup-predictor run worldcup-mcp
+uv sync                 # install everything, including dev tools
+uv run pytest           # 205 tests
+uv run ruff check .     # lint
+uv run ruff format .    # format
+uv run mypy --strict src
 ```
 
-The MCP tools include group standings, upcoming matches, result recording, match prediction, structured intel recording (player statuses and team-level signals), pending-intel review, and tournament simulation.
+Conventions: Python 3.12, 100-char lines, double quotes, strict typing. New features ship
+with tests.
 
-## Deployment templates
+## ⚠️ Limitations & disclaimer
 
-Templates live under `deploy/`. Replace the placeholder checkout path `/path/to/worldcup-predictor` and `User=youruser` with your own, and review the `.venv/bin/worldcup` entry points. They are examples only. Do not enable them until you have reviewed paths, environment, and log locations.
+- **The model compresses margins.** It tends to over-rate underdog draws and handicaps relative
+  to the sharp market — which is exactly why value bets are paper-traded first and judged on CLV,
+  not on early wins.
+- **The market is usually right.** Flagged edges are candidates to investigate; a large gap
+  usually means a stale or bad line, not free money.
+- **Results depend on an upstream data feed** (football-data.org / The Odds API) that can lag or
+  rate-limit. Stale inputs mean stale predictions.
+- **This is not financial advice.** No real money is wagered anywhere in this project, and you
+  shouldn't treat its output as a betting tip. It's a forecasting and research toy — enjoy it as one.
 
-Cron example:
+## 📜 Data sources & licenses
 
-```bash
-crontab deploy/crontab.example
-```
+- **Historical results:** [`martj42/international_results`](https://github.com/martj42/international_results) (`results.csv`, CC0 1.0).
+- **World Cup results & fixtures:** football-data.org API v4 (competition `WC`) — check their terms before public/commercial use.
+- **Bookmaker odds:** The Odds API (`soccer_fifa_world_cup`) — free tier 500 req/month; check their terms.
+- **Off-pitch news:** publisher RSS feeds — licensing is publisher-specific; source URLs are stored and feed terms respected.
 
-Systemd example:
+## License
 
-```bash
-sudo cp deploy/worldcup-web.service /etc/systemd/system/
-sudo cp deploy/worldcup-fetch.service /etc/systemd/system/
-sudo cp deploy/worldcup-fetch.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now worldcup-web.service
-sudo systemctl enable --now worldcup-fetch.timer
-```
-
-`worldcup-web.service` runs the web UI on port 8080. `worldcup-fetch.timer` triggers `worldcup-fetch.service` every 10 minutes with `OnUnitActiveSec=10min`. The repository does not enable any services automatically.
-
-## Data sources and licenses
-
-- **Historical international results:** `martj42/international_results` raw `results.csv`, licensed CC0 1.0 Universal. Used by `worldcup load-history` for bootstrap history.
-- **Finished World Cup results:** football-data.org API v4, competition code `WC`. The free API needs `FOOTBALL_DATA_TOKEN` and is governed by football-data.org terms, including rate limits and attribution requirements. Check their current terms before public or commercial use.
-- **Off-pitch news:** RSS feeds are intended for Phase 2 intelligence gathering. RSS licensing and reuse rights are publisher-specific. Store source URLs and respect each publisher's feed terms.
-- **Bookmaker odds:** The Odds API (https://the-odds-api.com), sport `soccer_fifa_world_cup`, market `h2h`, decimal. Free tier is 500 requests/month; needs `ODDS_API_KEY`. Governed by The Odds API terms; check usage and attribution before public or commercial use.
-
-## Model backend note
-
-MODEL_BACKEND=primary (`penaltyblog`).
-
-`penaltyblog` installs, imports, and fits on this arm64 host with `penaltyblog==1.11.0`. Model code must pass writable goal arrays using `.to_numpy().copy()` for `home_goals` and `away_goals`. Calls to `dixon_coles_weights` must pass datetimes, for example with `pd.to_datetime(...)`.
-
-## Roadmap
-
-Phase 2:
-
-- Automated LLM off-pitch intelligence from RSS/news into structured, source-cited `intel_event` records.
-- Level-2 auto-tuning with walk-forward backtests and guardrails.
-- Level-3 advisor that proposes model changes for human approval.
-
-Phase 3:
-
-- Value-bet helper for manually supplied odds.
-- Richer UI and expected-goals, or xG, data where licensing allows.
+[MIT](LICENSE).
