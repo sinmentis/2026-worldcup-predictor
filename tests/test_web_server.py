@@ -246,3 +246,30 @@ def test_paper_trades_endpoint(tmp_path, monkeypatch):
     assert body["aggregate"]["n_settled"] == 1
     assert body["aggregate"]["wins"] == 1
     assert body["settled"][0]["result"] == "win"
+
+
+def test_api_health(tmp_path, monkeypatch):
+    db_path = tmp_path / "health.db"
+    monkeypatch.setenv("WC_DB_PATH", str(db_path))
+    from worldcup_predictor import db
+
+    conn = db.connect(db_path)
+    db.init_schema(conn)
+
+    from worldcup_predictor.web_server import app
+
+    client = TestClient(app)
+
+    # no marker yet -> last_update is null, but the endpoint is healthy
+    r = client.get("/api/health")
+    assert r.status_code == 200
+    assert r.json() == {"ok": True, "last_update": None}
+
+    # a real data mutation bumps meta['last_update'] -> echoed as a float
+    db.touch_update(conn)
+    ts = float(db.get_last_update_ts(conn))
+    r2 = client.get("/api/health")
+    body = r2.json()
+    assert body["ok"] is True
+    assert isinstance(body["last_update"], float)
+    assert abs(body["last_update"] - ts) < 0.01

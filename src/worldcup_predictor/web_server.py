@@ -149,6 +149,15 @@ async def events(request: Request) -> EventSourceResponse:
     return EventSourceResponse(gen(), ping=30)
 
 
+@app.get("/api/health")
+def health() -> dict[str, Any]:
+    # Operator/monitor health probe: liveness + worldcup's own canonical
+    # freshness marker (meta['last_update']). Read-only — never bumps the marker.
+    with closing(_conn()) as conn:
+        ts = engine.get_last_update_ts(conn)
+    return {"ok": True, "last_update": float(ts) if ts else None}
+
+
 def main() -> None:
     import uvicorn
 
