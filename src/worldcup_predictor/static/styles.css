@@ -326,6 +326,9 @@ code {
 .vbet-mkt.h2h {
   background: rgba(34,211,238,.14); color: var(--accent); border-color: rgba(34,211,238,.3);
 }
+.vbet-mkt.asian {
+  background: rgba(167,139,250,.16); color: #c4b5fd; border-color: rgba(167,139,250,.32);
+}
 
 .res {
   padding: 14px 18px; margin-bottom: 10px;

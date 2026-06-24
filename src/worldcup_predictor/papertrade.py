@@ -98,6 +98,22 @@ def _closing_totals(
     return (price if price > 1.0 else None), prob
 
 
+def _closing_spreads(
+    conn: sqlite3.Connection, match_id: int, line: float, outcome: str
+) -> tuple[float | None, float | None]:
+    best_home, best_away = valuebet._best_spread_prices(conn, match_id, line)
+    rows = conn.execute(
+        "SELECT price_home, price_away FROM odds_spreads WHERE match_id=? AND line=?",
+        (match_id, line),
+    ).fetchall()
+    cons = valuebet._spreads_consensus([(r["price_home"], r["price_away"]) for r in rows])
+    if outcome == "home":
+        price, prob = best_home[0], (cons[0] if cons else None)
+    else:
+        price, prob = best_away[0], (cons[1] if cons else None)
+    return (price if price > 1.0 else None), prob
+
+
 def capture_closing(conn: sqlite3.Connection, *, now_z: str | None = None) -> int:
     """Snapshot the closing line for any logged bet whose match has kicked off.
 
@@ -115,6 +131,8 @@ def capture_closing(conn: sqlite3.Connection, *, now_z: str | None = None) -> in
     for r in rows:
         if r["market"] == "totals":
             cprice, cprob = _closing_totals(conn, r["match_id"], r["line"], r["outcome"])
+        elif r["market"] == "spreads":
+            cprice, cprob = _closing_spreads(conn, r["match_id"], r["line"], r["outcome"])
         else:
             cprice, cprob = _closing_1x2(conn, r["match_id"], r["outcome"])
         clv = (r["price_taken"] * cprob - 1.0) if cprob is not None else None
@@ -144,6 +162,16 @@ def _result_totals(hs: int, as_: int, line: float, outcome: str) -> str:
     return "win" if not over_hits else "loss"
 
 
+def _result_spreads(hs: int, as_: int, line: float, outcome: str) -> str:
+    edge_val = (hs - as_) + line  # home margin adjusted by the home handicap
+    if edge_val == 0:
+        return "push"  # only possible on whole lines
+    home_covers = edge_val > 0
+    if outcome == "home":
+        return "win" if home_covers else "loss"
+    return "win" if not home_covers else "loss"
+
+
 def settle(
     conn: sqlite3.Connection, *, now_z: str | None = None, bankroll: float = BANKROLL_UNITS
 ) -> int:
@@ -160,6 +188,8 @@ def settle(
         hs, as_ = int(r["home_score"]), int(r["away_score"])
         if r["market"] == "totals":
             res = _result_totals(hs, as_, r["line"], r["outcome"])
+        elif r["market"] == "spreads":
+            res = _result_spreads(hs, as_, r["line"], r["outcome"])
         else:
             res = _result_1x2(hs, as_, r["outcome"])
         price, kfrac = r["price_taken"], r["kelly_frac"]

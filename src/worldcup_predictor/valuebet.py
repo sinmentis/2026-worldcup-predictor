@@ -236,3 +236,113 @@ def value_bets_totals(
             )
     bets.sort(key=lambda b: b["edge"], reverse=True)
     return bets
+
+
+def _best_spread_prices(
+    conn: sqlite3.Connection, match_id: int, line: float
+) -> tuple[tuple[float, str | None], tuple[float, str | None]]:
+    """Best home-cover / away-cover price for a handicap line, ignoring outliers (corrupt data)."""
+    rows = conn.execute(
+        "SELECT bookmaker, price_home, price_away FROM odds_spreads WHERE match_id=? AND line=?",
+        (match_id, line),
+    ).fetchall()
+    home_vals = [float(r["price_home"]) for r in rows if r["price_home"]]
+    away_vals = [float(r["price_away"]) for r in rows if r["price_away"]]
+    home_med = statistics.median(home_vals) if home_vals else None
+    away_med = statistics.median(away_vals) if away_vals else None
+    bh: tuple[float, str | None] = (0.0, None)
+    ba: tuple[float, str | None] = (0.0, None)
+    for r in rows:
+        if r["price_home"]:
+            p = float(r["price_home"])
+            if (home_med is None or p <= home_med * BEST_PRICE_OUTLIER_FACTOR) and p > bh[0]:
+                bh = (p, r["bookmaker"])
+        if r["price_away"]:
+            p = float(r["price_away"])
+            if (away_med is None or p <= away_med * BEST_PRICE_OUTLIER_FACTOR) and p > ba[0]:
+                ba = (p, r["bookmaker"])
+    return bh, ba
+
+
+def _spreads_consensus(prices: list[tuple[float, float]]) -> tuple[float, float] | None:
+    """De-margined median home-cover / away-cover probability across books for one line."""
+    home: list[float] = []
+    away: list[float] = []
+    for ph, pa in prices:
+        if ph and pa:
+            rh, ra = 1.0 / ph, 1.0 / pa
+            s = rh + ra
+            home.append(rh / s)
+            away.append(ra / s)
+    if not home:
+        return None
+    return statistics.median(home), statistics.median(away)
+
+
+def value_bets_spreads(
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    min_edge: float | None = None,
+    kelly_fraction: float | None = None,
+) -> list[dict[str, Any]]:
+    """Handicap value: our model cover probability vs the market consensus."""
+    edge_floor = config.VALUE_MIN_EDGE if min_edge is None else min_edge
+    kfrac = config.KELLY_FRACTION if kelly_fraction is None else kelly_fraction
+    rows = conn.execute(
+        "SELECT DISTINCT m.id, m.home_team, m.away_team, m.group_id, m.kickoff, m.neutral "
+        "FROM matches m JOIN odds_spreads o ON o.match_id = m.id "
+        "WHERE m.status='SCHEDULED' AND (m.kickoff IS NULL OR m.kickoff > ?) "
+        "ORDER BY (m.kickoff IS NULL), m.kickoff, m.id",
+        (_now_z(),),
+    ).fetchall()
+    bets: list[dict[str, Any]] = []
+    for r in rows:
+        by_line: dict[float, list[tuple[float, float]]] = {}
+        for sr in conn.execute(
+            "SELECT line, price_home, price_away FROM odds_spreads WHERE match_id=?", (r["id"],)
+        ).fetchall():
+            by_line.setdefault(float(sr["line"]), []).append((sr["price_home"], sr["price_away"]))
+        if not by_line:
+            continue
+        line = max(by_line, key=lambda label: len(by_line[label]))  # the most-quoted line
+        cons = _spreads_consensus(by_line[line])
+        if cons is None:
+            continue
+        grid, _ = adjusted_grid(
+            conn, model, r["home_team"], r["away_team"], neutral=bool(r["neutral"])
+        )
+        our_home = grid.cover(line)
+        our = {"home": our_home, "away": 1.0 - our_home}
+        cons_map = {"home": cons[0], "away": cons[1]}
+        best_home, best_away = _best_spread_prices(conn, r["id"], line)
+        best_map = {"home": best_home, "away": best_away}
+        for side in ("home", "away"):
+            edge = our[side] - cons_map[side]
+            if edge < edge_floor:
+                continue
+            price, book = best_map[side]
+            ev = our[side] * price - 1.0 if price > 1.0 else None
+            kelly = (
+                max(0.0, (our[side] * price - 1.0) / (price - 1.0)) * kfrac if price > 1.0 else 0.0
+            )
+            bets.append(
+                {
+                    "match_id": r["id"],
+                    "home_team": r["home_team"],
+                    "away_team": r["away_team"],
+                    "group": r["group_id"],
+                    "kickoff": r["kickoff"],
+                    "market": "spreads",
+                    "outcome": side,
+                    "line": line,
+                    "our_prob": our[side],
+                    "market_prob": cons_map[side],
+                    "edge": edge,
+                    "best_price": price if price > 1.0 else None,
+                    "bookmaker": book,
+                    "ev": ev,
+                    "kelly": kelly,
+                }
+            )
+    bets.sort(key=lambda b: b["edge"], reverse=True)
+    return bets

@@ -142,12 +142,22 @@ CREATE TABLE IF NOT EXISTS odds_totals (
     fetched_at REAL,
     UNIQUE(match_id, bookmaker, line)
 );
+CREATE TABLE IF NOT EXISTS odds_spreads (
+    id INTEGER PRIMARY KEY,
+    match_id INTEGER,
+    bookmaker TEXT NOT NULL,
+    line REAL NOT NULL,             -- HOME handicap (favourite negative, e.g. -1.5)
+    price_home REAL,                -- price for home covering (home + line)
+    price_away REAL,                -- price for away covering (away - line)
+    fetched_at REAL,
+    UNIQUE(match_id, bookmaker, line)
+);
 CREATE TABLE IF NOT EXISTS paper_bets (
     id INTEGER PRIMARY KEY,
     match_id INTEGER NOT NULL,
-    market TEXT NOT NULL,            -- '1x2' | 'totals'
-    outcome TEXT NOT NULL,          -- home | draw | away | over | under
-    line REAL,                      -- totals line; NULL for 1x2
+    market TEXT NOT NULL,            -- '1x2' | 'totals' | 'spreads'
+    outcome TEXT NOT NULL,          -- home | draw | away | over | under (home/away for spreads)
+    line REAL,                      -- totals line / home handicap; NULL for 1x2
     our_prob REAL NOT NULL,
     market_prob REAL NOT NULL,      -- de-margined consensus at log time
     edge REAL NOT NULL,

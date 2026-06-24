@@ -11,3 +11,6 @@ data/cache/
 
 # git worktrees for isolated feature work
 .worktrees/
+
+# db backups
+data/*.bak*

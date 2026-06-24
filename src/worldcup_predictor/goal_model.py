@@ -54,6 +54,19 @@ class ScoreGrid:
     def btts(self) -> float:
         return float(self.matrix[1:, 1:].sum())
 
+    def cover(self, line: float) -> float:
+        """P(home covers the home handicap ``line``): P(home_goals + line > away_goals).
+
+        ``line`` is the home team's handicap (favourite negative, e.g. -1.5). The away-cover
+        probability for value purposes is ``1 - cover(line)``.
+        """
+        total = 0.0
+        for h in range(self.matrix.shape[0]):
+            for a in range(self.matrix.shape[1]):
+                if h + line > a:
+                    total += self.matrix[h, a]
+        return float(total)
+
 
 class GoalModel:
     """Dixon-Coles wrapper. Backend = penaltyblog (fallback: see plan Task 4.x)."""

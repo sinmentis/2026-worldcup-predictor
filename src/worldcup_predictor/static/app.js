@@ -403,9 +403,15 @@ async function loadValue() {
     return;
   }
   const OUT = { home: "主胜", draw: "平局", away: "客胜" };
+  const fmtLine = (x) => (x > 0 ? "+" : "") + x;
   const betLabel = (b) =>
-    b.market === "totals" ? `${b.outcome === "over" ? "大" : "小"}${b.line}` : (OUT[b.outcome] || esc(b.outcome));
-  const tag = (b) => (b.market === "totals" ? `<span class="vbet-mkt">大小球</span>` : `<span class="vbet-mkt h2h">胜平负</span>`);
+    b.market === "totals" ? `${b.outcome === "over" ? "大" : "小"}${b.line}`
+    : b.market === "spreads" ? `${zh(b.outcome === "home" ? b.home_team : b.away_team)} ${fmtLine(b.outcome === "home" ? b.line : -b.line)}`
+    : (OUT[b.outcome] || esc(b.outcome));
+  const tag = (b) =>
+    b.market === "totals" ? `<span class="vbet-mkt">大小球</span>`
+    : b.market === "spreads" ? `<span class="vbet-mkt asian">让球</span>`
+    : `<span class="vbet-mkt h2h">胜平负</span>`;
   let list = "";
   let lastDay = null;
   for (const b of bets) {
@@ -436,9 +442,15 @@ async function loadPaper() {
   const a = data.aggregate || {};
   const OUT = { home: "主胜", draw: "平局", away: "客胜" };
   const RES = { win: "赢", loss: "输", push: "和" };
+  const fmtLine = (x) => (x > 0 ? "+" : "") + x;
   const betLabel = (b) =>
-    b.market === "totals" ? `${b.outcome === "over" ? "大" : "小"}${b.line}` : (OUT[b.outcome] || esc(b.outcome));
-  const mtag = (b) => (b.market === "totals" ? `<span class="vbet-mkt">大小球</span>` : `<span class="vbet-mkt h2h">胜平负</span>`);
+    b.market === "totals" ? `${b.outcome === "over" ? "大" : "小"}${b.line}`
+    : b.market === "spreads" ? `${zh(b.outcome === "home" ? b.home_team : b.away_team)} ${fmtLine(b.outcome === "home" ? b.line : -b.line)}`
+    : (OUT[b.outcome] || esc(b.outcome));
+  const mtag = (b) =>
+    b.market === "totals" ? `<span class="vbet-mkt">大小球</span>`
+    : b.market === "spreads" ? `<span class="vbet-mkt asian">让球</span>`
+    : `<span class="vbet-mkt h2h">胜平负</span>`;
   const sign = (x) => (x > 0 ? "pt-up" : x < 0 ? "pt-down" : "");
   const spct = (x) => (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%";
   const su = (x) => (x >= 0 ? "+" : "") + x.toFixed(2) + "u";

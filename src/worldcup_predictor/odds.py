@@ -161,6 +161,91 @@ def store_totals(conn: sqlite3.Connection, parsed: list[dict[str, Any]]) -> int:
     return n
 
 
+def parse_spreads_payload(payload: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Turn a The Odds API spreads response into per-match lists of each book's handicap line.
+
+    ``line`` is stored as the FEED home team's handicap. v1 keeps only whole and half lines;
+    quarter (Asian split) lines such as -0.75 are skipped.
+    """
+    out: list[dict[str, Any]] = []
+    for item in payload:
+        raw_home, raw_away = item.get("home_team"), item.get("away_team")
+        if not raw_home or not raw_away:
+            continue
+        lines: list[dict[str, Any]] = []
+        for bk in item.get("bookmakers", []):
+            market = next((m for m in bk.get("markets", []) if m.get("key") == "spreads"), None)
+            if not market:
+                continue
+            outs = market.get("outcomes", [])
+            home_o = next((o for o in outs if o.get("name") == raw_home), None)
+            away_o = next((o for o in outs if o.get("name") == raw_away), None)
+            if not (home_o and away_o):
+                continue
+            line, ph, pa = home_o.get("point"), home_o.get("price"), away_o.get("price")
+            ap = away_o.get("point")
+            if line is None or ap is None or not ph or not pa:
+                continue
+            line = float(line)
+            # the two handicaps must be opposite; skip quarter (split) lines in v1
+            if abs(float(line) + float(ap)) > 1e-9 or abs(line * 2 - round(line * 2)) > 1e-9:
+                continue
+            lines.append(
+                {
+                    "bookmaker": bk.get("key") or bk.get("title") or "unknown",
+                    "line": line,
+                    "price_home": float(ph),
+                    "price_away": float(pa),
+                }
+            )
+        if lines:
+            out.append(
+                {
+                    "home": config.canonical_team(raw_home),
+                    "away": config.canonical_team(raw_away),
+                    "lines": lines,
+                }
+            )
+    return out
+
+
+def store_spreads(conn: sqlite3.Connection, parsed: list[dict[str, Any]]) -> int:
+    """Upsert handicap odds by (match_id, bookmaker, line), oriented to our fixture.
+
+    Spreads are orientation-DEPENDENT (unlike totals): if our seeded home is the feed's away
+    team, swap the home/away prices and negate the line.
+    """
+    n = 0
+    now = time.time()
+    for m in parsed:
+        row = conn.execute(
+            "SELECT id, home_team, away_team FROM matches "
+            "WHERE (home_team=? AND away_team=?) OR (home_team=? AND away_team=?) LIMIT 1",
+            (m["home"], m["away"], m["away"], m["home"]),
+        ).fetchone()
+        if not row:
+            continue
+        match_id = row["id"]
+        reversed_orientation = row["home_team"] == m["away"]
+        for b in m["lines"]:
+            line, ph, pa = b["line"], b["price_home"], b["price_away"]
+            if reversed_orientation:
+                line = -line
+                ph, pa = pa, ph
+            conn.execute(
+                "INSERT INTO odds_spreads"
+                "(match_id,bookmaker,line,price_home,price_away,fetched_at) VALUES (?,?,?,?,?,?)"
+                " ON CONFLICT(match_id,bookmaker,line) DO UPDATE SET"
+                " price_home=excluded.price_home, price_away=excluded.price_away,"
+                " fetched_at=excluded.fetched_at",
+                (match_id, b["bookmaker"], line, ph, pa, now),
+            )
+            n += 1
+    conn.commit()
+    _db.touch_update(conn)
+    return n
+
+
 def fetch_odds(conn: sqlite3.Connection, key: str | None = None, regions: str | None = None) -> int:
     key = key or os.environ.get("ODDS_API_KEY", "")
     if not key:
@@ -168,7 +253,7 @@ def fetch_odds(conn: sqlite3.Connection, key: str | None = None, regions: str | 
     url = f"{config.ODDS_API_BASE}/sports/{config.ODDS_API_SPORT}/odds"
     params = {
         "apiKey": key,
-        "markets": "h2h,totals",
+        "markets": "h2h,totals,spreads",
         "oddsFormat": "decimal",
         "regions": regions or config.ODDS_API_REGIONS,
     }
@@ -177,6 +262,7 @@ def fetch_odds(conn: sqlite3.Connection, key: str | None = None, regions: str | 
     payload = resp.json()
     n = store_odds(conn, parse_odds_payload(payload))
     n += store_totals(conn, parse_totals_payload(payload))
+    n += store_spreads(conn, parse_spreads_payload(payload))
     return n
 
 
