@@ -114,6 +114,67 @@ def test_get_upcoming_predictions_shape(tmp_path, monkeypatch):
     assert "factors" in mm
 
 
+def test_get_upcoming_predictions_persists_one_snapshot_per_match(tmp_path, monkeypatch):
+    # The public read path must persist at most ONE prediction per match (the original
+    # snapshot the accuracy page reads via MIN(id)) and must NOT amplify writes on repeat
+    # hits — otherwise anonymous traffic bloats the predictions table without bound.
+    import numpy as np
+    import pandas as pd
+
+    from worldcup_predictor import engine as eng
+    from worldcup_predictor.goal_model import GoalModel
+
+    conn = db.connect(tmp_path / "u.db")
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,neutral,status)"
+        " VALUES (1,'group','A','Strong','Weak',1,'SCHEDULED'),"
+        "(2,'group','A','Strong','Weak',1,'SCHEDULED')"
+    )
+    conn.commit()
+    rng = np.random.default_rng(1)
+    rows = []
+    for _ in range(60):
+        rows.append(
+            (
+                "2024-01-01",
+                "Strong",
+                "Weak",
+                int(rng.integers(2, 5)),
+                int(rng.integers(0, 2)),
+                False,
+            )
+        )
+        rows.append(
+            (
+                "2024-01-01",
+                "Weak",
+                "Strong",
+                int(rng.integers(0, 2)),
+                int(rng.integers(2, 5)),
+                False,
+            )
+        )
+    history = pd.DataFrame(
+        rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+    )
+    model = GoalModel().fit(history)
+    monkeypatch.setattr(eng, "get_model", lambda _conn, refit=False: model)
+
+    eng.get_upcoming_predictions(conn, limit=10)
+    n1 = conn.execute("SELECT COUNT(*) FROM predictions").fetchone()[0]
+    eng.get_upcoming_predictions(conn, limit=10)  # repeat hit
+    eng.get_upcoming_predictions(conn, limit=10)  # and again
+    n2 = conn.execute("SELECT COUNT(*) FROM predictions").fetchone()[0]
+
+    assert n1 == 2  # one original snapshot per scheduled match
+    assert n2 == n1  # repeat reads add no rows (no write amplification)
+    dupes = conn.execute(
+        "SELECT match_id, COUNT(*) c FROM predictions GROUP BY match_id HAVING c > 1"
+    ).fetchall()
+    assert dupes == []  # never more than one stored prediction per match
+
+
 def test_get_bracket_projection(tmp_path):
     conn = _conn(tmp_path)
     conn.execute(

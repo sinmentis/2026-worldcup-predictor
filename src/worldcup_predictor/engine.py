@@ -186,14 +186,24 @@ def get_upcoming_predictions(conn: sqlite3.Connection, limit: int = 12) -> dict[
         (limit,),
     ).fetchall()
     remaining = conn.execute("SELECT COUNT(*) FROM matches WHERE status='SCHEDULED'").fetchone()[0]
+    # Persist only the ORIGINAL prediction per match (the accuracy page reads MIN(id)); this is
+    # a public, unauthenticated read path, so re-predicting and re-inserting on every hit would
+    # bloat the predictions table without bound and pollute that "original" snapshot.
+    already_snapshotted = {
+        row[0]
+        for row in conn.execute(
+            "SELECT DISTINCT match_id FROM predictions WHERE match_id IS NOT NULL"
+        ).fetchall()
+    }
     matches: list[dict[str, Any]] = []
     for r in rows:
+        persist_id = None if r["id"] in already_snapshotted else r["id"]
         pred = predict_match(
             conn,
             model,
             r["home_team"],
             r["away_team"],
-            match_id=r["id"],
+            match_id=persist_id,
             neutral=bool(r["neutral"]),
         )
         matches.append(
