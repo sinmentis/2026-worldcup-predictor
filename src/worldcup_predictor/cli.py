@@ -108,6 +108,10 @@ def value_bets(
         price = f"{b['best_price']:.2f}" if b["best_price"] else "n/a"
         if b["market"] == "totals":
             pick = f"{'Over' if b['outcome'] == 'over' else 'Under'} {b['line']}"
+        elif b["market"] == "spreads":
+            team = b["home_team"] if b["outcome"] == "home" else b["away_team"]
+            line = b["line"] if b["outcome"] == "home" else -b["line"]
+            pick = f"{team} {line:+g}"
         else:
             pick = b["outcome"]
         typer.echo(
