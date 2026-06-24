@@ -155,3 +155,17 @@ def test_best_prices_ignores_corrupt_outlier(tmp_path):
     conn.commit()
     best = valuebet.best_prices(conn, 1)
     assert best[0] == (1.54, "d")  # outlier 4.80 ignored; sane best is 1.54
+
+
+def test_best_total_prices_ignores_corrupt_outlier(tmp_path):
+    conn = _conn(tmp_path)
+    # Four sane books cluster ~1.9 on over 2.5; one corrupt book offers an impossible 5.00.
+    # _best_total_prices must ignore the outlier, mirroring the 1x2/spreads guard.
+    conn.execute(
+        "INSERT INTO odds_totals(match_id,bookmaker,line,price_over,price_under,fetched_at)"
+        " VALUES (1,'a',2.5,1.90,1.95,0),(1,'b',2.5,1.88,1.98,0),(1,'c',2.5,1.92,1.90,0),"
+        "(1,'d',2.5,1.95,1.88,0),(1,'bad',2.5,5.00,1.10,0)"
+    )
+    conn.commit()
+    bo, _bu = valuebet._best_total_prices(conn, 1, 2.5)
+    assert bo == (1.95, "d")  # corrupt 5.00 over ignored; sane best is 1.95

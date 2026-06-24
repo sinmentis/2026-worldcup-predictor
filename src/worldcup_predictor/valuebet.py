@@ -140,17 +140,30 @@ def value_bets(
 def _best_total_prices(
     conn: sqlite3.Connection, match_id: int, line: float
 ) -> tuple[tuple[float, str | None], tuple[float, str | None]]:
+    """Best over / under price for a totals line, ignoring outliers (corrupt/stale data).
+
+    A price more than ``BEST_PRICE_OUTLIER_FACTOR`` times the cross-book median is dropped, so
+    a single corrupt book can't manufacture a phantom huge-EV bet (mirrors 1x2/spreads).
+    """
     rows = conn.execute(
         "SELECT bookmaker, price_over, price_under FROM odds_totals WHERE match_id=? AND line=?",
         (match_id, line),
     ).fetchall()
+    over_vals = [float(r["price_over"]) for r in rows if r["price_over"]]
+    under_vals = [float(r["price_under"]) for r in rows if r["price_under"]]
+    over_med = statistics.median(over_vals) if over_vals else None
+    under_med = statistics.median(under_vals) if under_vals else None
     bo: tuple[float, str | None] = (0.0, None)
     bu: tuple[float, str | None] = (0.0, None)
     for r in rows:
-        if r["price_over"] and float(r["price_over"]) > bo[0]:
-            bo = (float(r["price_over"]), r["bookmaker"])
-        if r["price_under"] and float(r["price_under"]) > bu[0]:
-            bu = (float(r["price_under"]), r["bookmaker"])
+        if r["price_over"]:
+            p = float(r["price_over"])
+            if (over_med is None or p <= over_med * BEST_PRICE_OUTLIER_FACTOR) and p > bo[0]:
+                bo = (p, r["bookmaker"])
+        if r["price_under"]:
+            p = float(r["price_under"])
+            if (under_med is None or p <= under_med * BEST_PRICE_OUTLIER_FACTOR) and p > bu[0]:
+                bu = (p, r["bookmaker"])
     return bo, bu
 
 
