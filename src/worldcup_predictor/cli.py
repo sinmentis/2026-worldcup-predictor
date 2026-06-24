@@ -63,6 +63,39 @@ def fetch_results() -> None:
     conn = _conn()
     n = ingest.fetch_live_results(conn)
     typer.echo(f"Updated {n} results.")
+    stale = ingest.stale_unsettled_matches(conn)
+    for m in stale:
+        typer.echo(
+            f"WARNING: {m['home_team']} vs {m['away_team']} kicked off {m['hours_overdue']}h ago "
+            f"but is still {m['status']} (id={m['id']}). Upstream feed stuck; settle manually "
+            f"(MCP record_match_result or `worldcup record-result {m['id']} <h> <a>`).",
+            err=True,
+        )
+    if stale:
+        typer.echo(f"WARNING: {len(stale)} match(es) overdue and unsettled.", err=True)
+
+
+@app.command("stale-matches")
+def stale_matches(min_hours: float = 6.0) -> None:
+    """List matches past kickoff + min_hours that are still unsettled (need manual settling)."""
+    conn = _conn()
+    stale = ingest.stale_unsettled_matches(conn, min_hours=min_hours)
+    if not stale:
+        typer.echo("No stale unsettled matches.")
+        return
+    for m in stale:
+        typer.echo(
+            f"id={m['id']:>3} {m['home_team']} vs {m['away_team']} "
+            f"[{m['status']}] {m['hours_overdue']}h overdue (kickoff {m['kickoff']})"
+        )
+
+
+@app.command("record-result")
+def record_result(match_id: int, home_score: int, away_score: int) -> None:
+    """Manually record an official result for a match (e.g. one the feed left stuck LIVE)."""
+    conn = _conn()
+    engine.record_result(conn, match_id, home_score, away_score)
+    typer.echo(f"Recorded match {match_id}: {home_score}-{away_score} FINISHED.")
 
 
 @app.command("fetch-fixtures")

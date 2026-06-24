@@ -109,3 +109,27 @@ def test_apply_fixtures_payload_sets_kickoff(tmp_path):
     ).fetchone()
     assert fin["kickoff"] == "2026-06-11T18:00:00Z"
     assert (fin["home_score"], fin["away_score"], fin["status"]) == (2, 0, "FINISHED")
+
+
+def test_stale_unsettled_matches_flags_overdue(tmp_path):
+    import datetime
+
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    now = datetime.datetime(2026, 6, 21, 0, 0, tzinfo=datetime.UTC)
+    # id=1: kicked off 14h ago, still SCHEDULED -> stuck LIVE upstream, must be flagged
+    conn.execute("UPDATE matches SET kickoff='2026-06-20T10:00:00Z' WHERE id=1")
+    # id=2: kicked off 1h ago -> not yet stale
+    conn.execute("UPDATE matches SET kickoff='2026-06-20T23:00:00Z' WHERE id=2")
+    # id=3: already FINISHED -> excluded even though long past kickoff
+    conn.execute(
+        "UPDATE matches SET kickoff='2026-06-19T10:00:00Z', status='FINISHED', "
+        "home_score=1, away_score=0 WHERE id=3"
+    )
+    conn.commit()
+
+    stale = ingest.stale_unsettled_matches(conn, min_hours=6.0, now=now)
+    assert {m["id"] for m in stale} == {1}  # NULL-kickoff and finished/fresh matches excluded
+    assert stale[0]["hours_overdue"] >= 6.0
+    assert {"home_team", "away_team", "kickoff"} <= set(stale[0])

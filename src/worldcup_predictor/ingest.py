@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import csv
+import datetime
 import io
+import logging
 import os
 import sqlite3
 from itertools import combinations
@@ -11,6 +13,8 @@ import httpx
 
 from worldcup_predictor import config
 from worldcup_predictor import db as _db
+
+logger = logging.getLogger("worldcup.ingest")
 
 
 def _to_bool_int(raw: str) -> int:
@@ -155,3 +159,52 @@ def fetch_fixtures(conn: sqlite3.Connection, token: str | None = None) -> int:
     resp = httpx.get(url, headers=headers, timeout=60.0)
     resp.raise_for_status()
     return apply_fixtures_payload(conn, resp.json())
+
+
+def _parse_kickoff(raw: str | None) -> datetime.datetime | None:
+    if not raw:
+        return None
+    try:
+        return datetime.datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except (ValueError, AttributeError):
+        return None
+
+
+def stale_unsettled_matches(
+    conn: sqlite3.Connection,
+    min_hours: float = 6.0,
+    now: datetime.datetime | None = None,
+) -> list[dict[str, Any]]:
+    """Matches whose kickoff is more than ``min_hours`` in the past but still not FINISHED.
+
+    These are matches an upstream feed left stuck (e.g. perpetually IN_PLAY/PAUSED), so they
+    never settle automatically and their paper bets never close. We never fabricate a result
+    from a live score; we surface them so a human can record the official result. Returns
+    id/teams/kickoff/hours_overdue, most overdue first.
+    """
+    now = now or datetime.datetime.now(datetime.UTC)
+    rows = conn.execute(
+        "SELECT id, home_team, away_team, kickoff, status FROM matches "
+        "WHERE status!='FINISHED' AND kickoff IS NOT NULL"
+    ).fetchall()
+    stale: list[dict[str, Any]] = []
+    for r in rows:
+        ko = _parse_kickoff(r["kickoff"])
+        if ko is None:
+            continue
+        if ko.tzinfo is None:
+            ko = ko.replace(tzinfo=datetime.UTC)
+        hours_overdue = (now - ko).total_seconds() / 3600.0
+        if hours_overdue >= min_hours:
+            stale.append(
+                {
+                    "id": r["id"],
+                    "home_team": r["home_team"],
+                    "away_team": r["away_team"],
+                    "kickoff": r["kickoff"],
+                    "status": r["status"],
+                    "hours_overdue": round(hours_overdue, 1),
+                }
+            )
+    stale.sort(key=lambda m: m["hours_overdue"], reverse=True)
+    return stale
