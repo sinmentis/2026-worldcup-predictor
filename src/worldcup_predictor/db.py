@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS matches (
     neutral INTEGER DEFAULT 1,
     home_score INTEGER,
     away_score INTEGER,
-    status TEXT DEFAULT 'SCHEDULED'  -- 'SCHEDULED' | 'FINISHED'
+    status TEXT DEFAULT 'SCHEDULED',  -- 'SCHEDULED' | 'FINISHED'
+    ext_id INTEGER,                   -- football-data match id (knockout upsert key)
+    winner_team TEXT                  -- decisive winner (penalty-settled knockouts)
 );
 CREATE TABLE IF NOT EXISTS historical_matches (
     id INTEGER PRIMARY KEY,
@@ -210,6 +212,14 @@ def migrate(conn: sqlite3.Connection) -> None:
             continue
         if not _has_column(conn, table, "affects"):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN affects TEXT NOT NULL DEFAULT 'attack'")
+    has_matches = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='matches'"
+    ).fetchone()
+    if has_matches:
+        if not _has_column(conn, "matches", "ext_id"):
+            conn.execute("ALTER TABLE matches ADD COLUMN ext_id INTEGER")
+        if not _has_column(conn, "matches", "winner_team"):
+            conn.execute("ALTER TABLE matches ADD COLUMN winner_team TEXT")
     conn.commit()
 
 

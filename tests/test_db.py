@@ -168,6 +168,28 @@ def test_migrate_adds_affects_to_legacy_db(tmp_path):
         assert rows and all(r[0] == "attack" for r in rows)
 
 
+def test_migrate_adds_knockout_columns(tmp_path):
+    from worldcup_predictor import db
+
+    conn = db.connect(tmp_path / "m.db")
+    # Simulate a pre-migration matches table without the new columns.
+    conn.executescript(
+        "CREATE TABLE matches (id INTEGER PRIMARY KEY, stage TEXT NOT NULL, "
+        "group_id TEXT, slot TEXT, home_team TEXT, away_team TEXT, kickoff TEXT, "
+        "neutral INTEGER DEFAULT 1, home_score INTEGER, away_score INTEGER, "
+        "status TEXT DEFAULT 'SCHEDULED');"
+    )
+    conn.commit()
+    assert not db._has_column(conn, "matches", "ext_id")
+
+    db.migrate(conn)
+
+    assert db._has_column(conn, "matches", "ext_id")
+    assert db._has_column(conn, "matches", "winner_team")
+    # Idempotent: running again is a no-op (must not raise).
+    db.migrate(conn)
+
+
 def test_fresh_db_rejects_bad_affects(tmp_path):
     conn = db.connect(tmp_path / "fresh.db")
     db.init_schema(conn)
