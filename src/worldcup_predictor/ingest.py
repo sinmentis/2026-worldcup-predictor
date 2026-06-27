@@ -16,6 +16,73 @@ from worldcup_predictor import db as _db
 
 logger = logging.getLogger("worldcup.ingest")
 
+_STAGE_MAP: dict[str, str] = {
+    "GROUP_STAGE": "group",
+    "LAST_32": "R32",
+    "LAST_16": "R16",
+    "QUARTER_FINALS": "QF",
+    "SEMI_FINALS": "SF",
+    "THIRD_PLACE": "3RD",
+    "FINAL": "FINAL",
+}
+_KNOCKOUT_STAGES: frozenset[str] = frozenset(s for s, v in _STAGE_MAP.items() if v != "group")
+
+
+def _winner_team(score: dict[str, Any], home: str | None, away: str | None) -> str | None:
+    w = score.get("winner")
+    if w == "HOME_TEAM":
+        return home
+    if w == "AWAY_TEAM":
+        return away
+    return None
+
+
+def apply_knockout_fixtures(conn: sqlite3.Connection, payload: dict[str, Any]) -> int:
+    """Upsert knockout matches (R32..FINAL) from the feed, keyed by the feed match id.
+
+    Teams are stored when the feed knows them (else NULL for not-yet-decided slots). Scores,
+    status and the decisive winner are filled in once a match is FINISHED. Idempotent: a later
+    fetch updates the same row in place.
+    """
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_ext_id ON matches(ext_id)")
+    touched = 0
+    for m in payload.get("matches", []):
+        stage = m.get("stage")
+        if stage not in _KNOCKOUT_STAGES:
+            continue
+        ext_id = m.get("id")
+        if ext_id is None:
+            continue
+        mapped = _STAGE_MAP[stage]
+        ht: Any = m.get("homeTeam") or {}
+        at: Any = m.get("awayTeam") or {}
+        home = config.canonical_team(ht.get("name")) if ht.get("name") else None
+        away = config.canonical_team(at.get("name")) if at.get("name") else None
+        kickoff = m.get("utcDate")
+        score = m.get("score") or {}
+        ft = score.get("fullTime") or {}
+        finished = m.get("status") == "FINISHED"
+        hs = ft.get("home") if finished else None
+        as_ = ft.get("away") if finished else None
+        status = "FINISHED" if finished else "SCHEDULED"
+        winner = _winner_team(score, home, away) if finished else None
+        conn.execute(
+            "INSERT INTO matches(stage, slot, group_id, home_team, away_team, kickoff, "
+            " neutral, home_score, away_score, status, ext_id, winner_team) "
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
+            " ON CONFLICT(ext_id) DO UPDATE SET stage=excluded.stage, home_team=excluded.home_team,"
+            " away_team=excluded.away_team, kickoff=excluded.kickoff, "
+            "home_score=excluded.home_score,"
+            " away_score=excluded.away_score, status=excluded.status, "
+            "winner_team=excluded.winner_team",
+            (mapped, None, None, home, away, kickoff, 1, hs, as_, status, ext_id, winner),
+        )
+        touched += 1
+    conn.commit()
+    if touched:
+        _db.touch_update(conn)
+    return touched
+
 
 def _to_bool_int(raw: str) -> int:
     return 1 if str(raw).strip().lower() in {"true", "1", "yes"} else 0
@@ -83,6 +150,8 @@ def seed_teams_and_fixtures(conn: sqlite3.Connection) -> None:
 def apply_results_payload(conn: sqlite3.Connection, payload: dict[str, Any]) -> int:
     updated = 0
     for m in payload.get("matches", []):
+        if m.get("stage") in _KNOCKOUT_STAGES:
+            continue
         if m.get("status") != "FINISHED":
             continue
         home = config.canonical_team(m["homeTeam"]["name"])
@@ -122,6 +191,8 @@ def apply_fixtures_payload(conn: sqlite3.Connection, payload: dict[str, Any]) ->
     finished scores. Returns the number of fixtures whose kickoff was set."""
     set_kickoffs = 0
     for m in payload.get("matches", []):
+        if m.get("stage") in _KNOCKOUT_STAGES:
+            continue
         home = config.canonical_team(m["homeTeam"]["name"])
         away = config.canonical_team(m["awayTeam"]["name"])
         kickoff = m.get("utcDate")
@@ -151,14 +222,20 @@ def apply_fixtures_payload(conn: sqlite3.Connection, payload: dict[str, Any]) ->
     return set_kickoffs
 
 
-def fetch_fixtures(conn: sqlite3.Connection, token: str | None = None) -> int:
-    """Fetch ALL WC fixtures (scheduled + finished) and populate kickoff times + results."""
+def fetch_fixtures(conn: sqlite3.Connection, token: str | None = None) -> tuple[int, int]:
+    """Fetch ALL WC fixtures; populate group kickoffs/results and knockout fixtures.
+
+    Returns (group_kickoffs_set, knockout_rows_upserted).
+    """
     token = token or os.environ.get("FOOTBALL_DATA_TOKEN", "")
     url = f"{config.FOOTBALL_DATA_BASE}/competitions/{config.FOOTBALL_DATA_COMP}/matches"
     headers = {"X-Auth-Token": token} if token else {}
     resp = httpx.get(url, headers=headers, timeout=60.0)
     resp.raise_for_status()
-    return apply_fixtures_payload(conn, resp.json())
+    payload = resp.json()
+    groups = apply_fixtures_payload(conn, payload)
+    knockout = apply_knockout_fixtures(conn, payload)
+    return groups, knockout
 
 
 def _parse_kickoff(raw: str | None) -> datetime.datetime | None:

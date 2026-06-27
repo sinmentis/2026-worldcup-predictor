@@ -100,10 +100,10 @@ def record_result(match_id: int, home_score: int, away_score: int) -> None:
 
 @app.command("fetch-fixtures")
 def fetch_fixtures() -> None:
-    """Fetch all WC fixtures and populate kickoff times (and any results)."""
+    """Fetch all WC fixtures and populate kickoff times, results, and knockout bracket."""
     conn = _conn()
-    n = ingest.fetch_fixtures(conn)
-    typer.echo(f"Set kickoff on {n} fixtures.")
+    groups, knockout = ingest.fetch_fixtures(conn)
+    typer.echo(f"Set kickoff on {groups} group fixtures; upserted {knockout} knockout fixtures.")
 
 
 @app.command("fetch-news")
