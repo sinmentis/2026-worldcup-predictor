@@ -41,7 +41,8 @@ def get_group_standings(conn: sqlite3.Connection, group: str) -> list[dict[str, 
 def get_upcoming_matches(conn: sqlite3.Connection, limit: int = 10) -> list[dict[str, Any]]:
     rows = conn.execute(
         "SELECT id, stage, group_id, home_team, away_team, kickoff, status "
-        "FROM matches WHERE status='SCHEDULED' ORDER BY COALESCE(kickoff,''), id LIMIT ?",
+        "FROM matches WHERE status='SCHEDULED' AND home_team IS NOT NULL AND away_team IS NOT NULL "
+        "ORDER BY COALESCE(kickoff,''), id LIMIT ?",
         (limit,),
     ).fetchall()
     return [dict(r) for r in rows]
@@ -191,10 +192,14 @@ def get_upcoming_predictions(conn: sqlite3.Connection, limit: int = 12) -> dict[
     model = get_model(conn)
     rows = conn.execute(
         "SELECT id, group_id, home_team, away_team, kickoff, neutral FROM matches "
-        "WHERE status='SCHEDULED' ORDER BY (kickoff IS NULL), kickoff, id LIMIT ?",
+        "WHERE status='SCHEDULED' AND home_team IS NOT NULL AND away_team IS NOT NULL "
+        "ORDER BY (kickoff IS NULL), kickoff, id LIMIT ?",
         (limit,),
     ).fetchall()
-    remaining = conn.execute("SELECT COUNT(*) FROM matches WHERE status='SCHEDULED'").fetchone()[0]
+    remaining = conn.execute(
+        "SELECT COUNT(*) FROM matches "
+        "WHERE status='SCHEDULED' AND home_team IS NOT NULL AND away_team IS NOT NULL"
+    ).fetchone()[0]
     # Persist only the ORIGINAL prediction per match (the accuracy page reads MIN(id)); this is
     # a public, unauthenticated read path, so re-predicting and re-inserting on every hit would
     # bloat the predictions table without bound and pollute that "original" snapshot.
@@ -543,6 +548,8 @@ def predict_fixture(conn: sqlite3.Connection, match_id: int) -> dict[str, Any]:
     ).fetchone()
     if m is None:
         raise ValueError(f"No match with id {match_id}")
+    if m["home_team"] is None or m["away_team"] is None:
+        raise ValueError(f"Match {match_id} has undecided teams (knockout slot not yet filled)")
     model = get_model(conn)
     pred = predict_match(
         conn, model, m["home_team"], m["away_team"], match_id=match_id, neutral=bool(m["neutral"])

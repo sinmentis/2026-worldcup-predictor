@@ -274,3 +274,82 @@ def test_get_predicted_bracket_shape(tmp_path, monkeypatch):
     assert {"rounds", "third_place", "real_fixtures", "total_fixtures"} <= set(out)
     assert out["total_fixtures"] == 1 and out["real_fixtures"] == 1
     assert out["rounds"][0]["stage"] == "R32"
+
+
+def test_get_upcoming_predictions_skips_null_team_knockout(tmp_path, monkeypatch):
+    """A SCHEDULED knockout slot with NULL teams must not reach the model (was a 500)."""
+    import numpy as np
+    import pandas as pd
+
+    from worldcup_predictor.goal_model import GoalModel
+
+    conn = db.connect(tmp_path / "kn.db")
+    db.init_schema(conn)
+    # one scheduled group fixture between two teams the model knows (NULL kickoff)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,neutral,status)"
+        " VALUES (1,'group','A','Strong','Weak',1,'SCHEDULED')"
+    )
+    # one scheduled knockout slot with not-yet-decided (NULL) teams; its concrete kickoff
+    # sorts it ahead of the group match (NULL kickoff) so it lands first in the window
+    ingest.apply_knockout_fixtures(
+        conn,
+        {
+            "matches": [
+                {
+                    "id": 9001,
+                    "stage": "LAST_16",
+                    "utcDate": "2026-06-28T10:00:00Z",
+                    "status": "TIMED",
+                    "homeTeam": {},
+                    "awayTeam": {},
+                    "score": {},
+                },
+            ]
+        },
+    )
+    conn.commit()
+    rng = np.random.default_rng(1)
+    rows = []
+    for _ in range(80):
+        rows.append(("2024-01-01", "Strong", "Weak", int(rng.integers(2, 5)), 0, False))
+        rows.append(("2024-01-01", "Weak", "Strong", 0, int(rng.integers(2, 5)), False))
+    history = pd.DataFrame(
+        rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+    )
+    model = GoalModel().fit(history)
+    monkeypatch.setattr(engine, "get_model", lambda _conn, refit=False: model)
+
+    # before the fix this raised ValueError (NULL team -> model); after, the row is excluded
+    out = engine.get_upcoming_predictions(conn, limit=10)
+    assert [m["match_id"] for m in out["matches"]] == [1]
+    assert out["matches"][0]["home_team"] == "Strong"
+    assert out["remaining"] == 1  # the TBD knockout row is not counted
+
+
+def test_predict_fixture_raises_on_undecided_teams(tmp_path):
+    """predict_fixture on a TBD knockout slot raises a clean error, not the model crash."""
+    import pytest
+
+    conn = db.connect(tmp_path / "pf.db")
+    db.init_schema(conn)
+    ingest.apply_knockout_fixtures(
+        conn,
+        {
+            "matches": [
+                {
+                    "id": 9001,
+                    "stage": "LAST_16",
+                    "utcDate": "2026-06-28T10:00:00Z",
+                    "status": "TIMED",
+                    "homeTeam": {},
+                    "awayTeam": {},
+                    "score": {},
+                },
+            ]
+        },
+    )
+    mid = conn.execute("SELECT id FROM matches WHERE stage='R16'").fetchone()[0]
+
+    with pytest.raises(ValueError, match="undecided teams"):
+        engine.predict_fixture(conn, mid)
