@@ -376,41 +376,103 @@ td.team { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 tbody tr:nth-child(-n+2) td.pts { color: var(--win); }
 .pts { font-weight: 800; }
 
-/* ---------- bracket / knockout projection ---------- */
-.bk-sub { font-size: 15px; font-weight: 750; margin: 18px 0 12px; }
-.bk-sub small { color: var(--muted); font-weight: 500; font-size: 12px; }
-.bk-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-.bk-group { padding: 12px 14px; }
-.bk-group h4 { margin: 0 0 8px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
-.bk-group h4 .badge {
-  width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px;
-  font-weight: 800; font-size: 12px; color: #06281f;
-  background: linear-gradient(92deg, var(--accent), var(--accent2));
+/* ---------- bracket / knockout tree (single-direction L→R) ---------- */
+/* Ported from the approved bracket mockup, namespaced under #bracket / #bracket-modal
+   so it can't collide with site styles. Scoped variable overrides keep the tree's
+   look identical to the mockup; --bg/--accent/--win/--gold/--muted/--text resolve to
+   the site's :root values. */
+#bracket {
+  --panel: #111827;
+  --panel2: #0f1626;
+  --line: #26344e;
+  overflow-x: auto;
 }
-.bk-grow { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 13px; }
-.bk-grow + .bk-grow { border-top: 1px solid var(--border); }
-.bk-grow.qual { font-weight: 700; }
-.bk-grow.qual span:last-child { color: var(--win); }
-.bk-heat-wrap { overflow-x: auto; }
-.bk-heat { width: 100%; border-collapse: collapse; font-size: 13px; }
-.bk-heat th { color: var(--muted); font-weight: 600; font-size: 11px; padding: 6px 8px; text-align: center; }
-.bk-heat td { padding: 6px 8px; text-align: center; font-variant-numeric: tabular-nums; color: #06281f; font-weight: 700; }
-.bk-heat td.team { text-align: left; color: var(--text); font-weight: 600; background: none !important; white-space: nowrap; }
-.bk-heat tbody tr { border-top: 1px solid var(--border); }
-.round { min-width: 190px; flex: 0 0 auto; }
-.round h3 {
-  font-size: 12px; color: var(--muted); text-transform: uppercase;
-  letter-spacing: 1px; margin: 0 0 10px; text-align: center;
+#bracket .bracket-counter { font-size: 13px; color: var(--text); margin: 0 0 14px; }
+#bracket .bracket-counter b { color: var(--accent); font-size: 16px; }
+
+#bracket .bracket { display: flex; align-items: stretch; width: max-content; padding-bottom: 24px; }
+#bracket .round { display: flex; flex-direction: column; flex: 0 0 auto; }
+#bracket .round:not(.final) { padding-right: 54px; }
+#bracket .rlabel {
+  font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  margin: 0 0 6px; font-weight: 700; height: 16px; text-align: center;
 }
-.match-card {
-  padding: 10px 12px; margin-bottom: 10px; cursor: pointer; font-size: 13px;
-  display: grid; grid-template-columns: 1fr auto; gap: 4px 8px;
-  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
-  transition: border-color .12s, transform .12s;
+#bracket .slot { flex: 1 0 auto; display: flex; align-items: center; position: relative; padding: 6px 0; }
+/* connector elbows */
+#bracket .round:not(.final) .slot::after {
+  content: ""; position: absolute; left: 100%; width: 27px; border-right: 2px solid var(--line);
 }
-.match-card:hover { border-color: rgba(34,211,238,.4); transform: translateY(-1px); }
-.match-card .winner { font-weight: 800; color: var(--accent2); }
-.match-card .sc { color: var(--muted); font-variant-numeric: tabular-nums; }
+#bracket .round:not(.final) .slot:nth-child(odd of .slot)::after { top: 50%; height: 50%; border-top: 2px solid var(--line); }
+#bracket .round:not(.final) .slot:nth-child(even of .slot)::after { top: 0; height: 50%; border-bottom: 2px solid var(--line); }
+#bracket .round:not(:first-of-type) .slot::before {
+  content: ""; position: absolute; right: 100%; width: 27px; top: 50%; border-top: 2px solid var(--line);
+}
+/* fallback for browsers without :nth-child(of) — JS adds .top/.bot classes too */
+#bracket .slot.bot::after { top: 0 !important; border-top: none !important; border-bottom: 2px solid var(--line) !important; }
+#bracket .slot.top::after { top: 50% !important; border-bottom: none !important; border-top: 2px solid var(--line) !important; }
+
+/* node card */
+#bracket .match {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 7px 9px 6px; min-width: 214px; cursor: pointer; transition: .15s; position: relative; z-index: 1;
+}
+#bracket .match:hover { border-color: var(--accent); transform: translateY(-1px); }
+#bracket .match.proj { background: var(--panel2); border-style: dashed; border-color: #33425e; opacity: .94; }
+#bracket .trow { display: flex; align-items: center; gap: 7px; padding: 3px 0; }
+#bracket .flag { font-size: 16px; line-height: 1; flex: 0 0 auto; filter: none; }
+#bracket .names { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+#bracket .zh { font-size: 13px; font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+#bracket .en { font-size: 10px; color: var(--muted); line-height: 1.1; white-space: nowrap; }
+#bracket .rank {
+  font-size: 9px; color: #9fb0cc; background: #1b2740; border: 1px solid #2b3a57;
+  border-radius: 10px; padding: 0 5px; font-weight: 700;
+}
+#bracket .pct { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 13px; color: var(--muted); flex: 0 0 auto; }
+#bracket .trow.win .zh { color: var(--win); }
+#bracket .trow.win .pct { color: var(--win); }
+#bracket .proj .zh { font-weight: 600; }
+#bracket .foot {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 3px;
+  border-top: 1px solid var(--line); padding-top: 4px;
+}
+#bracket .score { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 11px; }
+#bracket .badge { font-size: 10px; padding: 1px 7px; border-radius: 20px; font-weight: 700; }
+#bracket .badge.real { background: var(--accent); color: #04222a; }
+#bracket .badge.proj { background: #26334c; color: #9fb0cc; border: 1px dashed #4a5b7a; }
+#bracket .badge.done { background: var(--win); color: #04261a; }
+#bracket .final-card {
+  border: 1px solid var(--gold); border-radius: 14px; padding: 10px;
+  background: rgba(251, 191, 36, .06); text-align: center;
+}
+#bracket .final-card .rlabel { color: var(--gold); }
+#bracket .trophy { font-size: 24px; }
+#bracket .third-card { margin-top: 18px; }
+
+/* detail modal */
+#bracket-modal {
+  position: fixed; inset: 0; background: rgba(3, 6, 14, .72); display: none; align-items: center;
+  justify-content: center; z-index: 50; padding: 18px;
+}
+#bracket-modal.on { display: flex; }
+#bracket-modal .sheet {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px; max-width: 460px; width: 100%;
+  padding: 18px 20px; box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+}
+#bracket-modal .sheet h3 { margin: 0 0 2px; font-size: 16px; }
+#bracket-modal .sheet .vs { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+#bracket-modal .bar { height: 30px; border-radius: 7px; overflow: hidden; display: flex; font-size: 12px; font-weight: 700; margin: 10px 0; }
+#bracket-modal .bar .h { background: var(--win); color: #04261a; display: flex; align-items: center; justify-content: center; }
+#bracket-modal .bar .d { background: var(--gold); color: #3a2b00; display: flex; align-items: center; justify-content: center; }
+#bracket-modal .bar .a { background: #60a5fa; color: #0a1f3d; display: flex; align-items: center; justify-content: center; }
+#bracket-modal .kv { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+#bracket-modal .kv .muted { color: var(--muted); }
+#bracket-modal .factors { margin-top: 10px; font-size: 12px; color: var(--muted); }
+#bracket-modal .factors li { margin: 3px 0; }
+#bracket-modal .close {
+  margin-top: 14px; width: 100%; background: var(--accent); color: #04222a; border: 0; border-radius: 9px;
+  padding: 10px; font-weight: 700; cursor: pointer;
+}
+#bracket-modal .adv { font-size: 12px; color: var(--gold); margin-top: 8px; }
 
 /* ---------- modal ---------- */
 dialog {

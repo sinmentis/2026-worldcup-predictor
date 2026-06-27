@@ -315,36 +315,82 @@ async function loadGroups() {
   grid.innerHTML = cards.join("");
 }
 
-/* ---------------- bracket / knockout projection ---------------- */
+/* ---------------- bracket / knockout tree ---------------- */
+function bracketTeamRow(name, advPct, isWin) {
+  const en = name ? `<span class="en">${esc(name)}</span>` : "";
+  const nm = name ? `${zh(name)} ${rankBadge(name)}` : "待定";
+  const fl = name ? flag(name) : "🏳️";
+  const p = advPct == null ? "" : `${Math.round(advPct * 100)}%`;
+  return `<div class="trow ${isWin ? "win" : ""}"><span class="flag">${fl}</span>
+    <span class="names"><span class="zh">${nm}</span>${en}</span><span class="pct">${p}</span></div>`;
+}
+
+function bracketNode(m) {
+  const proj = !(m.home_known && m.away_known);
+  const winHome = m.winner && m.winner === m.home;
+  const winAway = m.winner && m.winner === m.away;
+  const badge = m.status === "FINISHED" ? `<span class="badge done">已赛</span>`
+    : proj ? `<span class="badge proj">推测</span>` : `<span class="badge real">真实</span>`;
+  const score = m.status === "FINISHED" && m.home_score != null
+    ? `比分 ${m.home_score}-${m.away_score}`
+    : (m.ml_home != null ? `预测 ${m.ml_home}-${m.ml_away}` : "");
+  return `<div class="match ${proj ? "proj" : ""}" data-node='${esc(JSON.stringify(m))}'>
+    ${bracketTeamRow(m.home, m.advance_home, winHome)}
+    ${bracketTeamRow(m.away, m.advance_away, winAway)}
+    <div class="foot"><span class="score">${score}</span>${badge}</div></div>`;
+}
+
 async function loadBracket() {
   const el = document.getElementById("bracket");
-  const data = await (await fetch("/api/bracket-projection")).json();
-  const teams = data.teams || [];
-  if (!teams.length) {
-    el.innerHTML = `<div class="empty">尚未运行模拟。请执行 <code>worldcup simulate</code> 生成晋级概率。</div>`;
+  const data = await (await fetch("/api/knockout/bracket")).json();
+  if (!data.rounds || data.total_fixtures === 0) {
+    el.innerHTML = `<p class="muted">淘汰赛对阵将在小组赛结束后生成。</p>`;
     return;
   }
-  const ROUNDS = [["advance_prob", "出线"], ["r16_prob", "16强"], ["qf_prob", "8强"], ["sf_prob", "4强"], ["final_prob", "决赛"], ["title_prob", "夺冠"]];
-  const heat = (p) => `background:rgba(52,211,153,${(0.06 + 0.82 * p).toFixed(3)})`;
-
-  let gq = `<h3 class="bk-sub">各组出线预测 <small>（绿底=最可能出线的两支）</small></h3><div class="bk-groups">`;
-  for (const g of "ABCDEFGHIJKL".split("")) {
-    const gt = data.groups[g] || [];
-    gq += `<div class="card bk-group"><h4><span class="badge">${g}</span> ${g} 组</h4>` +
-      gt.map((t, i) => `<div class="bk-grow ${i < 2 ? "qual" : ""}"><span>${flag(t.team)} ${zhr(t.team)}</span><span class="muted">${pct0(t.advance_prob)}</span></div>`).join("") +
-      `</div>`;
-  }
-  gq += `</div>`;
-
-  let hm = `<h3 class="bk-sub">晋级热图 <small>（${data.n_iter} 次模拟 · 每支队走到各轮的概率）</small></h3>
-    <div class="bk-heat-wrap"><table class="bk-heat"><thead><tr><th>队伍</th>${ROUNDS.map((r) => `<th>${r[1]}</th>`).join("")}</tr></thead><tbody>`;
-  for (const t of teams) {
-    hm += `<tr><td class="team">${flag(t.team)} ${zhr(t.team)}</td>` +
-      ROUNDS.map((r) => `<td style="${heat(t[r[0]])}">${pct0(t[r[0]])}</td>`).join("") + `</tr>`;
-  }
-  hm += `</tbody></table></div>`;
-  el.innerHTML = gq + hm;
+  const col = (label, matches) => {
+    const slots = matches.map((m, i) =>
+      `<div class="slot ${i % 2 ? "bot" : "top"}">${bracketNode(m)}</div>`).join("");
+    return `<div class="round"><div class="rlabel">${esc(label)}</div>${slots}</div>`;
+  };
+  const finalRound = data.rounds.find((r) => r.stage === "FINAL");
+  const finalHtml = finalRound && finalRound.matches.length
+    ? `<div class="round final"><div class="rlabel">&nbsp;</div><div class="slot"><div>
+         <div class="final-card"><div class="rlabel">决赛 FINAL</div><div class="trophy">🏆</div>
+           ${bracketNode(finalRound.matches[0])}</div>
+         ${data.third_place ? `<div class="third-card"><div class="rlabel">季军赛 3RD</div>
+           ${bracketNode(data.third_place)}</div>` : ""}
+       </div></div></div>`
+    : "";
+  const cols = data.rounds.filter((r) => r.stage !== "FINAL")
+    .map((r) => col(`${r.stage} · ${r.label}`, r.matches)).join("");
+  el.innerHTML = `<div class="bracket-counter">真实赛程 <b>${data.real_fixtures}</b> / ${data.total_fixtures}</div>
+    <div class="bracket">${cols}${finalHtml}</div>
+    <div id="bracket-modal" class="modal" onclick="if(event.target===this)closeBracketModal()">
+      <div class="sheet" id="bracket-sheet"></div></div>`;
+  el.querySelectorAll(".match").forEach((n) =>
+    n.addEventListener("click", () => openBracketModal(JSON.parse(n.dataset.node))));
 }
+
+function openBracketModal(m) {
+  const an = m.home ? zh(m.home) : "待定", bn = m.away ? zh(m.away) : "待定";
+  const sheet = document.getElementById("bracket-sheet");
+  const probs = m.p_home == null ? "" : `<div class="bar">
+    <div class="h" style="width:${Math.round(m.p_home * 100)}%">${an} ${Math.round(m.p_home * 100)}%</div>
+    <div class="d" style="width:${Math.round(m.p_draw * 100)}%">平 ${Math.round(m.p_draw * 100)}%</div>
+    <div class="a" style="width:${Math.round(m.p_away * 100)}%">${Math.round(m.p_away * 100)}% ${bn}</div></div>`;
+  const adv = m.advance_home == null ? "" :
+    `<div class="kv"><span class="muted">晋级概率</span><span><b>${an} ${Math.round(m.advance_home * 100)}%</b> · ${bn} ${Math.round(m.advance_away * 100)}%</span></div>`;
+  const fac = (m.factors || []).map((f) =>
+    `<li>· ${esc(zh(f.team))}: ${esc(f.description)} (Δλ=${f.lambda_delta.toFixed(2)})</li>`).join("");
+  const note = (m.home_known && m.away_known) ? "" :
+    `<div class="adv">⚠ 推测对阵：球队由上一轮预测的胜者推演，真实结果出来后会更新。</div>`;
+  sheet.innerHTML = `<h3>${an} <span class="muted">vs</span> ${bn}</h3>${probs}${adv}
+    ${m.ml_home != null ? `<div class="kv"><span class="muted">最可能比分</span><span>${m.ml_home}-${m.ml_away}</span></div>` : ""}
+    ${fac ? `<div class="factors"><div class="muted">情报因素</div><ul>${fac}</ul></div>` : ""}
+    ${note}<button class="close" onclick="closeBracketModal()">关闭</button>`;
+  document.getElementById("bracket-modal").classList.add("on");
+}
+function closeBracketModal() { document.getElementById("bracket-modal").classList.remove("on"); }
 
 /* ---------------- match modal ---------------- */
 async function showDetail(id) {
