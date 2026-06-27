@@ -62,6 +62,8 @@ def get_knockout_bracket(conn: sqlite3.Connection) -> dict[str, list[dict[str, A
 def get_predicted_bracket(conn: sqlite3.Connection) -> dict[str, Any]:
     """Knockout tree: real fixtures from the feed + our prediction for every match, with our
     predicted winners projected forward into not-yet-decided slots."""
+    if not _bracket.has_knockout_fixtures(conn):
+        return _bracket.empty_bracket()  # group stage: nothing to project, skip fitting the model
     return _bracket.build_predicted_bracket(conn, get_model(conn))
 
 

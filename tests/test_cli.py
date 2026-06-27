@@ -115,3 +115,18 @@ def test_value_bets_empty(tmp_path, monkeypatch):
     res = runner.invoke(app, ["value-bets"])
     assert res.exit_code == 0
     assert "No value bets" in res.stdout
+
+
+def test_bracket_command_empty(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+
+    from worldcup_predictor import cli, db, ingest
+
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "c.db"))
+    conn = db.connect(tmp_path / "c.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    conn.close()
+    result = CliRunner().invoke(cli.app, ["bracket"])
+    assert result.exit_code == 0
+    assert "No knockout fixtures" in result.stdout

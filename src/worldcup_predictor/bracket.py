@@ -93,6 +93,23 @@ def _decide(
     return node
 
 
+def has_knockout_fixtures(conn: sqlite3.Connection) -> bool:
+    """True once the feed has populated any knockout fixture (R32→final, incl. the 3rd-place
+    match). Lets callers skip fitting the goal model while the group stage is still in progress."""
+    return any(_load(conn).values())
+
+
+def empty_bracket() -> dict[str, Any]:
+    """The bracket payload before any knockout fixture exists: the five rounds as empty shells,
+    matching ``build_predicted_bracket``'s shape so consumers need no special-casing."""
+    return {
+        "rounds": [{"stage": s, "label": _LABELS[s], "matches": []} for s in _ROUND_ORDER],
+        "third_place": None,
+        "real_fixtures": 0,
+        "total_fixtures": 0,
+    }
+
+
 def build_predicted_bracket(conn: sqlite3.Connection, model: GoalModel) -> dict[str, Any]:
     """Compose the knockout tree: feed teams where known, predicted winners projected forward."""
     by_stage = _load(conn)

@@ -106,6 +106,28 @@ def fetch_fixtures() -> None:
     typer.echo(f"Set kickoff on {groups} group fixtures; upserted {knockout} knockout fixtures.")
 
 
+@app.command("bracket")
+def bracket() -> None:
+    """Print the predicted knockout bracket (real fixtures + projected winners to the final)."""
+    conn = _conn()
+    data = engine.get_predicted_bracket(conn)
+    if not data["total_fixtures"]:
+        typer.echo("No knockout fixtures yet (group stage still in progress).")
+        return
+    typer.echo(f"Knockout bracket — real {data['real_fixtures']}/{data['total_fixtures']}")
+    for rnd in data["rounds"]:
+        typer.echo(f"\n[{rnd['stage']}]")
+        for m in rnd["matches"]:
+            h, a = m["home"] or "TBD", m["away"] or "TBD"
+            tag = (
+                "FINISHED"
+                if m["status"] == "FINISHED"
+                else ("real" if m["home_known"] and m["away_known"] else "proj")
+            )
+            ah = f"{round(m['advance_home'] * 100)}%" if m["advance_home"] is not None else "-"
+            typer.echo(f"  {h} vs {a}  [{tag}] adv_home={ah}")
+
+
 @app.command("fetch-news")
 def fetch_news() -> None:
     """Fetch configured RSS feeds and store new articles (cron-friendly)."""
