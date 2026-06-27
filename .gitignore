@@ -14,3 +14,6 @@ data/cache/
 
 # db backups
 data/*.bak*
+
+# worktrees
+.worktrees/
