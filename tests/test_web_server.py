@@ -4,11 +4,28 @@ from fastapi.testclient import TestClient
 def test_api_endpoints(tmp_path, monkeypatch):
     db_path = tmp_path / "web.db"
     monkeypatch.setenv("WC_DB_PATH", str(db_path))
-    from worldcup_predictor import db, ingest
+    import numpy as np
+    import pandas as pd
+
+    from worldcup_predictor import db, engine, ingest
+    from worldcup_predictor.goal_model import GoalModel
 
     conn = db.connect(db_path)
     db.init_schema(conn)
     ingest.seed_teams_and_fixtures(conn)
+
+    # The knockout-bracket route fits a goal model; stub it so this smoke test stays offline.
+    rng = np.random.default_rng(7)
+    rows = []
+    for _ in range(60):
+        rows.append(("2024-01-01", "Strong", "Weak", int(rng.integers(2, 5)), 0, False))
+        rows.append(("2024-01-01", "Weak", "Strong", 0, int(rng.integers(2, 5)), False))
+    model = GoalModel().fit(
+        pd.DataFrame(
+            rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+        )
+    )
+    monkeypatch.setattr(engine, "get_model", lambda _c, refit=False: model)
 
     from worldcup_predictor.web_server import app
 
@@ -31,7 +48,9 @@ def test_api_endpoints(tmp_path, monkeypatch):
 
     r3 = client.get("/api/knockout/bracket")
     assert r3.status_code == 200
-    assert "R32" in r3.json()
+    body = r3.json()
+    assert {"rounds", "third_place", "real_fixtures", "total_fixtures"} <= set(body)
+    assert body["rounds"][0]["stage"] == "R32"
 
 
 def test_web_validation(tmp_path, monkeypatch):

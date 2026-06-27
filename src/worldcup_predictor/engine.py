@@ -6,6 +6,7 @@ from dataclasses import asdict
 from typing import Any
 
 from worldcup_predictor import backtest as _backtest
+from worldcup_predictor import bracket as _bracket
 from worldcup_predictor import calibrate as _calibrate
 from worldcup_predictor import config, db
 from worldcup_predictor import evaluate as _eval
@@ -56,6 +57,12 @@ def get_knockout_bracket(conn: sqlite3.Connection) -> dict[str, list[dict[str, A
         ).fetchall()
         rounds[stage] = [dict(r) for r in rows]
     return rounds
+
+
+def get_predicted_bracket(conn: sqlite3.Connection) -> dict[str, Any]:
+    """Knockout tree: real fixtures from the feed + our prediction for every match, with our
+    predicted winners projected forward into not-yet-decided slots."""
+    return _bracket.build_predicted_bracket(conn, get_model(conn))
 
 
 def _top_scorelines(grid: Any, n: int = 6) -> list[dict[str, Any]]:

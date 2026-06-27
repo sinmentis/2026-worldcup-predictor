@@ -78,9 +78,9 @@ def upcoming(limit: int = 10) -> list[dict[str, Any]]:
 
 
 @app.get("/api/knockout/bracket")
-def bracket() -> dict[str, list[dict[str, Any]]]:
+def bracket() -> dict[str, Any]:
     with closing(_conn()) as conn:
-        return engine.get_knockout_bracket(conn)
+        return engine.get_predicted_bracket(conn)
 
 
 @app.get("/api/bracket-projection")

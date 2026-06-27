@@ -230,3 +230,47 @@ def test_top_scorelines_orders_by_prob():
     top = engine._top_scorelines(ScoreGrid(matrix=mtx), n=2)
     assert top[0] == {"home": 1, "away": 0, "prob": 0.4}
     assert len(top) == 2
+
+
+def test_get_predicted_bracket_shape(tmp_path, monkeypatch):
+    import numpy as np
+    import pandas as pd
+
+    from worldcup_predictor import engine as eng
+    from worldcup_predictor import ingest
+    from worldcup_predictor.goal_model import GoalModel
+
+    conn = db.connect(tmp_path / "pb.db")
+    db.init_schema(conn)
+    ingest.apply_knockout_fixtures(
+        conn,
+        {
+            "matches": [
+                {
+                    "id": 1,
+                    "stage": "LAST_32",
+                    "utcDate": "2026-06-28T10:00:00Z",
+                    "status": "TIMED",
+                    "homeTeam": {"name": "Strong"},
+                    "awayTeam": {"name": "Weak"},
+                    "score": {},
+                },
+            ]
+        },
+    )
+    rng = np.random.default_rng(3)
+    rows = []
+    for _ in range(60):
+        rows.append(("2024-01-01", "Strong", "Weak", int(rng.integers(2, 5)), 0, False))
+        rows.append(("2024-01-01", "Weak", "Strong", 0, int(rng.integers(2, 5)), False))
+    model = GoalModel().fit(
+        pd.DataFrame(
+            rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+        )
+    )
+    monkeypatch.setattr(eng, "get_model", lambda _c, refit=False: model)
+
+    out = eng.get_predicted_bracket(conn)
+    assert {"rounds", "third_place", "real_fixtures", "total_fixtures"} <= set(out)
+    assert out["total_fixtures"] == 1 and out["real_fixtures"] == 1
+    assert out["rounds"][0]["stage"] == "R32"
