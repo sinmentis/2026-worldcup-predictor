@@ -85,6 +85,8 @@ def walk_forward_predictions(
                     "p_draw": grid.draw,
                     "p_away": grid.away_win,
                     "outcome": _outcome(int(m["home_goals"]), int(m["away_goals"])),
+                    "p_over_2_5": grid.over(2.5),
+                    "total_goals": int(m["home_goals"]) + int(m["away_goals"]),
                 }
             )
     return out

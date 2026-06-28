@@ -18,6 +18,9 @@ class _FakeGrid:
     draw = 0.3
     away_win = 0.2
 
+    def over(self, line: float) -> float:
+        return 0.55
+
 
 class _FakeModel:
     def fit(self, df, xi=None):
@@ -56,6 +59,9 @@ def test_walk_forward_outputs_out_of_sample(tmp_path, monkeypatch):
         assert abs(r["p_home"] + r["p_draw"] + r["p_away"] - 1.0) < 1e-9
         assert r["outcome"] in (0, 1, 2)
         assert {"date", "home", "away"} <= set(r)
+        assert {"p_over_2_5", "total_goals"} <= set(r)
+        assert r["p_over_2_5"] == 0.55
+        assert isinstance(r["total_goals"], int)
 
 
 def test_reliability_and_metrics():
