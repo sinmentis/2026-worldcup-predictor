@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import sqlite3
 from typing import Any
 
@@ -47,7 +48,7 @@ def _group_winners_runners(
             (r["home_team"], r["away_team"], int(r["home_score"]), int(r["away_score"]))
             for r in rows
         ]
-        table = standings_from_results(list(teams), results)
+        table = standings_from_results(list(teams), results, random.Random(0))
         winners[gid] = table[0].team
         runners[gid] = table[1].team
     return winners, runners
