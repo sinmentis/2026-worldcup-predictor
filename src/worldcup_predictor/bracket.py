@@ -3,8 +3,11 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
+from worldcup_predictor import bracket_topology as _bt
+from worldcup_predictor import config
 from worldcup_predictor.goal_model import GoalModel
 from worldcup_predictor.predict import predict_match
+from worldcup_predictor.simulate import standings_from_results
 
 # Round order and Chinese labels for the knockout tree.
 _ROUND_ORDER: list[str] = ["R32", "R16", "QF", "SF", "FINAL"]
@@ -24,6 +27,69 @@ def advance_prob(p_home: float, p_draw: float, p_away: float) -> tuple[float, fl
     share = p_home / denom if denom > 0 else 0.5
     adv_home = p_home + p_draw * share
     return adv_home, 1.0 - adv_home
+
+
+def _group_winners_runners(
+    conn: sqlite3.Connection,
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Winner and runner-up per group, only for groups whose six matches are all FINISHED."""
+    winners: dict[str, str] = {}
+    runners: dict[str, str] = {}
+    for gid, teams in config.GROUPS.items():
+        rows = conn.execute(
+            "SELECT home_team, away_team, home_score, away_score FROM matches "
+            "WHERE stage='group' AND group_id=? AND status='FINISHED'",
+            (gid,),
+        ).fetchall()
+        if len(rows) < 6:
+            continue  # group not complete → standings not final
+        results = [
+            (r["home_team"], r["away_team"], int(r["home_score"]), int(r["away_score"]))
+            for r in rows
+        ]
+        table = standings_from_results(list(teams), results)
+        winners[gid] = table[0].team
+        runners[gid] = table[1].team
+    return winners, runners
+
+
+def _resolve_slot(token: str, winners: dict[str, str], runners: dict[str, str]) -> str | None:
+    """Resolve a template token ('W_E' / 'RU_C') to a team, or None for the '3' wildcard or an
+    unfinished group."""
+    if token == "3":
+        return None
+    side, gid = token.split("_")
+    return winners.get(gid) if side == "W" else runners.get(gid)
+
+
+def _r32_signatures(winners: dict[str, str], runners: dict[str, str]) -> dict[int, tuple[str, Any]]:
+    """Per R32 fixture (73-88), a signature to match a feed row: an ('anchor', team) for the
+    W_x/RU_x side of a 'W_x vs 3rd' fixture, or a ('pair', frozenset) of both resolved teams."""
+    sigs: dict[int, tuple[str, Any]] = {}
+    for i, (ta, tb) in enumerate(_bt.R32_TEMPLATE):
+        fixture = _bt.R32_FIXTURES[i]
+        a = _resolve_slot(ta, winners, runners)
+        b = _resolve_slot(tb, winners, runners)
+        if ta == "3" or tb == "3":
+            sigs[fixture] = ("anchor", b if ta == "3" else a)
+        else:
+            sigs[fixture] = ("pair", frozenset({a, b}))
+    return sigs
+
+
+def fixture_of_r32_row(
+    home: str | None, away: str | None, sigs: dict[int, tuple[str, Any]]
+) -> int | None:
+    """The R32 fixture number a feed row belongs to, or None if not yet identifiable."""
+    teams = {t for t in (home, away) if t is not None}
+    if not teams:
+        return None
+    for fixture, (kind, sig) in sigs.items():
+        if kind == "anchor" and sig is not None and sig in teams:
+            return fixture
+        if kind == "pair" and None not in sig and sig <= teams:
+            return fixture
+    return None
 
 
 def _load(conn: sqlite3.Connection) -> dict[str, list[sqlite3.Row]]:

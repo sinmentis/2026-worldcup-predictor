@@ -170,3 +170,43 @@ def test_actual_result_overrides_predicted_winner(tmp_path):
     r16 = next(r for r in out["rounds"] if r["stage"] == "R16")
     # R16-1 home comes from R32-1's ACTUAL winner (Weak), not the predicted (Strong).
     assert r16["matches"][0]["home"] == "Weak"
+
+
+def test_group_winners_runners(tmp_path):
+    from worldcup_predictor import bracket, db, ingest
+
+    conn = db.connect(tmp_path / "g.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    # Make group A complete: Mexico wins all, South Africa second. (4 teams → 6 matches.)
+    a = ["Mexico", "South Africa", "South Korea", "Czech Republic"]
+    import itertools
+
+    for h, away in itertools.combinations(a, 2):
+        hs, as_ = (3, 0) if h == "Mexico" else (1, 0) if h == "South Africa" else (0, 0)
+        conn.execute(
+            "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
+            "WHERE stage='group' AND home_team=? AND away_team=?",
+            (hs, as_, h, away),
+        )
+    conn.commit()
+    winners, runners = bracket._group_winners_runners(conn)
+    assert winners["A"] == "Mexico"
+    assert runners["A"] == "South Africa"
+    assert "B" not in winners  # group B not finished → absent
+
+
+def test_fixture_of_r32_row_maps_by_signature():
+    from worldcup_predictor import bracket
+
+    winners = {g: f"W_{g}" for g in "ABCDEFGHIJKL"}
+    runners = {g: f"RU_{g}" for g in "ABCDEFGHIJKL"}
+    sigs = bracket._r32_signatures(winners, runners)
+    # Fixture 73 = RU_A vs RU_B (a "pair" fixture): identified by its two-team set.
+    assert bracket.fixture_of_r32_row("RU_A", "RU_B", sigs) == 73
+    assert bracket.fixture_of_r32_row("RU_B", "RU_A", sigs) == 73  # order-independent
+    # Fixture 74 = W_E vs 3rd (an "anchor" fixture): identified by the W_E side, any third.
+    assert bracket.fixture_of_r32_row("W_E", "RU_C", sigs) == 74  # "RU_C" stands in for a 3rd
+    assert bracket.fixture_of_r32_row("SomeThird", "W_E", sigs) == 74
+    # A row whose teams match nothing yet → None.
+    assert bracket.fixture_of_r32_row("Nobody", "Nobody2", sigs) is None
