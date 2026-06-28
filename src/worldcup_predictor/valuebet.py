@@ -14,7 +14,7 @@ import sqlite3
 import statistics
 from typing import Any
 
-from worldcup_predictor import config
+from worldcup_predictor import calibrate_totals, config
 from worldcup_predictor.goal_model import GoalModel
 from worldcup_predictor.odds import implied_probs
 from worldcup_predictor.predict import adjusted_grid, predict_match
@@ -199,6 +199,7 @@ def value_bets_totals(
         (_now_z(),),
     ).fetchall()
     bets: list[dict[str, Any]] = []
+    totals_params = calibrate_totals.load(conn)
     for r in rows:
         by_line: dict[float, list[tuple[float, float]]] = {}
         for tr in conn.execute(
@@ -214,7 +215,7 @@ def value_bets_totals(
         grid, _ = adjusted_grid(
             conn, model, r["home_team"], r["away_team"], neutral=bool(r["neutral"])
         )
-        our_over = grid.over(line)
+        our_over = calibrate_totals.apply(grid.over(line), totals_params)
         our = {"over": our_over, "under": 1.0 - our_over}
         cons_map = {"over": cons[0], "under": cons[1]}
         best_over, best_under = _best_total_prices(conn, r["id"], line)

@@ -169,3 +169,26 @@ def test_best_total_prices_ignores_corrupt_outlier(tmp_path):
     conn.commit()
     bo, _bu = valuebet._best_total_prices(conn, 1, 2.5)
     assert bo == (1.95, "d")  # corrupt 5.00 over ignored; sane best is 1.95
+
+
+def test_value_bets_totals_applies_calibrator(tmp_path):
+    from worldcup_predictor import calibrate_totals as ct
+
+    conn = _conn(tmp_path)
+    model = _model()  # Strong vs Weak -> high raw P(over 2.5)
+    conn.execute(
+        "INSERT INTO odds_totals(match_id,bookmaker,line,price_over,price_under,fetched_at)"
+        " VALUES (1,'bookA',2.5,1.90,1.90,1.0),(1,'bookB',2.5,1.92,1.88,1.0)"
+    )
+    conn.commit()
+
+    raw = valuebet.value_bets_totals(conn, model, min_edge=0.05)
+    raw_over = [b for b in raw if b["outcome"] == "over"]
+    assert raw_over, "expected a raw over value bet before calibration"
+
+    # A strong flatten + lower-over calibrator must shrink our over prob toward the market,
+    # removing the over edge.
+    ct.store(conn, {"temperature": 2.5, "over_mult": 0.70})
+    cal = valuebet.value_bets_totals(conn, model, min_edge=0.05)
+    cal_over = [b for b in cal if b["outcome"] == "over"]
+    assert not cal_over, "calibration should remove the fake over edge"
