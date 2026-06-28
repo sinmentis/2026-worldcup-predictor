@@ -392,7 +392,7 @@ tbody tr:nth-child(-n+2) td.pts { color: var(--win); }
 
 #bracket .bracket { display: flex; align-items: stretch; width: max-content; padding-bottom: 24px; }
 #bracket .round { display: flex; flex-direction: column; flex: 0 0 auto; }
-#bracket .round:not(.final) { padding-right: 54px; }
+#bracket .round:not(.final) { padding-right: 30px; }
 #bracket .rlabel {
   font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
   margin: 0 0 6px; font-weight: 700; height: 16px; text-align: center;
@@ -400,12 +400,12 @@ tbody tr:nth-child(-n+2) td.pts { color: var(--win); }
 #bracket .slot { flex: 1 0 auto; display: flex; align-items: center; position: relative; padding: 6px 0; }
 /* connector elbows */
 #bracket .round:not(.final) .slot::after {
-  content: ""; position: absolute; left: 100%; width: 27px; border-right: 2px solid var(--line);
+  content: ""; position: absolute; left: 100%; width: 15px; border-right: 2px solid var(--line);
 }
 #bracket .round:not(.final) .slot:nth-child(odd of .slot)::after { top: 50%; height: 50%; border-top: 2px solid var(--line); }
 #bracket .round:not(.final) .slot:nth-child(even of .slot)::after { top: 0; height: 50%; border-bottom: 2px solid var(--line); }
 #bracket .round:not(:first-of-type) .slot::before {
-  content: ""; position: absolute; right: 100%; width: 27px; top: 50%; border-top: 2px solid var(--line);
+  content: ""; position: absolute; right: 100%; width: 15px; top: 50%; border-top: 2px solid var(--line);
 }
 /* fallback for browsers without :nth-child(of) — JS adds .top/.bot classes too */
 #bracket .slot.bot::after { top: 0 !important; border-top: none !important; border-bottom: 2px solid var(--line) !important; }
@@ -414,15 +414,15 @@ tbody tr:nth-child(-n+2) td.pts { color: var(--win); }
 /* node card */
 #bracket .match {
   background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-  padding: 7px 9px 6px; min-width: 214px; cursor: pointer; transition: .15s; position: relative; z-index: 1;
+  padding: 7px 9px 6px; min-width: 150px; cursor: pointer; transition: .15s; position: relative; z-index: 1;
 }
 #bracket .match:hover { border-color: var(--accent); transform: translateY(-1px); }
 #bracket .match.proj { background: var(--panel2); border-style: dashed; border-color: #33425e; opacity: .94; }
+#bracket .kick { font-size: 10px; color: var(--muted); text-align: right; margin-top: 2px; }
 #bracket .trow { display: flex; align-items: center; gap: 7px; padding: 3px 0; }
 #bracket .flag { font-size: 16px; line-height: 1; flex: 0 0 auto; filter: none; }
 #bracket .names { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
 #bracket .zh { font-size: 13px; font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
-#bracket .en { font-size: 10px; color: var(--muted); line-height: 1.1; white-space: nowrap; }
 #bracket .rank {
   font-size: 9px; color: #9fb0cc; background: #1b2740; border: 1px solid #2b3a57;
   border-radius: 10px; padding: 0 5px; font-weight: 700;

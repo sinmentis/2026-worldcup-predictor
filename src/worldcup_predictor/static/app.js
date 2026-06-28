@@ -317,12 +317,11 @@ async function loadGroups() {
 
 /* ---------------- bracket / knockout tree ---------------- */
 function bracketTeamRow(name, advPct, isWin) {
-  const en = name ? `<span class="en">${esc(name)}</span>` : "";
   const nm = name ? `${zh(name)} ${rankBadge(name)}` : "待定";
   const fl = name ? flag(name) : "🏳️";
   const p = advPct == null ? "" : `${Math.round(advPct * 100)}%`;
   return `<div class="trow ${isWin ? "win" : ""}"><span class="flag">${fl}</span>
-    <span class="names"><span class="zh">${nm}</span>${en}</span><span class="pct">${p}</span></div>`;
+    <span class="names"><span class="zh">${nm}</span></span><span class="pct">${p}</span></div>`;
 }
 
 function bracketNode(m) {
@@ -334,10 +333,14 @@ function bracketNode(m) {
   const score = m.status === "FINISHED" && m.home_score != null
     ? `比分 ${m.home_score}-${m.away_score}`
     : (m.ml_home != null ? `预测 ${m.ml_home}-${m.ml_away}` : "");
+  const when = m.kickoff
+    ? new Date(m.kickoff).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })
+    : "";
   return `<div class="match ${proj ? "proj" : ""}" data-node='${esc(JSON.stringify(m))}'>
     ${bracketTeamRow(m.home, m.advance_home, winHome)}
     ${bracketTeamRow(m.away, m.advance_away, winAway)}
-    <div class="foot"><span class="score">${score}</span>${badge}</div></div>`;
+    <div class="foot"><span class="score">${score}</span>${badge}</div>
+    ${when ? `<div class="kick">${when}</div>` : ""}</div>`;
 }
 
 async function loadBracket() {
