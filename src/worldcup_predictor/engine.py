@@ -8,6 +8,7 @@ from typing import Any
 from worldcup_predictor import backtest as _backtest
 from worldcup_predictor import bracket as _bracket
 from worldcup_predictor import calibrate as _calibrate
+from worldcup_predictor import calibrate_totals as _calibrate_totals
 from worldcup_predictor import config, db
 from worldcup_predictor import evaluate as _eval
 from worldcup_predictor import intel as _intel
@@ -296,6 +297,20 @@ def run_backtest(
         _calibrate.store(conn, knobs, meta=meta)
         db.touch_update(conn)
         report["calibration"] = {**knobs, **meta}
+        t_params = _calibrate_totals.fit(oos)
+        t_knobs = {
+            "temperature": t_params["temperature"],
+            "over_mult": t_params["over_mult"],
+        }
+        ll_before = _calibrate_totals.mean_logloss(oos, None)
+        ll_after = _calibrate_totals.mean_logloss(oos, t_knobs)
+        t_meta: dict[str, object] = {
+            "n_test": len(oos),
+            "logloss_before": ll_before,
+            "logloss_after": ll_after,
+        }
+        _calibrate_totals.store(conn, t_knobs, meta=t_meta)
+        report["calibration_totals"] = {**t_knobs, **t_meta}
     return report
 
 

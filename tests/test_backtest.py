@@ -85,18 +85,43 @@ def test_engine_run_backtest_reports_and_fits(tmp_path, monkeypatch):
 
     conn = db.connect(tmp_path / "bt.db")
     db.init_schema(conn)
-    # draw-heavy out-of-sample set: model says draw 0.15 but draws happen 2/3 of the time
-    oos = [{"p_home": 0.7, "p_draw": 0.15, "p_away": 0.15, "outcome": 1}] * 20
-    oos += [{"p_home": 0.7, "p_draw": 0.15, "p_away": 0.15, "outcome": 0}] * 10
+    # 1X2: draw-heavy. Totals: model says P(over)=0.8 but overs land only 1/3 of the time.
+    oos = [
+        {
+            "p_home": 0.7,
+            "p_draw": 0.15,
+            "p_away": 0.15,
+            "outcome": 1,
+            "p_over_2_5": 0.8,
+            "total_goals": 2,
+        }
+    ] * 20
+    oos += [
+        {
+            "p_home": 0.7,
+            "p_draw": 0.15,
+            "p_away": 0.15,
+            "outcome": 0,
+            "p_over_2_5": 0.8,
+            "total_goals": 4,
+        }
+    ] * 10
     monkeypatch.setattr(backtest, "walk_forward_predictions", lambda *a, **k: oos)
 
     rep = engine.run_backtest(conn, fit_calibration=True)
     assert rep["n"] == 30
     assert "model_rps" in rep and "reliability" in rep and "ece" in rep
     assert "calibration" in rep
-    assert calibrate.load(conn) is not None  # params persisted
+    assert calibrate.load(conn) is not None  # 1X2 params persisted
     assert rep["calibration"]["draw_mult"] > 1.0  # learned to raise draws
     assert rep["calibration"]["rps_after"] <= rep["calibration"]["rps_before"]
+
+    from worldcup_predictor import calibrate_totals
+
+    assert "calibration_totals" in rep
+    assert calibrate_totals.load(conn) is not None  # totals params persisted
+    assert rep["calibration_totals"]["temperature"] > 1.0  # learned to flatten
+    assert rep["calibration_totals"]["logloss_after"] <= rep["calibration_totals"]["logloss_before"]
 
 
 def test_engine_run_backtest_empty(tmp_path, monkeypatch):
