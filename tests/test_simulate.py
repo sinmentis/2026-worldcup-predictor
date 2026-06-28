@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from worldcup_predictor import config, db, ingest
+from worldcup_predictor import bracket_topology as bt
+from worldcup_predictor import config, db, ingest, simulate
 from worldcup_predictor.goal_model import GoalModel
 from worldcup_predictor.simulate import simulate_tournament
 
@@ -106,3 +107,24 @@ def test_knockout_shootout_even_match_is_coinflip():
     probs = {("A", "B"): (0.075, 0.85, 0.075)}  # symmetric -> ~50/50
     wins_a = sum(_knockout_winner("A", "B", probs, {}, rng) == "A" for _ in range(20000))
     assert 0.45 < wins_a / 20000 < 0.55
+
+
+def test_simulate_uses_official_feeders_for_r16():
+    # 16 distinct R32 winners; a pick that records every matchup and lets the first side advance.
+    r32 = [f"W{73 + i}" for i in range(16)]
+    seen: list[frozenset[str]] = []
+
+    def pick(a: str, b: str) -> str:
+        seen.append(frozenset((a, b)))
+        return a
+
+    win = bt.progress(r32, pick)
+    # The 8 R16 ties resolve first, so they are seen[:8]. R16 must pair fixtures (73,75),(74,77),…
+    # — the official structure — and must NOT pair (73,74) the way the old `zip(it, it)`
+    # consecutive logic did. Scope the negative check to R16: W73 legitimately meets W74 at QF 97.
+    assert frozenset(("W73", "W75")) in seen[:8]
+    assert frozenset(("W74", "W77")) in seen[:8]
+    assert frozenset(("W73", "W74")) not in seen[:8]
+    assert win[bt.FINAL_FIXTURE] == "W73"  # first side always advances → fixture 73's winner
+    # Single source of truth: the R32 template lives only in bracket_topology now.
+    assert not hasattr(simulate, "_R32_TEMPLATE")

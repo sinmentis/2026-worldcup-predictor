@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 
+from worldcup_predictor import bracket_topology as _bt
 from worldcup_predictor import config
 from worldcup_predictor.goal_model import GoalModel
 from worldcup_predictor.models import GroupRow
@@ -107,27 +108,6 @@ def standings_from_results(
     ]
 
 
-# Fixed Annex C R32 pairing template. "3" marks a best-third slot (filled in order).
-_R32_TEMPLATE: list[tuple[str, str]] = [
-    ("RU_A", "RU_B"),
-    ("W_E", "3"),
-    ("W_F", "RU_C"),
-    ("W_C", "RU_F"),
-    ("W_I", "3"),
-    ("RU_E", "RU_I"),
-    ("W_A", "3"),
-    ("W_L", "3"),
-    ("W_D", "3"),
-    ("W_G", "3"),
-    ("RU_K", "RU_L"),
-    ("W_H", "RU_J"),
-    ("W_B", "3"),
-    ("W_J", "RU_H"),
-    ("W_K", "3"),
-    ("RU_D", "RU_G"),
-]
-
-
 def best_thirds(thirds: dict[str, GroupRow], rng: random.Random | None = None) -> list[GroupRow]:
     rng = rng or random.Random()
     ranked = sorted(
@@ -143,7 +123,7 @@ def build_r32(
 ) -> list[tuple[str, str]]:
     third_iter = iter(thirds)
     out: list[tuple[str, str]] = []
-    for left, right in _R32_TEMPLATE:
+    for left, right in _bt.R32_TEMPLATE:
         a = _resolve(left, winners, runners, third_iter)
         b = _resolve(right, winners, runners, third_iter)
         out.append((a, b))
@@ -255,14 +235,20 @@ def simulate_tournament(
         for r in qual_thirds:
             counts[r.team]["advance"] += 1
 
-        bracket = build_r32(winners, runners, [r.team for r in qual_thirds])
-        # Winning round R32/R16/QF/SF/Final credits reaching r16/qf/sf/final/title.
-        for round_key in ("r16", "qf", "sf", "final", "title"):
-            winners_round = [_knockout_winner(a, b, probs, grids, rng) for a, b in bracket]
-            for w in winners_round:
-                counts[w][round_key] += 1
-            it = iter(winners_round)
-            bracket = list(zip(it, it))  # noqa: B905 - pair winners for the next round
+        r32 = build_r32(winners, runners, [r.team for r in qual_thirds])
+        r32_winners = [_knockout_winner(a, b, probs, grids, rng) for a, b in r32]
+        # Resolve the whole knockout tree via the official feeders (not consecutive pairing).
+        win = _bt.progress(r32_winners, lambda a, b: _knockout_winner(a, b, probs, grids, rng))
+        # Winning an R32/R16/QF/SF/Final match credits reaching r16/qf/sf/final/title.
+        for fx in _bt.R32_FIXTURES:
+            counts[win[fx]]["r16"] += 1
+        for fx in _bt.R16_FIXTURES:
+            counts[win[fx]]["qf"] += 1
+        for fx in _bt.QF_FIXTURES:
+            counts[win[fx]]["sf"] += 1
+        for fx in _bt.SF_FIXTURES:
+            counts[win[fx]]["final"] += 1
+        counts[win[_bt.FINAL_FIXTURE]]["title"] += 1
 
     result = {t: {k: v / n for k, v in counts[t].items()} for t in teams}
     now = time.time()
