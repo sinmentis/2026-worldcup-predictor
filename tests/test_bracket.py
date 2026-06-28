@@ -1,10 +1,48 @@
-import numpy as np
-import pandas as pd
-
-from worldcup_predictor import bracket, db, ingest
-from worldcup_predictor.goal_model import GoalModel
+from worldcup_predictor import bracket
 from worldcup_predictor.models import GroupRow
 from worldcup_predictor.simulate import best_thirds, build_r32
+
+
+def _finish_all_groups(conn):
+    """Mark every group match FINISHED (home wins 1-0) so standings/fixture signatures resolve."""
+    import itertools
+
+    from worldcup_predictor import config
+
+    for teams in config.GROUPS.values():
+        for h, a in itertools.combinations(teams, 2):
+            conn.execute(
+                "UPDATE matches SET home_score=1, away_score=0, status='FINISHED' "
+                "WHERE stage='group' AND home_team=? AND away_team=?",
+                (h, a),
+            )
+    conn.commit()
+
+
+def _all_teams_model():
+    """A GoalModel fit on all 48 finalists so any real team predicts."""
+    import numpy as np
+    import pandas as pd
+
+    from worldcup_predictor import config
+    from worldcup_predictor.goal_model import GoalModel
+
+    teams = [t for g in config.GROUPS.values() for t in g]
+    rng = np.random.default_rng(0)
+    rows = []
+    for t in teams:
+        for _ in range(4):
+            opp = teams[int(rng.integers(0, len(teams)))]
+            if opp == t:
+                continue
+            rows.append(
+                ("2024-01-01", t, opp, int(rng.integers(0, 4)), int(rng.integers(0, 3)), True)
+            )
+    return GoalModel().fit(
+        pd.DataFrame(
+            rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+        )
+    )
 
 
 def _row(team, pts, gd, gf):
@@ -32,42 +70,6 @@ def test_build_r32_has_16_matches():
     assert all(len(m) == 2 and all(m) for m in bracket)
 
 
-def _model():
-    rng = np.random.default_rng(7)
-    rows = []
-    for _ in range(80):
-        rows.append(
-            (
-                "2024-01-01",
-                "Strong",
-                "Weak",
-                int(rng.integers(2, 5)),
-                int(rng.integers(0, 2)),
-                False,
-            )
-        )
-        rows.append(
-            (
-                "2024-01-01",
-                "Weak",
-                "Strong",
-                int(rng.integers(0, 2)),
-                int(rng.integers(2, 5)),
-                False,
-            )
-        )
-    df = pd.DataFrame(
-        rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
-    )
-    return GoalModel().fit(df)
-
-
-def _conn(tmp_path):
-    conn = db.connect(tmp_path / "b.db")
-    db.init_schema(conn)
-    return conn
-
-
 def test_advance_prob_sums_to_one_and_splits_draw():
     ah, aa = bracket.advance_prob(0.5, 0.2, 0.3)
     assert abs(ah + aa - 1.0) < 1e-9
@@ -78,98 +80,67 @@ def test_advance_prob_sums_to_one_and_splits_draw():
     assert abs(eh - 0.5) < 1e-9 and abs(ea - 0.5) < 1e-9
 
 
-def test_build_uses_real_teams_and_predicts(tmp_path):
-    conn = _conn(tmp_path)
-    # Two R32 matches with known teams the model knows.
-    ingest.apply_knockout_fixtures(
-        conn,
-        {
-            "matches": [
-                {
-                    "id": 1,
-                    "stage": "LAST_32",
-                    "utcDate": "2026-06-28T10:00:00Z",
-                    "status": "TIMED",
-                    "homeTeam": {"name": "Strong"},
-                    "awayTeam": {"name": "Weak"},
-                    "score": {},
-                },
-                {
-                    "id": 2,
-                    "stage": "LAST_32",
-                    "utcDate": "2026-06-28T14:00:00Z",
-                    "status": "TIMED",
-                    "homeTeam": {"name": "Weak"},
-                    "awayTeam": {"name": "Strong"},
-                    "score": {},
-                },
-                {
-                    "id": 3,
-                    "stage": "LAST_16",
-                    "utcDate": "2026-07-04T10:00:00Z",
-                    "status": "TIMED",
-                    "homeTeam": None,
-                    "awayTeam": None,
-                    "score": {},
-                },
-            ]
-        },
-    )
-    out = bracket.build_predicted_bracket(conn, _model())
-    r32 = next(r for r in out["rounds"] if r["stage"] == "R32")
-    m0 = r32["matches"][0]
-    assert m0["home"] == "Strong" and m0["home_known"] and m0["away_known"]
-    assert abs(m0["advance_home"] + m0["advance_away"] - 1.0) < 1e-9
-    assert m0["advance_home"] > m0["advance_away"]  # Strong favoured
-    # R16 match teams are projected from R32 predicted winners (Strong wins both R32 matches).
-    r16 = next(r for r in out["rounds"] if r["stage"] == "R16")
-    m16 = r16["matches"][0]
-    assert m16["home"] == "Strong" and m16["away"] == "Strong"
-    assert m16["home_known"] is False and m16["away_known"] is False
-    assert out["total_fixtures"] == 3 and out["real_fixtures"] == 2
+def test_projection_pairs_via_official_feeders(tmp_path):
+    from worldcup_predictor import bracket, db, ingest
+
+    conn = db.connect(tmp_path / "p.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    _finish_all_groups(conn)
+    winners, runners = bracket._group_winners_runners(conn)
+    f73 = (runners["A"], runners["B"])  # fixture 73 = RU_A vs RU_B
+    f75 = (winners["F"], runners["C"])  # fixture 75 = W_F vs RU_C  (official: 73 & 75 meet in R16)
+    for ext, (h, a), ko in (
+        (9073, f73, "2026-06-28T19:00:00Z"),
+        (9075, f75, "2026-06-28T22:00:00Z"),
+    ):
+        conn.execute(
+            "INSERT INTO matches(stage,home_team,away_team,kickoff,neutral,status,ext_id) "
+            "VALUES ('R32',?,?,?,1,'SCHEDULED',?)",
+            (h, a, ko, ext),
+        )
+    conn.commit()
+
+    out = bracket.build_predicted_bracket(conn, _all_teams_model())
+    r32 = next(r for r in out["rounds"] if r["stage"] == "R32")["matches"]
+    # Full 16-slot R32 skeleton, ordered by fixture number (slot R32-1 = fixture 73, R32-3 = 75).
+    assert len(r32) == 16
+    assert r32[0]["home"] in f73 and r32[0]["away"] in f73  # fixture 73 first
+    assert r32[2]["home"] in f75 and r32[2]["away"] in f75  # fixture 75 third
+    assert any(m.get("kickoff") == "2026-06-28T19:00:00Z" for m in r32)
+    # R16 fixture 89 = winners of fixtures 73 and 75 (NOT 73 and 74 — the old bug).
+    r16 = next(r for r in out["rounds"] if r["stage"] == "R16")["matches"]
+    m89 = r16[0]
+    assert m89["home"] in f73 and m89["away"] in f75
 
 
 def test_actual_result_overrides_predicted_winner(tmp_path):
-    conn = _conn(tmp_path)
-    ingest.apply_knockout_fixtures(
-        conn,
-        {
-            "matches": [
-                # R32-1 FINISHED: Weak beat Strong on penalties (winner overrides the model's pick).
-                {
-                    "id": 1,
-                    "stage": "LAST_32",
-                    "utcDate": "2026-06-28T10:00:00Z",
-                    "status": "FINISHED",
-                    "homeTeam": {"name": "Strong"},
-                    "awayTeam": {"name": "Weak"},
-                    "score": {"winner": "AWAY_TEAM", "fullTime": {"home": 1, "away": 1}},
-                },
-                {
-                    "id": 2,
-                    "stage": "LAST_32",
-                    "utcDate": "2026-06-28T14:00:00Z",
-                    "status": "TIMED",
-                    "homeTeam": {"name": "Strong"},
-                    "awayTeam": {"name": "Weak"},
-                    "score": {},
-                },
-                {
-                    "id": 3,
-                    "stage": "LAST_16",
-                    "utcDate": "2026-07-04T10:00:00Z",
-                    "status": "TIMED",
-                    "homeTeam": None,
-                    "awayTeam": None,
-                    "score": {},
-                },
-            ]
-        },
+    from worldcup_predictor import bracket, db, ingest
+
+    conn = db.connect(tmp_path / "o.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    _finish_all_groups(conn)
+    winners, runners = bracket._group_winners_runners(conn)
+    home73, away73 = runners["A"], runners["B"]  # fixture 73
+    # Fixture 73 FINISHED: the AWAY side wins on penalties (1-1, winner=away), overriding any pick.
+    conn.execute(
+        "INSERT INTO matches(stage,home_team,away_team,kickoff,neutral,status,"
+        "home_score,away_score,winner_team,ext_id) "
+        "VALUES ('R32',?,?,?,1,'FINISHED',1,1,?,9073)",
+        (home73, away73, "2026-06-28T19:00:00Z", away73),
     )
-    out = bracket.build_predicted_bracket(conn, _model())
-    r16 = next(r for r in out["rounds"] if r["stage"] == "R16")
-    # R16-1 home comes from R32-1's ACTUAL winner (Weak), not the predicted (Strong).
-    assert r16["matches"][0]["home"] == "Weak"
+    conn.execute(
+        "INSERT INTO matches(stage,home_team,away_team,kickoff,neutral,status,ext_id) "
+        "VALUES ('R32',?,?,?,1,'SCHEDULED',9075)",
+        (winners["F"], runners["C"], "2026-06-28T22:00:00Z"),
+    )
+    conn.commit()
+
+    out = bracket.build_predicted_bracket(conn, _all_teams_model())
+    r16 = next(r for r in out["rounds"] if r["stage"] == "R16")["matches"]
+    # R16 fixture 89's home comes from fixture 73's ACTUAL winner (the away side), not a prediction.
+    assert r16[0]["home"] == away73
 
 
 def test_group_winners_runners(tmp_path):
@@ -210,3 +181,29 @@ def test_fixture_of_r32_row_maps_by_signature():
     assert bracket.fixture_of_r32_row("SomeThird", "W_E", sigs) == 74
     # A row whose teams match nothing yet → None.
     assert bracket.fixture_of_r32_row("Nobody", "Nobody2", sigs) is None
+
+
+def test_fixture_of_r32_row_none_when_group_unfinished(tmp_path):
+    # Task 4 relies on the None contract: an unfinished group yields a None-bearing signature that
+    # must NOT spuriously match a feed row whose fixture depends on that group.
+    from worldcup_predictor import bracket, db, ingest
+
+    conn = db.connect(tmp_path / "u.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    _finish_all_groups(conn)
+    _full_winners, full_runners = bracket._group_winners_runners(conn)
+    ru_a, ru_b = full_runners["A"], full_runners["B"]  # the real fixture-73 pair (RU_A vs RU_B)
+    # Reopen one of group A's matches so group A is no longer complete.
+    conn.execute(
+        "UPDATE matches SET status='SCHEDULED', home_score=NULL, away_score=NULL "
+        "WHERE stage='group' AND group_id='A' AND id="
+        "(SELECT MIN(id) FROM matches WHERE stage='group' AND group_id='A')"
+    )
+    conn.commit()
+    winners, runners = bracket._group_winners_runners(conn)
+    assert "A" not in winners  # group A incomplete → absent from standings
+    sigs = bracket._r32_signatures(winners, runners)
+    # Fixture 73 (RU_A vs RU_B) needs group A; with A unfinished its signature carries a None, so
+    # even the real fixture-73 pair must NOT resolve to a fixture.
+    assert bracket.fixture_of_r32_row(ru_a, ru_b, sigs) is None

@@ -110,17 +110,24 @@ def _decide(
     model: GoalModel,
     home: str | None,
     away: str | None,
-    row: sqlite3.Row,
+    *,
+    ext_id: int | None = None,
+    kickoff: str | None = None,
+    status: str = "SCHEDULED",
+    home_score: int | None = None,
+    away_score: int | None = None,
+    winner_team: str | None = None,
 ) -> dict[str, Any]:
-    """Build one match node: predict when both teams resolved; use the actual result when
-    FINISHED."""
+    """Build one match node: predict when both teams are resolved; use the actual result when
+    FINISHED. Result fields are passed explicitly so projected slots (no feed row) need none."""
     node: dict[str, Any] = {
-        "ext_id": row["ext_id"],
+        "ext_id": ext_id,
+        "kickoff": kickoff,
         "home": home,
         "away": away,
-        "status": row["status"],
-        "home_score": row["home_score"],
-        "away_score": row["away_score"],
+        "status": status,
+        "home_score": home_score,
+        "away_score": away_score,
         "advance_home": None,
         "advance_away": None,
         "ml_home": None,
@@ -131,12 +138,11 @@ def _decide(
         "factors": [],
         "winner": None,
     }
-    if row["status"] == "FINISHED":
-        # Actual outcome: explicit penalty winner, else the higher score.
-        if row["winner_team"]:
-            node["winner"] = row["winner_team"]
-        elif row["home_score"] is not None and row["away_score"] is not None:
-            node["winner"] = home if row["home_score"] >= row["away_score"] else away
+    if status == "FINISHED":
+        if winner_team:
+            node["winner"] = winner_team
+        elif home_score is not None and away_score is not None:
+            node["winner"] = home if home_score >= away_score else away
     if home is None or away is None:
         return node
     pred = predict_match(conn, model, home, away, neutral=True)
@@ -159,6 +165,28 @@ def _decide(
     return node
 
 
+def _decide_row(
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    home: str | None,
+    away: str | None,
+    row: sqlite3.Row,
+) -> dict[str, Any]:
+    """Convenience: build a node from a feed row's result fields."""
+    return _decide(
+        conn,
+        model,
+        home,
+        away,
+        ext_id=row["ext_id"],
+        kickoff=row["kickoff"],
+        status=row["status"],
+        home_score=row["home_score"],
+        away_score=row["away_score"],
+        winner_team=row["winner_team"],
+    )
+
+
 def has_knockout_fixtures(conn: sqlite3.Connection) -> bool:
     """True once the feed has populated any knockout fixture (R32→final, incl. the 3rd-place
     match). Lets callers skip fitting the goal model while the group stage is still in progress."""
@@ -176,53 +204,130 @@ def empty_bracket() -> dict[str, Any]:
     }
 
 
-def build_predicted_bracket(conn: sqlite3.Connection, model: GoalModel) -> dict[str, Any]:
-    """Compose the knockout tree: feed teams where known, predicted winners projected forward."""
-    by_stage = _load(conn)
-    rounds_out: list[dict[str, Any]] = []
-    prev_winners: list[str | None] = []  # winners of the previous round, in slot order
-    sf_losers: list[str | None] = []
-    real = 0
-    total = sum(len(by_stage.get(s, [])) for s in _ROUND_ORDER) + len(by_stage.get("3RD", []))
+def _overlay_index(
+    by_stage: dict[str, list[sqlite3.Row]],
+) -> dict[str, dict[frozenset[str], sqlite3.Row]]:
+    """Index each downstream stage's feed rows by their (known) two-team set, to overlay real
+    teams/results/kickoff onto the projected slot once the feed has filled it."""
+    out: dict[str, dict[frozenset[str], sqlite3.Row]] = {}
+    for stage in ("R16", "QF", "SF", "FINAL"):
+        idx: dict[frozenset[str], sqlite3.Row] = {}
+        for row in by_stage.get(stage, []):
+            if row["home_team"] is not None and row["away_team"] is not None:
+                idx[frozenset({row["home_team"], row["away_team"]})] = row
+        out[stage] = idx
+    return out
 
-    for stage in _ROUND_ORDER:
-        matches = by_stage.get(stage, [])
-        out_matches: list[dict[str, Any]] = []
-        winners: list[str | None] = []
-        for k, row in enumerate(matches):
+
+def _match_overlay(
+    idx: dict[frozenset[str], sqlite3.Row], home: str | None, away: str | None
+) -> sqlite3.Row | None:
+    if home is None or away is None:
+        return None
+    return idx.get(frozenset({home, away}))
+
+
+def build_predicted_bracket(conn: sqlite3.Connection, model: GoalModel) -> dict[str, Any]:
+    """Compose the knockout tree: feed teams where known, predicted winners projected forward via
+    the official feeder topology, every slot ordered by fixture number."""
+    by_stage = _load(conn)
+    total = sum(len(by_stage.get(s, [])) for s in _ROUND_ORDER) + len(by_stage.get("3RD", []))
+    winners_g, runners_g = _group_winners_runners(conn)
+    sigs = _r32_signatures(winners_g, runners_g)
+
+    row_by_fixture: dict[int, sqlite3.Row] = {}
+    for feed_row in by_stage.get("R32", []):
+        fx = fixture_of_r32_row(feed_row["home_team"], feed_row["away_team"], sigs)
+        if fx is not None:
+            row_by_fixture[fx] = feed_row
+
+    node_by_fixture: dict[int, dict[str, Any]] = {}
+    winner_by_fixture: dict[int, str | None] = {}
+    real = 0
+
+    # R32: one node per fixture 73-88 (mapped feed row if present, else a TBD shell).
+    for idx, fx in enumerate(_bt.R32_FIXTURES):
+        row = row_by_fixture.get(fx)
+        if row is not None:
             home, away = row["home_team"], row["away_team"]
-            home_known, away_known = home is not None, away is not None
-            if stage != "R32":  # fill TBD sides from the previous round's winners
-                if home is None and 2 * k < len(prev_winners):
-                    home = prev_winners[2 * k]
-                if away is None and 2 * k + 1 < len(prev_winners):
-                    away = prev_winners[2 * k + 1]
-            if home_known and away_known:
+            node = _decide_row(conn, model, home, away, row)
+            node["home_known"] = home is not None
+            node["away_known"] = away is not None
+            if home is not None and away is not None:
                 real += 1
-            node = _decide(conn, model, home, away, row)
-            node["slot"] = f"{stage}-{k + 1}"
+        else:
+            node = _decide(conn, model, None, None)
+            node["home_known"] = node["away_known"] = False
+        node["slot"] = f"R32-{idx + 1}"
+        node_by_fixture[fx] = node
+        winner_by_fixture[fx] = node["winner"]
+
+    # R16 → Final via FEEDERS, overlaying the feed's real row when its teams match the projection.
+    overlay = _overlay_index(by_stage)
+    for stage, fixtures in (
+        ("R16", _bt.R16_FIXTURES),
+        ("QF", _bt.QF_FIXTURES),
+        ("SF", _bt.SF_FIXTURES),
+        ("FINAL", (_bt.FINAL_FIXTURE,)),
+    ):
+        for idx, fx in enumerate(fixtures):
+            fa, fb = _bt.FEEDERS[fx]
+            home = winner_by_fixture.get(fa)
+            away = winner_by_fixture.get(fb)
+            row = _match_overlay(overlay.get(stage, {}), home, away)
+            home_known = away_known = False
+            if row is not None and row["home_team"] is not None and row["away_team"] is not None:
+                home, away, home_known, away_known = row["home_team"], row["away_team"], True, True
+                real += 1
+            node = (
+                _decide_row(conn, model, home, away, row)
+                if row is not None
+                else _decide(conn, model, home, away)
+            )
             node["home_known"] = home_known
             node["away_known"] = away_known
-            out_matches.append(node)
-            winners.append(node["winner"])
-            if stage == "SF":  # track losers for the third-place match
-                loser = away if node["winner"] == home else (home if node["winner"] else None)
-                sf_losers.append(loser)
-        rounds_out.append({"stage": stage, "label": _LABELS[stage], "matches": out_matches})
-        prev_winners = winners
+            node["slot"] = f"{stage}-{idx + 1}"
+            node_by_fixture[fx] = node
+            winner_by_fixture[fx] = node["winner"]
 
-    third = None
+    rounds_out = [
+        {
+            "stage": stage,
+            "label": _LABELS[stage],
+            "matches": [node_by_fixture[fx] for fx in fixtures],
+        }
+        for stage, fixtures in (
+            ("R32", _bt.R32_FIXTURES),
+            ("R16", _bt.R16_FIXTURES),
+            ("QF", _bt.QF_FIXTURES),
+            ("SF", _bt.SF_FIXTURES),
+            ("FINAL", (_bt.FINAL_FIXTURE,)),
+        )
+    ]
+
+    # Third place = the two SF losers; overlay the feed's 3RD row if present.
+    sf_losers: list[str | None] = []
+    for fx in _bt.SF_FIXTURES:
+        node = node_by_fixture[fx]
+        w = node["winner"]
+        sf_losers.append(node["away"] if w == node["home"] else (node["home"] if w else None))
     third_rows = by_stage.get("3RD", [])
-    if third_rows:
-        row = third_rows[0]
-        h = row["home_team"] or (sf_losers[0] if len(sf_losers) > 0 else None)
-        a = row["away_team"] or (sf_losers[1] if len(sf_losers) > 1 else None)
-        if row["home_team"] is not None and row["away_team"] is not None:
-            real += 1
-        third = _decide(conn, model, h, a, row)
+    third: dict[str, Any] | None = None
+    if third_rows or any(sf_losers):
+        h = sf_losers[0] if sf_losers else None
+        a = sf_losers[1] if len(sf_losers) > 1 else None
+        home_known = away_known = False
+        if third_rows:
+            row = third_rows[0]
+            if row["home_team"] is not None and row["away_team"] is not None:
+                h, a, home_known, away_known = row["home_team"], row["away_team"], True, True
+                real += 1
+            third = _decide_row(conn, model, h, a, row)
+        else:
+            third = _decide(conn, model, h, a)
         third["slot"] = "3RD"
-        third["home_known"] = row["home_team"] is not None
-        third["away_known"] = row["away_team"] is not None
+        third["home_known"] = home_known
+        third["away_known"] = away_known
 
     return {
         "rounds": rounds_out,

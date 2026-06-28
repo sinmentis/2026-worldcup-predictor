@@ -233,36 +233,45 @@ def test_top_scorelines_orders_by_prob():
 
 
 def test_get_predicted_bracket_shape(tmp_path, monkeypatch):
+    import itertools
+
     import numpy as np
     import pandas as pd
 
+    from worldcup_predictor import bracket, config
     from worldcup_predictor import engine as eng
-    from worldcup_predictor import ingest
     from worldcup_predictor.goal_model import GoalModel
 
-    conn = db.connect(tmp_path / "pb.db")
-    db.init_schema(conn)
-    ingest.apply_knockout_fixtures(
-        conn,
-        {
-            "matches": [
-                {
-                    "id": 1,
-                    "stage": "LAST_32",
-                    "utcDate": "2026-06-28T10:00:00Z",
-                    "status": "TIMED",
-                    "homeTeam": {"name": "Strong"},
-                    "awayTeam": {"name": "Weak"},
-                    "score": {},
-                },
-            ]
-        },
+    conn = _conn(tmp_path)  # seeds teams + group fixtures
+    # Finish every group so standings (and the R32 fixture signatures) resolve under the new design.
+    for teams in config.GROUPS.values():
+        for h, a in itertools.combinations(teams, 2):
+            conn.execute(
+                "UPDATE matches SET home_score=1, away_score=0, status='FINISHED' "
+                "WHERE stage='group' AND home_team=? AND away_team=?",
+                (h, a),
+            )
+    conn.commit()
+    _winners, runners = bracket._group_winners_runners(conn)
+    # One real R32 fixture (73 = RU_A vs RU_B) so it maps to a fixture and counts as "real".
+    conn.execute(
+        "INSERT INTO matches(stage,home_team,away_team,kickoff,neutral,status,ext_id) "
+        "VALUES ('R32',?,?,?,1,'SCHEDULED',9073)",
+        (runners["A"], runners["B"], "2026-06-28T19:00:00Z"),
     )
+    conn.commit()
+    # A model that knows all 48 finalists so the matched fixture predicts.
+    all_teams = [t for g in config.GROUPS.values() for t in g]
     rng = np.random.default_rng(3)
     rows = []
-    for _ in range(60):
-        rows.append(("2024-01-01", "Strong", "Weak", int(rng.integers(2, 5)), 0, False))
-        rows.append(("2024-01-01", "Weak", "Strong", 0, int(rng.integers(2, 5)), False))
+    for t in all_teams:
+        for _ in range(4):
+            opp = all_teams[int(rng.integers(0, len(all_teams)))]
+            if opp == t:
+                continue
+            rows.append(
+                ("2024-01-01", t, opp, int(rng.integers(0, 4)), int(rng.integers(0, 3)), True)
+            )
     model = GoalModel().fit(
         pd.DataFrame(
             rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
