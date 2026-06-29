@@ -147,3 +147,25 @@ def test_summary_aggregates_roi_and_open(tmp_path):
     assert abs(a["roi_flat"] - 1.0) < 1e-9  # +1u profit on 1u staked
     assert len(s["open"]) == 1 and len(s["settled"]) == 1
     assert "1x2" in s["by_market"]
+
+
+def test_result_dc():
+    assert papertrade._result_dc(2, 1, "1x") == "win"
+    assert papertrade._result_dc(0, 1, "1x") == "loss"
+    assert papertrade._result_dc(0, 1, "x2") == "win"
+
+
+def test_result_dnb_push_on_draw():
+    assert papertrade._result_dnb(1, 1, "home") == "push"
+    assert papertrade._result_dnb(2, 1, "home") == "win"
+
+
+def test_settle_dispatches_double_chance_and_dnb(tmp_path):
+    conn = _conn(tmp_path)
+    _add_match(conn, 1, "2000-01-01T00:00:00Z", status="FINISHED", hs=1, as_=1)  # draw
+    papertrade.log_bets(conn, [_bet(1, market="double_chance", outcome="x2", best_price=1.5)])
+    papertrade.log_bets(conn, [_bet(1, market="dnb", outcome="home", best_price=1.8)])
+    assert papertrade.settle(conn) == 2
+    rows = {r["market"]: r for r in conn.execute("SELECT * FROM paper_bets")}
+    assert rows["double_chance"]["result"] == "win"  # draw covered by x2
+    assert rows["dnb"]["result"] == "push"  # draw refunds dnb

@@ -172,6 +172,18 @@ def _result_spreads(hs: int, as_: int, line: float, outcome: str) -> str:
     return "win" if not home_covers else "loss"
 
 
+def _result_dc(hs: int, as_: int, outcome: str) -> str:
+    w = "home" if hs > as_ else "away" if as_ > hs else "draw"
+    pairs = {"1x": ("home", "draw"), "12": ("home", "away"), "x2": ("draw", "away")}
+    return "win" if w in pairs[outcome] else "loss"
+
+
+def _result_dnb(hs: int, as_: int, outcome: str) -> str:
+    if hs == as_:
+        return "push"
+    return "win" if (outcome == "home") == (hs > as_) else "loss"
+
+
 def settle(
     conn: sqlite3.Connection, *, now_z: str | None = None, bankroll: float = BANKROLL_UNITS
 ) -> int:
@@ -190,6 +202,10 @@ def settle(
             res = _result_totals(hs, as_, r["line"], r["outcome"])
         elif r["market"] == "spreads":
             res = _result_spreads(hs, as_, r["line"], r["outcome"])
+        elif r["market"] == "double_chance":
+            res = _result_dc(hs, as_, r["outcome"])
+        elif r["market"] == "dnb":
+            res = _result_dnb(hs, as_, r["outcome"])
         else:
             res = _result_1x2(hs, as_, r["outcome"])
         price, kfrac = r["price_taken"], r["kelly_frac"]
