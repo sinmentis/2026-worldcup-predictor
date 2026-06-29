@@ -12,10 +12,12 @@ from __future__ import annotations
 import datetime
 import sqlite3
 import statistics
+from collections.abc import Callable
 from typing import Any
 
 from worldcup_predictor import calibrate_totals, config
 from worldcup_predictor.goal_model import GoalModel
+from worldcup_predictor.models import MatchPrediction
 from worldcup_predictor.odds import implied_probs
 from worldcup_predictor.predict import adjusted_grid, predict_match
 
@@ -360,3 +362,99 @@ def value_bets_spreads(
             )
     bets.sort(key=lambda b: b["edge"], reverse=True)
     return bets
+
+
+def _derived_bets(
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    min_edge: float | None,
+    kelly_fraction: float | None,
+    build: Callable[[MatchPrediction, list[float]], list[tuple[str, str, float, float]]],
+) -> list[dict[str, Any]]:
+    """Value bets derived from existing 1x2 odds via ``build``: no new market fetch needed.
+
+    ``build`` maps (our prediction, de-margined consensus) to (market, outcome, our_prob,
+    market_prob) tuples; the implied "price" is 1/market_prob, so EV is positive exactly when
+    our edge is. Mirrors the value_bets_totals row loop.
+    """
+    edge_floor = config.VALUE_MIN_EDGE if min_edge is None else min_edge
+    kfrac = config.KELLY_FRACTION if kelly_fraction is None else kelly_fraction
+    rows = conn.execute(
+        "SELECT DISTINCT m.id, m.home_team, m.away_team, m.group_id, m.kickoff, m.neutral "
+        "FROM matches m JOIN odds o ON o.match_id = m.id "
+        "WHERE m.status='SCHEDULED' AND (m.kickoff IS NULL OR m.kickoff > ?) "
+        "ORDER BY (m.kickoff IS NULL), m.kickoff, m.id",
+        (_now_z(),),
+    ).fetchall()
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        cons = consensus_probs(conn, r["id"])
+        if cons is None:
+            continue
+        pred = predict_match(
+            conn, model, r["home_team"], r["away_team"], match_id=None, neutral=bool(r["neutral"])
+        )
+        for market, outcome, op, mp in build(pred, cons):
+            edge = op - mp
+            if edge < edge_floor:
+                continue
+            price = 1.0 / mp if mp > 0 else 0.0
+            out.append(
+                {
+                    "match_id": r["id"],
+                    "home_team": r["home_team"],
+                    "away_team": r["away_team"],
+                    "group": r["group_id"],
+                    "kickoff": r["kickoff"],
+                    "market": market,
+                    "outcome": outcome,
+                    "line": None,
+                    "our_prob": op,
+                    "market_prob": mp,
+                    "edge": edge,
+                    "best_price": price if price > 1 else None,
+                    "bookmaker": "implied",
+                    "ev": op * price - 1.0 if price > 1 else None,
+                    "kelly": max(0.0, (op * price - 1.0) / (price - 1.0)) * kfrac
+                    if price > 1
+                    else 0.0,
+                }
+            )
+    out.sort(key=lambda b: b["edge"], reverse=True)
+    return out
+
+
+def value_bets_dc(
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    min_edge: float | None = None,
+    kelly_fraction: float | None = None,
+) -> list[dict[str, Any]]:
+    """Double-chance value derived from 1x2: one of two outcomes (1x, 12, x2) lands."""
+
+    def b(p: MatchPrediction, c: list[float]) -> list[tuple[str, str, float, float]]:
+        return [
+            ("double_chance", "1x", p.p_home + p.p_draw, c[0] + c[1]),
+            ("double_chance", "12", p.p_home + p.p_away, c[0] + c[2]),
+            ("double_chance", "x2", p.p_draw + p.p_away, c[1] + c[2]),
+        ]
+
+    return _derived_bets(conn, model, min_edge, kelly_fraction, b)
+
+
+def value_bets_dnb(
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    min_edge: float | None = None,
+    kelly_fraction: float | None = None,
+) -> list[dict[str, Any]]:
+    """Draw-no-bet value derived from 1x2: draw void, home/away renormalised to exclude it."""
+
+    def b(p: MatchPrediction, c: list[float]) -> list[tuple[str, str, float, float]]:
+        d = p.p_home + p.p_away
+        dc = c[0] + c[2]
+        if d <= 0 or dc <= 0:
+            return []
+        return [("dnb", "home", p.p_home / d, c[0] / dc), ("dnb", "away", p.p_away / d, c[2] / dc)]
+
+    return _derived_bets(conn, model, min_edge, kelly_fraction, b)

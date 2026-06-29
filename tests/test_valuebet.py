@@ -192,3 +192,27 @@ def test_value_bets_totals_applies_calibrator(tmp_path):
     cal = valuebet.value_bets_totals(conn, model, min_edge=0.05)
     cal_over = [b for b in cal if b["outcome"] == "over"]
     assert not cal_over, "calibration should remove the fake over edge"
+
+
+def test_value_bets_dc_flags_safe_double_chance(tmp_path):
+    conn = _conn(tmp_path)
+    m = _model()
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'b',1.30,6.0,9.0,1.0),(1,'c',1.32,6.2,9.2,1.0)"
+    )
+    conn.commit()
+    bets = valuebet.value_bets_dc(conn, m, min_edge=0.01)
+    assert any(b["market"] == "double_chance" and b["outcome"] == "1x" for b in bets)
+
+
+def test_value_bets_dnb_normalises(tmp_path):
+    conn = _conn(tmp_path)
+    m = _model()
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'b',1.30,6.0,9.0,1.0),(1,'c',1.32,6.2,9.2,1.0)"
+    )
+    conn.commit()
+    bets = valuebet.value_bets_dnb(conn, m, min_edge=0.0)
+    assert all(b["market"] == "dnb" for b in bets) and all(b["best_price"] > 1 for b in bets)
