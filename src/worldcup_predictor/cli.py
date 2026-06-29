@@ -167,6 +167,11 @@ def value_bets(
             team = b["home_team"] if b["outcome"] == "home" else b["away_team"]
             line = b["line"] if b["outcome"] == "home" else -b["line"]
             pick = f"{team} {line:+g}"
+        elif b["market"] == "double_chance":
+            pick = f"双重机会 {b['outcome'].upper()}"
+        elif b["market"] == "dnb":
+            team = b["home_team"] if b["outcome"] == "home" else b["away_team"]
+            pick = f"不败 {team}"
         else:
             pick = b["outcome"]
         typer.echo(

@@ -363,3 +363,39 @@ def test_predict_fixture_raises_on_undecided_teams(tmp_path):
 
     with pytest.raises(ValueError, match="undecided teams"):
         engine.predict_fixture(conn, mid)
+
+
+def test_get_value_bets_includes_double_chance_and_dnb(tmp_path, monkeypatch):
+    # 1x2 odds are present and our model rates the favourite well above the de-margined
+    # market, so the aggregator should surface the derived double_chance + dnb markets too.
+    import numpy as np
+    import pandas as pd
+
+    from worldcup_predictor.goal_model import GoalModel
+
+    conn = db.connect(tmp_path / "vb.db")
+    db.init_schema(conn)
+    conn.execute(
+        "INSERT INTO matches(id,stage,group_id,home_team,away_team,neutral,status)"
+        " VALUES (1,'group','A','Strong','Weak',1,'SCHEDULED')"
+    )
+    conn.execute(
+        "INSERT INTO odds(match_id,bookmaker,price_home,price_draw,price_away,fetched_at)"
+        " VALUES (1,'soft',2.0,3.5,4.0,0)"
+    )
+    conn.commit()
+    rng = np.random.default_rng(1)
+    rows = []
+    for _ in range(80):
+        rows.append(("2024-01-01", "Strong", "Weak", int(rng.integers(2, 5)), 0, False))
+        rows.append(("2024-01-01", "Weak", "Strong", 0, int(rng.integers(2, 5)), False))
+    history = pd.DataFrame(
+        rows, columns=["date", "home_team", "away_team", "home_goals", "away_goals", "neutral"]
+    )
+    model = GoalModel().fit(history)
+    monkeypatch.setattr(engine, "get_model", lambda _conn, refit=False: model)
+
+    bets = engine.get_value_bets(conn, min_edge=0.05)
+    markets = {b["market"] for b in bets}
+    assert "double_chance" in markets
+    assert "dnb" in markets

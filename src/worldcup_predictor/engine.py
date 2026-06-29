@@ -338,6 +338,8 @@ def get_value_bets(
     bets += _valuebet.value_bets_spreads(
         conn, model, min_edge=min_edge, kelly_fraction=kelly_fraction
     )
+    bets += _valuebet.value_bets_dc(conn, model, min_edge=min_edge, kelly_fraction=kelly_fraction)
+    bets += _valuebet.value_bets_dnb(conn, model, min_edge=min_edge, kelly_fraction=kelly_fraction)
     bets.sort(key=lambda b: b["edge"], reverse=True)
     return bets
 
