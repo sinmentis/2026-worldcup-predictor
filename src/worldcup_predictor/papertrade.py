@@ -133,6 +133,8 @@ def capture_closing(conn: sqlite3.Connection, *, now_z: str | None = None) -> in
             cprice, cprob = _closing_totals(conn, r["match_id"], r["line"], r["outcome"])
         elif r["market"] == "spreads":
             cprice, cprob = _closing_spreads(conn, r["match_id"], r["line"], r["outcome"])
+        elif r["market"] in ("double_chance", "dnb"):
+            cprice, cprob = None, None  # implied markets: no book line, leave closing/CLV NULL
         else:
             cprice, cprob = _closing_1x2(conn, r["match_id"], r["outcome"])
         clv = (r["price_taken"] * cprob - 1.0) if cprob is not None else None

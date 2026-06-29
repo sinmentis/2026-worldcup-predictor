@@ -169,3 +169,31 @@ def test_settle_dispatches_double_chance_and_dnb(tmp_path):
     rows = {r["market"]: r for r in conn.execute("SELECT * FROM paper_bets")}
     assert rows["double_chance"]["result"] == "win"  # draw covered by x2
     assert rows["dnb"]["result"] == "push"  # draw refunds dnb
+
+
+def test_settle_double_chance_with_past_kickoff_skips_closing(tmp_path):
+    """Regression: a DC bet that already kicked off must not KeyError in capture_closing.
+
+    DC/DNB are implied markets with no book line; their outcomes (1x/12/x2) aren't in _OUT_IDX,
+    so routing them to _closing_1x2 raised KeyError and aborted the whole settle() batch. They
+    should be skipped for closing capture (closing_price/clv left NULL) and still settle.
+    """
+    conn = _conn(tmp_path)
+    _add_match(conn, 1, "2000-01-01T00:00:00Z", status="FINISHED", hs=1, as_=1)  # draw
+    papertrade.log_bets(
+        conn,
+        [
+            _bet(
+                1,
+                market="double_chance",
+                outcome="x2",
+                best_price=1.5,
+                kickoff="2000-01-01T00:00:00Z",
+            )
+        ],
+    )
+    assert papertrade.settle(conn) == 1  # no KeyError aborting the batch
+    r = conn.execute("SELECT * FROM paper_bets").fetchone()
+    assert r["result"] == "win"  # draw covered by x2 -> DC result resolves
+    assert r["closing_price"] is None and r["clv"] is None  # implied market: no closing line
+    assert r["closed_at"] is not None  # marked closed so capture won't retry forever
