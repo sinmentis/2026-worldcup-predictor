@@ -419,6 +419,14 @@ tbody tr:nth-child(-n+2) td.pts { color: var(--win); }
 }
 #bracket .match:hover { border-color: var(--accent); transform: translateY(-1px); }
 #bracket .match.proj { background: var(--panel2); border-style: dashed; border-color: #33425e; opacity: .94; }
+#bracket .match.next {
+  border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 12px -2px var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel)); z-index: 2;
+}
+#bracket .match.next .next-tag {
+  position: absolute; top: -8px; left: 8px; font-size: 9px; font-weight: 700;
+  background: var(--accent); color: #04222a; padding: 1px 6px; border-radius: 8px; letter-spacing: .3px;
+}
 #bracket .kick { font-size: 10px; color: var(--muted); text-align: right; margin-top: 2px; }
 #bracket .trow { display: flex; align-items: center; gap: 7px; padding: 3px 0; }
 #bracket .flag { font-size: 16px; line-height: 1; flex: 0 0 auto; filter: none; }

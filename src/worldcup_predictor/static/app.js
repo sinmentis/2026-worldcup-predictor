@@ -324,10 +324,30 @@ function bracketTeamRow(name, advPct, isWin) {
     <span class="names"><span class="zh">${nm}</span></span><span class="pct">${p}</span></div>`;
 }
 
-function bracketNode(m) {
+// Local date key (YYYY-M-D) of a match, for grouping by match day; null when no kickoff.
+function matchDayKey(m) {
+  if (!m.kickoff) return null;
+  const d = new Date(m.kickoff);
+  return isNaN(d) ? null : `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+// A node is a "next" candidate when both teams are real, it hasn't been played, and its
+// kickoff is in the future. The earliest such day is highlighted across the whole tree.
+function nextMatchDay(nodes) {
+  const now = Date.now();
+  const days = nodes
+    .filter((m) => m && m.home_known && m.away_known && m.status !== "FINISHED" && m.kickoff && new Date(m.kickoff) > now)
+    .map((m) => ({ key: matchDayKey(m), t: new Date(m.kickoff).getTime() }))
+    .filter((x) => x.key);
+  if (!days.length) return null;
+  return days.sort((a, b) => a.t - b.t)[0].key;
+}
+
+function bracketNode(m, nextDay) {
   const proj = !(m.home_known && m.away_known);
   const winHome = m.winner && m.winner === m.home;
   const winAway = m.winner && m.winner === m.away;
+  const isNext = !proj && m.status !== "FINISHED" && nextDay && matchDayKey(m) === nextDay;
   const badge = m.status === "FINISHED" ? `<span class="badge done">已赛</span>`
     : proj ? `<span class="badge proj">推测</span>` : `<span class="badge real">真实</span>`;
   const score = m.status === "FINISHED" && m.home_score != null
@@ -336,7 +356,8 @@ function bracketNode(m) {
   const when = m.kickoff
     ? new Date(m.kickoff).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })
     : "";
-  return `<div class="match ${proj ? "proj" : ""}" data-node='${esc(JSON.stringify(m))}'>
+  return `<div class="match ${proj ? "proj" : ""} ${isNext ? "next" : ""}" data-node='${esc(JSON.stringify(m))}'>
+    ${isNext ? `<span class="next-tag">下一场</span>` : ""}
     ${bracketTeamRow(m.home, m.advance_home, winHome)}
     ${bracketTeamRow(m.away, m.advance_away, winAway)}
     <div class="foot"><span class="score">${score}</span>${badge}</div>
@@ -350,18 +371,20 @@ async function loadBracket() {
     el.innerHTML = `<p class="muted">淘汰赛对阵将在小组赛结束后生成。</p>`;
     return;
   }
+  const allNodes = data.rounds.flatMap((r) => r.matches).concat(data.third_place ? [data.third_place] : []);
+  const nextDay = nextMatchDay(allNodes);
   const col = (label, matches) => {
     const slots = matches.map((m, i) =>
-      `<div class="slot ${i % 2 ? "bot" : "top"}">${bracketNode(m)}</div>`).join("");
+      `<div class="slot ${i % 2 ? "bot" : "top"}">${bracketNode(m, nextDay)}</div>`).join("");
     return `<div class="round"><div class="rlabel">${esc(label)}</div>${slots}</div>`;
   };
   const finalRound = data.rounds.find((r) => r.stage === "FINAL");
   const finalHtml = finalRound && finalRound.matches.length
     ? `<div class="round final"><div class="rlabel">&nbsp;</div><div class="slot"><div>
          <div class="final-card"><div class="rlabel">决赛 FINAL</div><div class="trophy">🏆</div>
-           ${bracketNode(finalRound.matches[0])}</div>
+           ${bracketNode(finalRound.matches[0], nextDay)}</div>
          ${data.third_place ? `<div class="third-card"><div class="rlabel">季军赛 3RD</div>
-           ${bracketNode(data.third_place)}</div>` : ""}
+           ${bracketNode(data.third_place, nextDay)}</div>` : ""}
        </div></div></div>`
     : "";
   const cols = data.rounds.filter((r) => r.stage !== "FINAL")
