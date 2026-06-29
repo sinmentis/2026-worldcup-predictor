@@ -86,6 +86,17 @@ function timeStr(d) {
   return d ? d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "待定";
 }
 
+// Knockout ties cannot end level: a draw goes to extra time + penalties, so we show each
+// side's advance probability (90' win + the draw split by win share) instead of a 3-way bar.
+const KO_STAGES = new Set(["R32", "R16", "QF", "SF", "3RD", "FINAL"]);
+const isKnockout = (stage) => KO_STAGES.has(stage);
+function advanceProbs(ph, pd, pa) {
+  const denom = ph + pa;
+  const share = denom > 0 ? ph / denom : 0.5;
+  const ah = ph + pd * share;
+  return [ah, 1 - ah];
+}
+
 // Live kickoff status windows.
 const FUTURE_WINDOW_MS = 12 * 3600 * 1000; // show a countdown when kickoff is within 12h
 const LIVE_WINDOW_MS = 2.5 * 3600 * 1000; // treat a match as in-progress for ~2.5h after kickoff
@@ -161,15 +172,20 @@ function matchCardHtml(m) {
     <div class="mid">
       <div class="kick">${m.group ? esc(m.group) + "组 · " : ""}${esc(timeStr(d))}</div>
       <div class="matchstatus" style="display:none"></div>
-      <span class="scoreline">${esc(m.ml_home)}-${esc(m.ml_away)}</span>
+      <span class="scoreline">${esc(m.ml_home)}-${esc(m.ml_away)}${isKnockout(m.stage) && m.ml_home === m.ml_away ? "·点球" : ""}</span>
       <div class="xg">预期 ${m.exp_home_goals.toFixed(2)} : ${m.exp_away_goals.toFixed(2)}</div>
     </div>
     ${teamCell(m.away_team, "away")}
-    <div class="probbar">
+    ${isKnockout(m.stage)
+      ? (() => { const [ah, aa] = advanceProbs(m.p_home, m.p_draw, m.p_away); return `<div class="probbar">
+      <span class="h" style="flex-basis:${ah * 100}%" title="晋级">${pct0(ah)}</span>
+      <span class="a" style="flex-basis:${aa * 100}%" title="晋级">${pct0(aa)}</span>
+    </div>`; })()
+      : `<div class="probbar">
       <span class="h" style="flex-basis:${m.p_home * 100}%" title="主胜">${pct0(m.p_home)}</span>
       <span class="d" style="flex-basis:${m.p_draw * 100}%" title="平">${pct0(m.p_draw)}</span>
       <span class="a" style="flex-basis:${m.p_away * 100}%" title="客胜">${pct0(m.p_away)}</span>
-    </div>
+    </div>`}
     ${fac ? `<div class="factors">${fac}</div>` : ""}
   </div>`;
 }
@@ -352,7 +368,7 @@ function bracketNode(m, nextDay) {
     : proj ? `<span class="badge proj">推测</span>` : `<span class="badge real">真实</span>`;
   const score = m.status === "FINISHED" && m.home_score != null
     ? `比分 ${m.home_score}-${m.away_score}`
-    : (m.ml_home != null ? `预测 ${m.ml_home}-${m.ml_away}` : "");
+    : (m.ml_home != null ? `预测 ${m.ml_home}-${m.ml_away}${m.ml_home === m.ml_away ? "·点球" : ""}` : "");
   const when = m.kickoff
     ? new Date(m.kickoff).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })
     : "";
@@ -400,18 +416,16 @@ async function loadBracket() {
 function openBracketModal(m) {
   const an = m.home ? zh(m.home) : "待定", bn = m.away ? zh(m.away) : "待定";
   const sheet = document.getElementById("bracket-sheet");
-  const probs = m.p_home == null ? "" : `<div class="bar">
-    <div class="h" style="width:${Math.round(m.p_home * 100)}%">${an} ${Math.round(m.p_home * 100)}%</div>
-    <div class="d" style="width:${Math.round(m.p_draw * 100)}%">平 ${Math.round(m.p_draw * 100)}%</div>
-    <div class="a" style="width:${Math.round(m.p_away * 100)}%">${Math.round(m.p_away * 100)}% ${bn}</div></div>`;
-  const adv = m.advance_home == null ? "" :
-    `<div class="kv"><span class="muted">晋级概率</span><span><b>${an} ${Math.round(m.advance_home * 100)}%</b> · ${bn} ${Math.round(m.advance_away * 100)}%</span></div>`;
+  const probs = m.advance_home == null ? "" : `<div class="bar">
+    <div class="h" style="width:${Math.round(m.advance_home * 100)}%">${an} 晋级 ${Math.round(m.advance_home * 100)}%</div>
+    <div class="a" style="width:${Math.round(m.advance_away * 100)}%">${Math.round(m.advance_away * 100)}% 晋级 ${bn}</div></div>`;
+  const adv = "";
   const fac = (m.factors || []).map((f) =>
     `<li>· ${esc(zh(f.team))}: ${esc(f.description)} (Δλ=${f.lambda_delta.toFixed(2)})</li>`).join("");
   const note = (m.home_known && m.away_known) ? "" :
     `<div class="adv">⚠ 推测对阵：球队由上一轮预测的胜者推演，真实结果出来后会更新。</div>`;
   sheet.innerHTML = `<h3>${an} <span class="muted">vs</span> ${bn}</h3>${probs}${adv}
-    ${m.ml_home != null ? `<div class="kv"><span class="muted">最可能比分</span><span>${m.ml_home}-${m.ml_away}</span></div>` : ""}
+    ${m.ml_home != null ? `<div class="kv"><span class="muted">90分钟最可能</span><span>${m.ml_home}-${m.ml_away}${m.ml_home === m.ml_away ? "，点球决胜" : ""}</span></div>` : ""}
     ${fac ? `<div class="factors"><div class="muted">情报因素</div><ul>${fac}</ul></div>` : ""}
     ${note}<button class="close" onclick="closeBracketModal()">关闭</button>`;
   document.getElementById("bracket-modal").classList.add("on");

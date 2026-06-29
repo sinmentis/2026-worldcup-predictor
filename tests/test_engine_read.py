@@ -110,6 +110,7 @@ def test_get_upcoming_predictions_shape(tmp_path, monkeypatch):
     assert len(out["matches"]) == 1
     mm = out["matches"][0]
     assert mm["home_team"] == "Strong"
+    assert mm["stage"] == "group"
     assert abs(mm["p_home"] + mm["p_draw"] + mm["p_away"] - 1.0) < 1e-6
     assert "factors" in mm
 

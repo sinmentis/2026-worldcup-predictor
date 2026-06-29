@@ -192,7 +192,7 @@ def get_upcoming_predictions(conn: sqlite3.Connection, limit: int = 12) -> dict[
     limit = min(max(1, limit), 60)
     model = get_model(conn)
     rows = conn.execute(
-        "SELECT id, group_id, home_team, away_team, kickoff, neutral FROM matches "
+        "SELECT id, stage, group_id, home_team, away_team, kickoff, neutral FROM matches "
         "WHERE status='SCHEDULED' AND home_team IS NOT NULL AND away_team IS NOT NULL "
         "ORDER BY (kickoff IS NULL), kickoff, id LIMIT ?",
         (limit,),
@@ -224,6 +224,7 @@ def get_upcoming_predictions(conn: sqlite3.Connection, limit: int = 12) -> dict[
         matches.append(
             {
                 "match_id": r["id"],
+                "stage": r["stage"],
                 "group": r["group_id"],
                 "home_team": pred.home_team,
                 "away_team": pred.away_team,
