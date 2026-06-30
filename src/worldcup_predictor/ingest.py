@@ -37,6 +37,38 @@ def _winner_team(score: dict[str, Any], home: str | None, away: str | None) -> s
     return None
 
 
+def _knockout_outcome(
+    score: dict[str, Any], home: str | None, away: str | None
+) -> tuple[int | None, int | None, str | None]:
+    """On-pitch score and decisive winner for a finished knockout match.
+
+    A penalty shootout's ``fullTime`` folds in the shootout goals, so for 90'/ET bet
+    settlement and display we store the regulation(+ET) score and record the shootout winner
+    (from penalties, falling back to ``fullTime``) separately. Non-shootout matches keep
+    ``fullTime`` and the feed's declared winner.
+    """
+    ft = score.get("fullTime") or {}
+    if score.get("duration") == "PENALTY_SHOOTOUT":
+        rt = score.get("regularTime") or {}
+        et = score.get("extraTime") or {}
+        if rt.get("home") is not None:
+            hs = (rt.get("home") or 0) + (et.get("home") or 0)
+            as_ = (rt.get("away") or 0) + (et.get("away") or 0)
+        else:
+            hs, as_ = ft.get("home"), ft.get("away")
+        pens = score.get("penalties") or {}
+        ph, pa = pens.get("home") or 0, pens.get("away") or 0
+        if ph != pa:
+            winner = home if ph > pa else away
+        else:
+            fth, fta = ft.get("home") or 0, ft.get("away") or 0
+            winner = _winner_team(score, home, away) or (
+                home if fth > fta else away if fta > fth else None
+            )
+        return hs, as_, winner
+    return ft.get("home"), ft.get("away"), _winner_team(score, home, away)
+
+
 def apply_knockout_fixtures(conn: sqlite3.Connection, payload: dict[str, Any]) -> int:
     """Upsert knockout matches (R32..FINAL) from the feed, keyed by the feed match id.
 
@@ -60,12 +92,9 @@ def apply_knockout_fixtures(conn: sqlite3.Connection, payload: dict[str, Any]) -
         away = config.canonical_team(at.get("name")) if at.get("name") else None
         kickoff = m.get("utcDate")
         score = m.get("score") or {}
-        ft = score.get("fullTime") or {}
         finished = m.get("status") == "FINISHED"
-        hs = ft.get("home") if finished else None
-        as_ = ft.get("away") if finished else None
         status = "FINISHED" if finished else "SCHEDULED"
-        winner = _winner_team(score, home, away) if finished else None
+        hs, as_, winner = _knockout_outcome(score, home, away) if finished else (None, None, None)
         conn.execute(
             "INSERT INTO matches(stage, slot, group_id, home_team, away_team, kickoff, "
             " neutral, home_score, away_score, status, ext_id, winner_team) "

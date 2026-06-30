@@ -85,6 +85,38 @@ def test_apply_knockout_is_idempotent_and_fills_in(tmp_path):
     assert r["winner_team"] == "Croatia"  # penalty winner from score.winner
 
 
+def test_apply_knockout_penalty_shootout_uses_regulation_score(tmp_path):
+    conn = _conn(tmp_path)
+    # Real football-data shape: 1-1 in regulation, decided on penalties. fullTime folds the
+    # shootout in (5-6) and score.winner is null. We must store the on-pitch 1-1 (for 90'
+    # bet settlement and display) plus the shootout winner.
+    payload = {
+        "matches": [
+            {
+                "id": 903,
+                "stage": "LAST_32",
+                "status": "FINISHED",
+                "utcDate": "2026-06-30T20:30:00Z",
+                "homeTeam": {"name": "Germany"},
+                "awayTeam": {"name": "Paraguay"},
+                "score": {
+                    "duration": "PENALTY_SHOOTOUT",
+                    "winner": None,
+                    "fullTime": {"home": 5, "away": 6},
+                    "regularTime": {"home": 1, "away": 1},
+                    "extraTime": {"home": 0, "away": 0},
+                    "penalties": {"home": 5, "away": 5},
+                },
+            }
+        ]
+    }
+    ingest.apply_knockout_fixtures(conn, payload)
+    r = conn.execute("SELECT * FROM matches WHERE ext_id=903").fetchone()
+    assert r["status"] == "FINISHED"
+    assert (r["home_score"], r["away_score"]) == (1, 1)  # on-pitch, not the 5-6 fullTime
+    assert r["winner_team"] == "Paraguay"  # shootout winner
+
+
 def test_group_functions_ignore_knockout_matches(tmp_path):
     conn = _conn(tmp_path)
     # A knockout rematch of a real group pair must NOT overwrite the group row.
