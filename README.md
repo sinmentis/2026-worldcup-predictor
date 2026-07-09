@@ -198,6 +198,23 @@ runs offline on bundled history and free RSS.
 | `ODDS_API_KEY` | [The Odds API](https://the-odds-api.com) key (free 500 req/month) for `fetch-odds` and value betting. |
 | `NEWSAPI_KEY` | Optional [NewsAPI](https://newsapi.org) key to supplement free RSS feeds. Not required. |
 
+**Deployed on the shared VM**, the three API keys above are NOT hand-edited in `.env` —
+podman secrets (`worldcup-football-data-token`, `worldcup-odds-api-key`, `worldcup-newsapi-key`)
+are the canonical store, matching every other site in this workspace (see the umbrella
+`website/README.md`'s "Secrets & tokens" section). `.env` becomes a generated, 0600, gitignored
+artifact:
+
+```bash
+printf '%s' "$FOOTBALL_DATA_TOKEN" | podman secret create worldcup-football-data-token -
+printf '%s' "$ODDS_API_KEY"        | podman secret create worldcup-odds-api-key -
+deploy/sync-env-from-secrets.sh   # (re)writes .env from whichever worldcup-* secrets exist
+```
+
+Re-run `deploy/sync-env-from-secrets.sh` any time a secret is rotated — cron, the two
+systemd services, and the `sched-*.sh` loops all pick up `.env` via `load_dotenv()`, so
+nothing else needs to change. For plain local dev, hand-editing `.env` still works exactly
+as before; the sync script is only needed on the deploy box.
+
 ## 🛠️ Development
 
 ```bash
