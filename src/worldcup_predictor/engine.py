@@ -536,12 +536,24 @@ def run_tuning(
 def record_result(
     conn: sqlite3.Connection, match_id: int, home_score: int, away_score: int
 ) -> None:
-    cur = conn.execute(
-        "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' WHERE id=?",
-        (home_score, away_score, match_id),
-    )
-    if cur.rowcount == 0:
+    row = conn.execute(
+        "SELECT home_team, away_team FROM matches WHERE id=?", (match_id,)
+    ).fetchone()
+    if row is None:
         raise ValueError(f"No match with id {match_id}")
+    # Set the decisive winner so knockout conditioning (bracket/sim) can honor a manual result;
+    # a draw leaves it NULL (a shootout winner can't be inferred from the score alone).
+    if home_score > away_score:
+        winner = row["home_team"]
+    elif away_score > home_score:
+        winner = row["away_team"]
+    else:
+        winner = None
+    conn.execute(
+        "UPDATE matches SET home_score=?, away_score=?, status='FINISHED', winner_team=? "
+        "WHERE id=?",
+        (home_score, away_score, winner, match_id),
+    )
     conn.commit()
     db.touch_update(conn)
 

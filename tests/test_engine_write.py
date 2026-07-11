@@ -41,6 +41,23 @@ def test_record_result_unknown_id_raises(tmp_path):
         engine.record_result(conn, 999999, 1, 0)
 
 
+def test_record_result_sets_winner_for_decisive_score(tmp_path):
+    # A manually recorded knockout needs winner_team so the sim/bracket can condition on it;
+    # a decisive score determines it, a draw leaves it NULL (a shootout winner can't be inferred).
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    mid, home, away = conn.execute(
+        "SELECT id, home_team, away_team FROM matches WHERE home_team IS NOT NULL LIMIT 1"
+    ).fetchone()
+    engine.record_result(conn, mid, 2, 3)  # away side wins
+    assert conn.execute("SELECT winner_team FROM matches WHERE id=?", (mid,)).fetchone()[0] == away
+    engine.record_result(conn, mid, 4, 1)  # home side wins
+    assert conn.execute("SELECT winner_team FROM matches WHERE id=?", (mid,)).fetchone()[0] == home
+    engine.record_result(conn, mid, 1, 1)  # draw → no inferable winner
+    assert conn.execute("SELECT winner_team FROM matches WHERE id=?", (mid,)).fetchone()[0] is None
+
+
 def test_predict_before_history_raises(tmp_path):
     conn = db.connect(tmp_path / "t.db")
     db.init_schema(conn)
