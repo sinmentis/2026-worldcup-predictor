@@ -208,6 +208,11 @@ def simulate_tournament(
 
     counts = {t: dict(advance=0, r16=0, qf=0, sf=0, final=0, title=0) for t in teams}
     played, played_pairs = _load_played_groups(conn)
+    # Hold already-decided knockout ties fixed so eliminated teams stop accruing downstream odds.
+    # Local import: bracket imports simulate at module load, so importing it here breaks the cycle.
+    from worldcup_predictor.bracket import finished_knockout_winners
+
+    known_ko = finished_knockout_winners(conn)
 
     for _ in range(n):
         winners: dict[str, str] = {}
@@ -236,9 +241,17 @@ def simulate_tournament(
             counts[r.team]["advance"] += 1
 
         r32 = build_r32(winners, runners, [r.team for r in qual_thirds])
-        r32_winners = [_knockout_winner(a, b, probs, grids, rng) for a, b in r32]
-        # Resolve the whole knockout tree via the official feeders (not consecutive pairing).
-        win = _bt.progress(r32_winners, lambda a, b: _knockout_winner(a, b, probs, grids, rng))
+        r32_winners = [
+            known_ko[_bt.R32_FIXTURES[i]]
+            if _bt.R32_FIXTURES[i] in known_ko
+            else _knockout_winner(a, b, probs, grids, rng)
+            for i, (a, b) in enumerate(r32)
+        ]
+        # Resolve the whole knockout tree via the official feeders (not consecutive pairing),
+        # holding finished ties fixed via `known_ko`.
+        win = _bt.progress(
+            r32_winners, lambda a, b: _knockout_winner(a, b, probs, grids, rng), known=known_ko
+        )
         # Winning an R32/R16/QF/SF/Final match credits reaching r16/qf/sf/final/title.
         for fx in _bt.R32_FIXTURES:
             counts[win[fx]]["r16"] += 1

@@ -52,14 +52,27 @@ FEEDERS: dict[int, tuple[int, int]] = {
 }
 
 
-def progress(r32_winners: list[str], pick: Callable[[str, str], str]) -> dict[int, str]:
+def progress(
+    r32_winners: list[str],
+    pick: Callable[[str, str], str],
+    known: dict[int, str] | None = None,
+) -> dict[int, str]:
     """Resolve every knockout fixture's winner from the 16 R32 winners using the official feeders.
 
     ``r32_winners[i]`` is the winner of fixture ``R32_FIXTURES[i]``. ``pick(a, b)`` returns the
-    winner of a single tie. Returns a map from every fixture number (73..102, 104) to its winner.
+    winner of a single tie. ``known`` maps a fixture number to an already-decided winner (a
+    finished match): such fixtures are held fixed instead of calling ``pick`` (or, for R32,
+    instead of using ``r32_winners``). Returns a map from every fixture number (73..102, 104)
+    to its winner.
     """
-    win: dict[int, str] = {R32_FIXTURES[i]: r32_winners[i] for i in range(16)}
+    known = known or {}
+    win: dict[int, str] = {
+        R32_FIXTURES[i]: known.get(R32_FIXTURES[i], r32_winners[i]) for i in range(16)
+    }
     for fx in (*R16_FIXTURES, *QF_FIXTURES, *SF_FIXTURES, FINAL_FIXTURE):
-        fa, fb = FEEDERS[fx]
-        win[fx] = pick(win[fa], win[fb])
+        if fx in known:
+            win[fx] = known[fx]
+        else:
+            fa, fb = FEEDERS[fx]
+            win[fx] = pick(win[fa], win[fb])
     return win

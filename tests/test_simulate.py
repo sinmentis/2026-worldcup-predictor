@@ -89,6 +89,53 @@ def test_simulation_conditions_on_finished_group_matches(tmp_path):
     assert result["Czech Republic"]["advance"] == 0.0  # 4th place never qualifies
 
 
+def test_progress_honors_known_finished_fixtures():
+    # A finished knockout tie (in `known`) must be held fixed, overriding `pick`, and propagate.
+    r32 = [f"W{73 + i}" for i in range(16)]
+    base = bt.progress(r32, lambda a, b: a)  # first-side pick → fixture 89 winner is its feeder 73
+    assert base[89] == "W73"
+    win = bt.progress(r32, lambda a, b: a, known={89: "W75"})
+    assert win[89] == "W75"  # known winner overrides the pick
+    assert win[97] == "W75"  # 89 feeds QF 97; the held winner propagates downstream
+
+
+def test_simulate_conditions_on_finished_knockout(tmp_path):
+    # A finished R32 tie must be held: its loser is eliminated (never reaches R16 / wins the
+    # title) and its winner reaches R16 in every simulation. The sim must not re-play decided ties.
+    conn = db.connect(tmp_path / "k.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+
+    import itertools
+
+    for teams in config.GROUPS.values():  # finish every group (home 1-0) → standings decided
+        for h, a in itertools.combinations(teams, 2):
+            conn.execute(
+                "UPDATE matches SET home_score=1, away_score=0, status='FINISHED' "
+                "WHERE stage='group' AND home_team=? AND away_team=?",
+                (h, a),
+            )
+
+    from worldcup_predictor import bracket
+
+    _winners, runners = bracket._group_winners_runners(conn)
+    home73, away73 = runners["A"], runners["B"]  # fixture 73 = RU_A vs RU_B
+    # Fixture 73 FINISHED with the AWAY side winning → home73 (RU_A) is eliminated.
+    conn.execute(
+        "INSERT INTO matches(stage,home_team,away_team,kickoff,neutral,status,"
+        "home_score,away_score,winner_team,ext_id) "
+        "VALUES ('R32',?,?,?,1,'FINISHED',0,1,?,9073)",
+        (home73, away73, "2026-06-28T19:00:00Z", away73),
+    )
+    conn.commit()
+
+    model = GoalModel().fit(_history())
+    result = simulate_tournament(conn, model, n=200, seed=11)
+    assert result[home73]["r16"] == 0.0  # lost its only R32 tie → never reaches R16
+    assert result[home73]["title"] == 0.0  # eliminated → cannot win the title
+    assert result[away73]["r16"] > 0.999  # won its R32 tie → reaches R16 in every simulation
+
+
 def test_knockout_shootout_favours_stronger_team():
     from worldcup_predictor.simulate import _knockout_winner
 

@@ -228,6 +228,40 @@ def _match_overlay(
     return idx.get(frozenset({home, away}))
 
 
+def finished_knockout_winners(conn: sqlite3.Connection) -> dict[int, str]:
+    """Map each FINISHED knockout fixture number → its actual ``winner_team``, resolved through the
+    official feeder topology (the same conditioning ``build_predicted_bracket`` applies).
+
+    The tournament simulation uses this to hold already-decided knockout ties fixed instead of
+    re-sampling them, so eliminated teams no longer accrue downstream advancement or title odds.
+    R32 rows are located by their FIFA-slot signature; later rounds are matched by the two-team
+    set the finished feeders produce, so a fixture is only included once both its feeders are known.
+    """
+    by_stage = _load(conn)
+    winners_g, runners_g = _group_winners_runners(conn)
+    sigs = _r32_signatures(winners_g, runners_g)
+    known: dict[int, str] = {}
+    for row in by_stage.get("R32", []):
+        if row["status"] == "FINISHED" and row["winner_team"]:
+            fx = fixture_of_r32_row(row["home_team"], row["away_team"], sigs)
+            if fx is not None:
+                known[fx] = row["winner_team"]
+    overlay = _overlay_index(by_stage)
+    for fx_stage, fixtures in (
+        ("R16", _bt.R16_FIXTURES),
+        ("QF", _bt.QF_FIXTURES),
+        ("SF", _bt.SF_FIXTURES),
+        ("FINAL", (_bt.FINAL_FIXTURE,)),
+    ):
+        for fx in fixtures:
+            fa, fb = _bt.FEEDERS[fx]
+            a, b = known.get(fa), known.get(fb)
+            ko_row = _match_overlay(overlay.get(fx_stage, {}), a, b)
+            if ko_row is not None and ko_row["status"] == "FINISHED" and ko_row["winner_team"]:
+                known[fx] = ko_row["winner_team"]
+    return known
+
+
 def build_predicted_bracket(conn: sqlite3.Connection, model: GoalModel) -> dict[str, Any]:
     """Compose the knockout tree: feed teams where known, predicted winners projected forward via
     the official feeder topology, every slot ordered by fixture number."""
