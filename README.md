@@ -1,5 +1,12 @@
 # ⚽ World Cup Predictor
 
+[![CI](https://github.com/sinmentis/2026-worldcup-predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/sinmentis/2026-worldcup-predictor/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Ruff](https://img.shields.io/badge/lint-ruff-261230?logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://img.shields.io/badge/mypy-strict-2A6DB2)](https://mypy-lang.org/)
+[![Live demo](https://img.shields.io/badge/demo-worldcup.shunlyu.com-16a34a)](https://worldcup.shunlyu.com)
+
 > A deterministic, source-honest prediction engine for the FIFA World Cup 2026 — goal model, Monte Carlo, off-pitch intel, and value betting you can audit.
 
 **🔴 Live demo: [worldcup.shunlyu.com](https://worldcup.shunlyu.com)** — public, read-only, no sign-up.

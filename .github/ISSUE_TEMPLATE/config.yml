@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Live demo
+    url: https://worldcup.shunlyu.com
+    about: Try the public, read-only prediction site before filing an issue.
+  - name: Security report
+    url: https://github.com/sinmentis/2026-worldcup-predictor/security/advisories/new
+    about: Report a vulnerability privately (see SECURITY.md). Do not open a public issue.

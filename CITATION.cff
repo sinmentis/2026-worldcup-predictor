@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "World Cup Predictor"
+abstract: >-
+  A deterministic, source-honest prediction engine for the FIFA World Cup 2026:
+  a Dixon-Coles goal model with recency weighting, Monte Carlo tournament
+  simulation over the official knockout bracket, off-pitch intel adjustments,
+  post-hoc calibration, and auditable value-betting with a paper-trading ledger.
+type: software
+authors:
+  - name: "sinmentis"
+    alias: sinmentis
+repository-code: "https://github.com/sinmentis/2026-worldcup-predictor"
+url: "https://worldcup.shunlyu.com"
+license: MIT
+keywords:
+  - world-cup-2026
+  - football-prediction
+  - dixon-coles
+  - poisson
+  - monte-carlo-simulation
+  - elo-rating
+  - value-betting
+  - sports-analytics

@@ -1,0 +1,37 @@
+name: Bug report
+description: Report something that is broken or behaving incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. For security issues, use SECURITY.md instead — do not file them here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: Steps to reproduce, expected vs actual behaviour.
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command / endpoint
+      description: The exact CLI command or API endpoint involved.
+      render: shell
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output or traceback
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Commit / version
+      description: Output of `git rev-parse --short HEAD`, or the release tag.
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS and Python version (`uv run python --version`).
