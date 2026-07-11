@@ -101,9 +101,17 @@ def apply_knockout_fixtures(conn: sqlite3.Connection, payload: dict[str, Any]) -
             " VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
             " ON CONFLICT(ext_id) DO UPDATE SET stage=excluded.stage, home_team=excluded.home_team,"
             " away_team=excluded.away_team, kickoff=excluded.kickoff, "
-            "home_score=excluded.home_score,"
-            " away_score=excluded.away_score, status=excluded.status, "
-            "winner_team=excluded.winner_team",
+            # Never downgrade a recorded result: a feed that transiently reverts a played match to
+            # a non-FINISHED status (null score) must not wipe it. Only a FINISHED feed row updates
+            # the result fields (which still allows a genuine score correction).
+            " home_score=CASE WHEN excluded.status='FINISHED' THEN excluded.home_score"
+            " ELSE matches.home_score END,"
+            " away_score=CASE WHEN excluded.status='FINISHED' THEN excluded.away_score"
+            " ELSE matches.away_score END,"
+            " status=CASE WHEN excluded.status='FINISHED' THEN excluded.status"
+            " ELSE matches.status END,"
+            " winner_team=CASE WHEN excluded.status='FINISHED' THEN excluded.winner_team"
+            " ELSE matches.winner_team END",
             (mapped, None, None, home, away, kickoff, 1, hs, as_, status, ext_id, winner),
         )
         touched += 1

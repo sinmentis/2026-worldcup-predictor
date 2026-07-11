@@ -117,6 +117,38 @@ def test_apply_knockout_penalty_shootout_uses_regulation_score(tmp_path):
     assert r["winner_team"] == "Paraguay"  # shootout winner
 
 
+def test_apply_knockout_does_not_wipe_finished_on_feed_revert(tmp_path):
+    # A feed glitch can transiently revert a played knockout to a non-FINISHED status with a null
+    # score. That must NOT wipe the recorded result (the match happened); only teams/kickoff may
+    # still update. Prevents fetch-fixtures from un-settling a finished knockout every cycle.
+    conn = _conn(tmp_path)
+    ingest.apply_knockout_fixtures(
+        conn,
+        {
+            "matches": [
+                _ko(
+                    904,
+                    "LAST_16",
+                    "Mexico",
+                    "England",
+                    status="FINISHED",
+                    hs=2,
+                    as_=3,
+                    winner="AWAY_TEAM",
+                )
+            ]
+        },
+    )
+    # Later fetch: the feed reports the same match as not-yet-finished with a null score.
+    ingest.apply_knockout_fixtures(
+        conn, {"matches": [_ko(904, "LAST_16", "Mexico", "England", status="TIMED")]}
+    )
+    r = conn.execute("SELECT * FROM matches WHERE ext_id=904").fetchone()
+    assert r["status"] == "FINISHED"  # not downgraded
+    assert (r["home_score"], r["away_score"]) == (2, 3)  # result preserved
+    assert r["winner_team"] == "England"  # winner preserved
+
+
 def test_group_functions_ignore_knockout_matches(tmp_path):
     conn = _conn(tmp_path)
     # A knockout rematch of a real group pair must NOT overwrite the group row.
