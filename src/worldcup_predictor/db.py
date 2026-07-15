@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS historical_matches (
     home_score INTEGER,
     away_score INTEGER,
     tournament TEXT,
-    neutral INTEGER DEFAULT 0
+    neutral INTEGER DEFAULT 0,
+    source_match_id INTEGER
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_hist_match
     ON historical_matches(date, home_team, away_team, tournament, home_score, away_score);
@@ -200,9 +201,8 @@ def _has_column(conn: sqlite3.Connection, table: str, column: str) -> bool:
 def migrate(conn: sqlite3.Connection) -> None:
     """Idempotently bring an existing DB up to schema. Safe on fresh and existing DBs.
 
-    `CREATE TABLE IF NOT EXISTS` is a no-op on an existing table, so a column added to
-    SCHEMA never reaches the live prod DB; this adds `affects` via ALTER where missing.
-    `ALTER TABLE ... ADD COLUMN ... NOT NULL DEFAULT 'attack'` backfills existing rows.
+    `CREATE TABLE IF NOT EXISTS` is a no-op on an existing table, so columns added to SCHEMA
+    never reach the live DB. Add missing columns before creating indexes that reference them.
     """
     for table in _AFFECTS_TABLES:
         exists = conn.execute(
@@ -220,6 +220,16 @@ def migrate(conn: sqlite3.Connection) -> None:
             conn.execute("ALTER TABLE matches ADD COLUMN ext_id INTEGER")
         if not _has_column(conn, "matches", "winner_team"):
             conn.execute("ALTER TABLE matches ADD COLUMN winner_team TEXT")
+    has_history = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='historical_matches'"
+    ).fetchone()
+    if has_history:
+        if not _has_column(conn, "historical_matches", "source_match_id"):
+            conn.execute("ALTER TABLE historical_matches ADD COLUMN source_match_id INTEGER")
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ux_hist_source_match "
+            "ON historical_matches(source_match_id) WHERE source_match_id IS NOT NULL"
+        )
     conn.commit()
 
 
@@ -229,13 +239,35 @@ def init_schema(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-def touch_update(conn: sqlite3.Connection) -> None:
+def set_update_timestamp(conn: sqlite3.Connection) -> None:
     conn.execute(
         "INSERT INTO meta(key, value) VALUES('last_update', ?) "
         "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
         (str(time.time()),),
     )
+
+
+def touch_update(conn: sqlite3.Connection) -> None:
+    set_update_timestamp(conn)
     conn.commit()
+
+
+def history_revision(conn: sqlite3.Connection) -> int:
+    row = conn.execute("SELECT value FROM meta WHERE key='history_revision'").fetchone()
+    if row is None:
+        return 0
+    try:
+        return int(row["value"])
+    except (TypeError, ValueError):
+        return 0
+
+
+def bump_history_revision(conn: sqlite3.Connection) -> int:
+    conn.execute(
+        "INSERT INTO meta(key, value) VALUES('history_revision', '1') "
+        "ON CONFLICT(key) DO UPDATE SET value=CAST(meta.value AS INTEGER) + 1"
+    )
+    return history_revision(conn)
 
 
 def get_last_update_ts(conn: sqlite3.Connection) -> str | None:

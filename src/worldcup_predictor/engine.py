@@ -22,7 +22,11 @@ from worldcup_predictor import valuebet as _valuebet
 from worldcup_predictor.goal_model import GoalModel, history_frame
 from worldcup_predictor.models import IntelEvent
 from worldcup_predictor.predict import adjusted_grid, predict_match
-from worldcup_predictor.simulate import simulate_tournament, standings_from_results
+from worldcup_predictor.simulate import (
+    simulate_tournament,
+    standings_from_results,
+    store_simulation_results,
+)
 
 
 def get_group_standings(conn: sqlite3.Connection, group: str) -> list[dict[str, Any]]:
@@ -455,6 +459,7 @@ def reject_intel(conn: sqlite3.Connection, ref: int | str) -> None:
 _MODEL: GoalModel | None = None
 _MODEL_DB: str | None = None
 _MODEL_XI: float | None = None
+_MODEL_HISTORY_REVISION: int | None = None
 # Serialize fits so a cold cache under concurrent requests triggers ONE fit, not a
 # thundering herd of parallel Dixon-Coles fits that saturate the CPU and never settle.
 _MODEL_LOCK = threading.Lock()
@@ -466,28 +471,44 @@ def _db_path(conn: sqlite3.Connection) -> str:
 
 
 def _reset_model_cache() -> None:
-    global _MODEL, _MODEL_DB, _MODEL_XI
+    global _MODEL, _MODEL_DB, _MODEL_XI, _MODEL_HISTORY_REVISION
     _MODEL = None
     _MODEL_DB = None
     _MODEL_XI = None
+    _MODEL_HISTORY_REVISION = None
 
 
 def get_model(conn: sqlite3.Connection, refit: bool = False) -> GoalModel:
-    """Return a fitted goal model, cached per database file and tuned decay.
+    """Return a fitted goal model, cached per database file, tuned decay, and history revision.
 
     The cache is keyed on the DB path and the tuned ``time_decay_xi`` so reusing the process
-    against a different database, or after auto-tuning, refits instead of reusing a stale model.
+    against a different database, after auto-tuning, or after history changes refits instead of
+    reusing a stale model.
     """
-    global _MODEL, _MODEL_DB, _MODEL_XI
+    global _MODEL, _MODEL_DB, _MODEL_XI, _MODEL_HISTORY_REVISION
     path = _db_path(conn)
     xi = _tune.current_xi(conn)
+    revision = db.history_revision(conn)
     # Fast path: a valid cached model needs no lock.
-    if not refit and _MODEL is not None and path == _MODEL_DB and xi == _MODEL_XI:
+    if (
+        not refit
+        and _MODEL is not None
+        and path == _MODEL_DB
+        and xi == _MODEL_XI
+        and revision == _MODEL_HISTORY_REVISION
+    ):
         return _MODEL
     # Slow path: serialize fits. Concurrent callers wait here, then the re-check below
     # finds the freshly-cached model and skips refitting.
     with _MODEL_LOCK:
-        if refit or _MODEL is None or path != _MODEL_DB or xi != _MODEL_XI:
+        revision = db.history_revision(conn)
+        if (
+            refit
+            or _MODEL is None
+            or path != _MODEL_DB
+            or xi != _MODEL_XI
+            or revision != _MODEL_HISTORY_REVISION
+        ):
             frame = history_frame(conn)
             if frame.empty:
                 raise ValueError(
@@ -496,6 +517,7 @@ def get_model(conn: sqlite3.Connection, refit: bool = False) -> GoalModel:
             _MODEL = GoalModel().fit(frame, xi=xi)
             _MODEL_DB = path
             _MODEL_XI = xi
+            _MODEL_HISTORY_REVISION = revision
     return _MODEL
 
 
@@ -604,7 +626,19 @@ def predict_fixture(conn: sqlite3.Connection, match_id: int) -> dict[str, Any]:
 def run_simulation(
     conn: sqlite3.Connection, n: int = 50_000, seed: int | None = None
 ) -> dict[str, dict[str, float]]:
-    model = get_model(conn)
-    result = simulate_tournament(conn, model, n=n, seed=seed)
-    db.touch_update(conn)
+    result = calculate_simulation(conn, n=n, seed=seed)
+    store_simulation(conn, result, n)
+    db.set_update_timestamp(conn)
+    conn.commit()
     return result
+
+
+def calculate_simulation(
+    conn: sqlite3.Connection, n: int = 50_000, seed: int | None = None
+) -> dict[str, dict[str, float]]:
+    model = get_model(conn)
+    return simulate_tournament(conn, model, n=n, seed=seed, persist=False)
+
+
+def store_simulation(conn: sqlite3.Connection, result: dict[str, dict[str, float]], n: int) -> None:
+    store_simulation_results(conn, result, n)

@@ -74,6 +74,31 @@ def test_apply_results_payload_aliases_api_team_names(tmp_path):
     assert (row["home_score"], row["away_score"], row["status"]) == (2, 1, "FINISHED")
 
 
+def test_apply_results_payload_updates_finished_score_correction(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    assert ingest.apply_results_payload(conn, PAYLOAD) == 1
+    corrected = {
+        "matches": [
+            {
+                "homeTeam": {"name": "Brazil"},
+                "awayTeam": {"name": "Morocco"},
+                "score": {"fullTime": {"home": 2, "away": 1}},
+                "status": "FINISHED",
+            }
+        ]
+    }
+
+    assert ingest.apply_results_payload(conn, corrected) == 1
+
+    row = conn.execute(
+        "SELECT home_score, away_score FROM matches "
+        "WHERE home_team='Brazil' AND away_team='Morocco'"
+    ).fetchone()
+    assert (row["home_score"], row["away_score"]) == (2, 1)
+
+
 def test_apply_fixtures_payload_sets_kickoff(tmp_path):
     conn = db.connect(tmp_path / "t.db")
     db.init_schema(conn)
@@ -109,6 +134,43 @@ def test_apply_fixtures_payload_sets_kickoff(tmp_path):
     ).fetchone()
     assert fin["kickoff"] == "2026-06-11T18:00:00Z"
     assert (fin["home_score"], fin["away_score"], fin["status"]) == (2, 0, "FINISHED")
+
+
+def test_apply_fixtures_payload_updates_finished_score_correction(tmp_path):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    ingest.seed_teams_and_fixtures(conn)
+    first = {
+        "matches": [
+            {
+                "homeTeam": {"name": "Mexico"},
+                "awayTeam": {"name": "South Africa"},
+                "utcDate": "2026-06-11T18:00:00Z",
+                "score": {"fullTime": {"home": 2, "away": 0}},
+                "status": "FINISHED",
+            }
+        ]
+    }
+    corrected = {
+        "matches": [
+            {
+                "homeTeam": {"name": "Mexico"},
+                "awayTeam": {"name": "South Africa"},
+                "utcDate": "2026-06-11T18:00:00Z",
+                "score": {"fullTime": {"home": 2, "away": 1}},
+                "status": "FINISHED",
+            }
+        ]
+    }
+    ingest.apply_fixtures_payload(conn, first)
+
+    ingest.apply_fixtures_payload(conn, corrected)
+
+    row = conn.execute(
+        "SELECT home_score, away_score FROM matches "
+        "WHERE home_team='Mexico' AND away_team='South Africa'"
+    ).fetchone()
+    assert (row["home_score"], row["away_score"]) == (2, 1)
 
 
 def test_stale_unsettled_matches_flags_overdue(tmp_path):

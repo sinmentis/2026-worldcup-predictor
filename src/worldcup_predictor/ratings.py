@@ -46,7 +46,7 @@ def _result(home_score: int, away_score: int) -> tuple[float, float]:
     return 0.5, 0.5
 
 
-def compute_elo_ratings(conn: sqlite3.Connection) -> dict[str, float]:
+def calculate_elo_ratings(conn: sqlite3.Connection) -> dict[str, float]:
     rows = conn.execute(
         "SELECT date, home_team, away_team, home_score, away_score, tournament, neutral "
         "FROM historical_matches ORDER BY date, id"
@@ -76,10 +76,20 @@ def compute_elo_ratings(conn: sqlite3.Connection) -> dict[str, float]:
         n = games.get(team, 0)
         shrunk = (n * rating + config.ELO_SHRINK_GAMES * mean) / (n + config.ELO_SHRINK_GAMES)
         elo[team] = shrunk
+    return elo
+
+
+def store_elo_ratings(conn: sqlite3.Connection, elo: dict[str, float]) -> None:
+    for team, rating in elo.items():
         conn.execute(
             "INSERT INTO teams(name, elo) VALUES(?, ?) "
             "ON CONFLICT(name) DO UPDATE SET elo=excluded.elo",
-            (team, shrunk),
+            (team, rating),
         )
+
+
+def compute_elo_ratings(conn: sqlite3.Connection) -> dict[str, float]:
+    elo = calculate_elo_ratings(conn)
+    store_elo_ratings(conn, elo)
     conn.commit()
     return elo

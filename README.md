@@ -74,6 +74,7 @@ uv run worldcup serve --host 0.0.0.0 --port 8080
 ```bash
 uv run worldcup fetch-fixtures        # kickoff times + results from football-data.org
 uv run worldcup fetch-results         # finished World Cup results
+uv run worldcup refresh-results-model --n 20000  # atomic history + ratings + simulation refresh
 uv run worldcup predict <match_id>    # predict and persist one fixture
 uv run worldcup evaluate              # score finished predictions vs baseline
 uv run worldcup backtest --fit-calibration   # walk-forward skill + fit the calibrator
@@ -137,8 +138,9 @@ a handful of bets is mostly luck. This is evidence-gathering *before* anyone ris
 
 The engine is deterministic; the LLM only handles language. The two never blur:
 
-- **No-LLM jobs (cron / systemd):** `fetch-results`, `fetch-fixtures`, `fetch-odds`,
-  `fetch-news`, `simulate`, `paper-settle`. Reproducible and schedulable.
+- **No-LLM jobs (cron / systemd):** `fetch-results`, `fetch-fixtures`,
+  `refresh-results-model`, `fetch-odds`, `fetch-news`, `simulate`, `paper-settle`.
+  Reproducible and schedulable.
 - **LLM jobs (GitHub Copilot CLI via MCP):** read raw news, extract structured source-linked
   intel, explain predictions. The model math is never touched by an LLM.
 

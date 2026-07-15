@@ -22,6 +22,28 @@ def test_simulate_small(tmp_path, monkeypatch):
     assert res.exit_code == 0
 
 
+def test_refresh_results_model_command(tmp_path, monkeypatch):
+    from worldcup_predictor import cli, results_refresh
+
+    monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli.db"))
+    runner.invoke(cli.app, ["init-db"])
+    monkeypatch.setattr(
+        results_refresh,
+        "refresh_results_model",
+        lambda conn, n, seed: results_refresh.RefreshResult(
+            processed=True,
+            revision="abc123",
+            synced_matches=2,
+        ),
+    )
+
+    res = runner.invoke(cli.app, ["refresh-results-model", "--n", "20", "--seed", "1"])
+
+    assert res.exit_code == 0
+    assert "Processed results revision abc123" in res.stdout
+    assert "synced 2" in res.stdout
+
+
 def test_fetch_news_command_wired(tmp_path, monkeypatch):
     monkeypatch.setenv("WC_DB_PATH", str(tmp_path / "cli.db"))
     # Point all feeds at an unreachable host so the command runs offline and returns 0.

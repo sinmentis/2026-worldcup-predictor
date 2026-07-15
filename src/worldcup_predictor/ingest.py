@@ -99,8 +99,15 @@ def apply_knockout_fixtures(conn: sqlite3.Connection, payload: dict[str, Any]) -
             "INSERT INTO matches(stage, slot, group_id, home_team, away_team, kickoff, "
             " neutral, home_score, away_score, status, ext_id, winner_team) "
             " VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
-            " ON CONFLICT(ext_id) DO UPDATE SET stage=excluded.stage, home_team=excluded.home_team,"
-            " away_team=excluded.away_team, kickoff=excluded.kickoff, "
+            " ON CONFLICT(ext_id) DO UPDATE SET"
+            " stage=CASE WHEN matches.status='FINISHED' AND excluded.status!='FINISHED'"
+            " THEN matches.stage ELSE excluded.stage END,"
+            " home_team=CASE WHEN matches.status='FINISHED' AND excluded.status!='FINISHED'"
+            " THEN matches.home_team ELSE COALESCE(excluded.home_team,matches.home_team) END,"
+            " away_team=CASE WHEN matches.status='FINISHED' AND excluded.status!='FINISHED'"
+            " THEN matches.away_team ELSE COALESCE(excluded.away_team,matches.away_team) END,"
+            " kickoff=CASE WHEN matches.status='FINISHED' AND excluded.status!='FINISHED'"
+            " THEN matches.kickoff ELSE COALESCE(excluded.kickoff,matches.kickoff) END, "
             # Never downgrade a recorded result: a feed that transiently reverts a played match to
             # a non-FINISHED status (null score) must not wipe it. Only a FINISHED feed row updates
             # the result fields (which still allows a genuine score correction).
@@ -110,7 +117,8 @@ def apply_knockout_fixtures(conn: sqlite3.Connection, payload: dict[str, Any]) -
             " ELSE matches.away_score END,"
             " status=CASE WHEN excluded.status='FINISHED' THEN excluded.status"
             " ELSE matches.status END,"
-            " winner_team=CASE WHEN excluded.status='FINISHED' THEN excluded.winner_team"
+            " winner_team=CASE WHEN excluded.status='FINISHED'"
+            " AND excluded.winner_team IS NOT NULL THEN excluded.winner_team"
             " ELSE matches.winner_team END",
             (mapped, None, None, home, away, kickoff, 1, hs, as_, status, ext_id, winner),
         )
@@ -155,6 +163,8 @@ def load_history_from_text(conn: sqlite3.Connection, text: str) -> int:
             ),
         )
         count += cur.rowcount  # OR IGNORE => 0 for duplicate rows, so reloads are idempotent
+    if count:
+        _db.bump_history_revision(conn)
     conn.commit()
     return count
 
@@ -166,43 +176,265 @@ def load_history(conn: sqlite3.Connection, url: str | None = None) -> int:
 
 
 def sync_finished_to_history(conn: sqlite3.Connection) -> int:
-    """Append finished tournament matches into ``historical_matches`` so Elo learns from the
-    ongoing World Cup. Idempotent: the ``ux_hist_match`` unique index + ``INSERT OR IGNORE``
-    means already-present rows (e.g. seed data) are skipped, so re-runs add nothing. A
-    shootout-decided knockout is stored as its drawn regulation score, which Elo treats as a
-    draw (the standard eloratings.net convention)."""
+    """Reconcile finished tournament matches into the model's historical data."""
     rows = conn.execute(
-        "SELECT kickoff, home_team, away_team, home_score, away_score FROM matches "
+        "SELECT id, kickoff, home_team, away_team, home_score, away_score FROM matches "
         "WHERE status='FINISHED' AND home_score IS NOT NULL AND away_score IS NOT NULL "
-        "AND home_team IS NOT NULL AND away_team IS NOT NULL"
+        "AND home_team IS NOT NULL AND away_team IS NOT NULL ORDER BY id"
     ).fetchall()
-    count = 0
+
+    prepared: list[dict[str, Any]] = []
     for r in rows:
-        home = config.canonical_team(r["home_team"])
-        away = config.canonical_team(r["away_team"])
-        date = str(r["kickoff"])[:10]
-        # The seed feed and the live feed can disagree on home/away order or on the calendar
-        # day (UTC rollover), so an exact-key match misses those. Skip if the same pairing
-        # already exists in either orientation within a one-day window (teams meet at most once
-        # in this window, so this can't hide a genuinely new game).
-        dup = conn.execute(
-            "SELECT 1 FROM historical_matches WHERE tournament='FIFA World Cup' "
-            "AND ((home_team=? AND away_team=?) OR (home_team=? AND away_team=?)) "
-            "AND ABS(julianday(date) - julianday(?)) <= 1 LIMIT 1",
-            (home, away, away, home, date),
-        ).fetchone()
-        if dup is not None:
-            continue
-        neutral = 0 if home in config.HOSTS else 1
-        cur = conn.execute(
-            "INSERT OR IGNORE INTO historical_matches"
-            "(date, home_team, away_team, home_score, away_score, tournament, neutral)"
-            " VALUES (?,?,?,?,?,?,?)",
-            (date, home, away, r["home_score"], r["away_score"], "FIFA World Cup", neutral),
+        kickoff = _parse_kickoff(r["kickoff"])
+        if kickoff is None:
+            raise ValueError(f"Finished match {r['id']} has an invalid kickoff: {r['kickoff']!r}")
+        if kickoff.tzinfo is None:
+            kickoff = kickoff.replace(tzinfo=datetime.UTC)
+        kickoff_date = kickoff.astimezone(datetime.UTC).date().isoformat()
+        prepared.append(
+            {
+                "match_id": int(r["id"]),
+                "date": kickoff_date,
+                "home": config.canonical_team(r["home_team"]),
+                "away": config.canonical_team(r["away_team"]),
+                "home_score": int(r["home_score"]),
+                "away_score": int(r["away_score"]),
+            }
         )
-        count += cur.rowcount
+
+    actions: list[tuple[str, dict[str, Any], sqlite3.Row | None]] = []
+    claimed_history_ids: set[int] = set()
+    claimed_source_matches: list[dict[str, Any]] = []
+    for match in prepared:
+        match_id = match["match_id"]
+        for claimed in claimed_source_matches:
+            same_pair = {match["home"], match["away"]} == {
+                claimed["home"],
+                claimed["away"],
+            }
+            date_delta = abs(
+                (
+                    datetime.date.fromisoformat(match["date"])
+                    - datetime.date.fromisoformat(claimed["date"])
+                ).days
+            )
+            if same_pair and date_delta <= 1:
+                raise ValueError(
+                    f"source matches {claimed['match_id']} and {match_id} "
+                    "represent the same nearby pairing"
+                )
+        claimed_source_matches.append(match)
+        foreign = conn.execute(
+            "SELECT h.id, h.source_match_id FROM historical_matches h "
+            "JOIN matches sm ON sm.id=h.source_match_id "
+            "WHERE h.tournament='FIFA World Cup' AND sm.status='FINISHED' "
+            "AND sm.home_score IS NOT NULL AND sm.away_score IS NOT NULL "
+            "AND ((h.home_team=? AND h.away_team=?) OR (h.home_team=? AND h.away_team=?)) "
+            "AND ABS(julianday(h.date) - julianday(?)) <= 1 "
+            "AND h.source_match_id!=? LIMIT 1",
+            (
+                match["home"],
+                match["away"],
+                match["away"],
+                match["home"],
+                match["date"],
+                match_id,
+            ),
+        ).fetchone()
+        if foreign is not None:
+            raise ValueError(
+                f"Historical match {foreign['id']} already belongs to source "
+                f"{foreign['source_match_id']}"
+            )
+        target = conn.execute(
+            "SELECT id, date, home_team, away_team, home_score, away_score, tournament, "
+            "neutral, source_match_id FROM historical_matches WHERE source_match_id=?",
+            (match_id,),
+        ).fetchone()
+        if target is None:
+            candidates = conn.execute(
+                "SELECT id, date, home_team, away_team, home_score, away_score, tournament, "
+                "neutral, source_match_id FROM historical_matches "
+                "WHERE tournament='FIFA World Cup' "
+                "AND ((home_team=? AND away_team=?) OR (home_team=? AND away_team=?)) "
+                "AND ABS(julianday(date) - julianday(?)) <= 1 "
+                "AND source_match_id IS NULL ORDER BY id",
+                (
+                    match["home"],
+                    match["away"],
+                    match["away"],
+                    match["home"],
+                    match["date"],
+                ),
+            ).fetchall()
+            if len(candidates) > 1:
+                raise ValueError(f"Finished match {match_id} matches multiple historical matches")
+            target = candidates[0] if candidates else None
+
+        if target is not None:
+            history_id = int(target["id"])
+            if history_id in claimed_history_ids:
+                raise ValueError(
+                    f"Multiple finished matches resolve to historical match {history_id}"
+                )
+            claimed_history_ids.add(history_id)
+            actions.append(("update", match, target))
+        else:
+            actions.append(("insert", match, None))
+
+    retracted_ids = [
+        int(r["id"])
+        for r in conn.execute(
+            "SELECT h.id FROM historical_matches h "
+            "LEFT JOIN matches m ON m.id=h.source_match_id "
+            "WHERE h.source_match_id IS NOT NULL "
+            "AND (m.id IS NULL OR m.status!='FINISHED' "
+            "OR m.home_score IS NULL OR m.away_score IS NULL)"
+        ).fetchall()
+    ]
+    changed = len(retracted_ids)
+    conn.execute("SAVEPOINT sync_finished_to_history")
+    try:
+        if retracted_ids:
+            conn.executemany(
+                "DELETE FROM historical_matches WHERE id=?",
+                ((history_id,) for history_id in retracted_ids),
+            )
+        for action, match, target in actions:
+            if action == "insert":
+                host_reported_away = (
+                    match["away"] in config.HOSTS and match["home"] not in config.HOSTS
+                )
+                home_team = match["away"] if host_reported_away else match["home"]
+                away_team = match["home"] if host_reported_away else match["away"]
+                home_score = match["away_score"] if host_reported_away else match["home_score"]
+                away_score = match["home_score"] if host_reported_away else match["away_score"]
+                conn.execute(
+                    "INSERT INTO historical_matches"
+                    "(date, home_team, away_team, home_score, away_score, tournament, neutral, "
+                    "source_match_id) VALUES (?,?,?,?,?,?,?,?)",
+                    (
+                        match["date"],
+                        home_team,
+                        away_team,
+                        home_score,
+                        away_score,
+                        "FIFA World Cup",
+                        0 if home_team in config.HOSTS else 1,
+                        match["match_id"],
+                    ),
+                )
+                changed += 1
+                continue
+
+            assert target is not None
+            same_orientation = (
+                target["home_team"] == match["home"] and target["away_team"] == match["away"]
+            )
+            flipped_orientation = (
+                target["home_team"] == match["away"] and target["away_team"] == match["home"]
+            )
+            home_is_host = match["home"] in config.HOSTS
+            away_is_host = match["away"] in config.HOSTS
+            if home_is_host != away_is_host:
+                host_reported_away = away_is_host
+                home_team = match["away"] if host_reported_away else match["home"]
+                away_team = match["home"] if host_reported_away else match["away"]
+                home_score = match["away_score"] if host_reported_away else match["home_score"]
+                away_score = match["home_score"] if host_reported_away else match["away_score"]
+            elif same_orientation:
+                home_score = match["home_score"]
+                away_score = match["away_score"]
+                home_team = target["home_team"]
+                away_team = target["away_team"]
+            elif flipped_orientation:
+                home_score = match["away_score"]
+                away_score = match["home_score"]
+                home_team = target["home_team"]
+                away_team = target["away_team"]
+            else:
+                host_reported_away = (
+                    match["away"] in config.HOSTS and match["home"] not in config.HOSTS
+                )
+                home_team = match["away"] if host_reported_away else match["home"]
+                away_team = match["home"] if host_reported_away else match["away"]
+                home_score = match["away_score"] if host_reported_away else match["home_score"]
+                away_score = match["home_score"] if host_reported_away else match["away_score"]
+
+            target_date = str(target["date"])
+            try:
+                date_delta = abs(
+                    (
+                        datetime.date.fromisoformat(target_date)
+                        - datetime.date.fromisoformat(match["date"])
+                    ).days
+                )
+            except ValueError:
+                date_delta = 2
+            date = target_date if date_delta <= 1 else match["date"]
+            neutral = 0 if home_team in config.HOSTS else 1
+            content_changed = (
+                target["date"] != date
+                or target["home_team"] != home_team
+                or target["away_team"] != away_team
+                or target["home_score"] != home_score
+                or target["away_score"] != away_score
+                or target["tournament"] != "FIFA World Cup"
+                or target["neutral"] != neutral
+            )
+            metadata_changed = target["source_match_id"] != match["match_id"]
+            conflict = conn.execute(
+                "SELECT id, source_match_id FROM historical_matches WHERE id!=? "
+                "AND date=? AND home_team=? AND away_team=? AND tournament='FIFA World Cup' "
+                "AND home_score=? AND away_score=?",
+                (
+                    target["id"],
+                    date,
+                    home_team,
+                    away_team,
+                    home_score,
+                    away_score,
+                ),
+            ).fetchone()
+            if conflict is not None:
+                if conflict["source_match_id"] not in (None, match["match_id"]):
+                    raise ValueError(
+                        f"Historical match {conflict['id']} already belongs to source "
+                        f"{conflict['source_match_id']}"
+                    )
+                conn.execute("DELETE FROM historical_matches WHERE id=?", (target["id"],))
+                conn.execute(
+                    "UPDATE historical_matches SET neutral=?, source_match_id=? WHERE id=?",
+                    (neutral, match["match_id"], conflict["id"]),
+                )
+                changed += 1
+                continue
+            if content_changed or metadata_changed:
+                conn.execute(
+                    "UPDATE historical_matches SET date=?, home_team=?, away_team=?, "
+                    "home_score=?, away_score=?, tournament='FIFA World Cup', neutral=?, "
+                    "source_match_id=? WHERE id=?",
+                    (
+                        date,
+                        home_team,
+                        away_team,
+                        home_score,
+                        away_score,
+                        neutral,
+                        match["match_id"],
+                        target["id"],
+                    ),
+                )
+            changed += int(content_changed)
+        if changed:
+            _db.bump_history_revision(conn)
+        conn.execute("RELEASE SAVEPOINT sync_finished_to_history")
+    except Exception:
+        conn.execute("ROLLBACK TO SAVEPOINT sync_finished_to_history")
+        conn.execute("RELEASE SAVEPOINT sync_finished_to_history")
+        raise
     conn.commit()
-    return count
+    return changed
 
 
 def seed_teams_and_fixtures(conn: sqlite3.Connection) -> None:
@@ -238,14 +470,16 @@ def apply_results_payload(conn: sqlite3.Connection, payload: dict[str, Any]) -> 
         # match the pair order-independently and store scores in the seeded orientation.
         cur = conn.execute(
             "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
-            "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
-            (ft["home"], ft["away"], home, away),
+            "WHERE home_team=? AND away_team=? "
+            "AND (status!='FINISHED' OR home_score IS NOT ? OR away_score IS NOT ?)",
+            (ft["home"], ft["away"], home, away, ft["home"], ft["away"]),
         )
         if cur.rowcount == 0:
             cur = conn.execute(
                 "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
-                "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
-                (ft["away"], ft["home"], away, home),
+                "WHERE home_team=? AND away_team=? "
+                "AND (status!='FINISHED' OR home_score IS NOT ? OR away_score IS NOT ?)",
+                (ft["away"], ft["home"], away, home, ft["away"], ft["home"]),
             )
         updated += cur.rowcount
     conn.commit()
@@ -285,14 +519,16 @@ def apply_fixtures_payload(conn: sqlite3.Connection, payload: dict[str, Any]) ->
             if ft.get("home") is not None:
                 c2 = conn.execute(
                     "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
-                    "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
-                    (ft["home"], ft["away"], home, away),
+                    "WHERE home_team=? AND away_team=? "
+                    "AND (status!='FINISHED' OR home_score IS NOT ? OR away_score IS NOT ?)",
+                    (ft["home"], ft["away"], home, away, ft["home"], ft["away"]),
                 )
                 if c2.rowcount == 0:
                     conn.execute(
                         "UPDATE matches SET home_score=?, away_score=?, status='FINISHED' "
-                        "WHERE home_team=? AND away_team=? AND status!='FINISHED'",
-                        (ft["away"], ft["home"], away, home),
+                        "WHERE home_team=? AND away_team=? "
+                        "AND (status!='FINISHED' OR home_score IS NOT ? OR away_score IS NOT ?)",
+                        (ft["away"], ft["home"], away, home, ft["away"], ft["home"]),
                     )
     conn.commit()
     _db.touch_update(conn)

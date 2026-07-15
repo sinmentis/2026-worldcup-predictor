@@ -190,6 +190,25 @@ def test_migrate_adds_knockout_columns(tmp_path):
     db.migrate(conn)
 
 
+def test_init_schema_migrates_legacy_history_before_creating_source_index(tmp_path):
+    conn = db.connect(tmp_path / "legacy-history.db")
+    conn.executescript(
+        "CREATE TABLE historical_matches ("
+        "id INTEGER PRIMARY KEY, date TEXT, home_team TEXT, away_team TEXT, "
+        "home_score INTEGER, away_score INTEGER, tournament TEXT, neutral INTEGER DEFAULT 0"
+        ");"
+    )
+    conn.commit()
+
+    db.init_schema(conn)
+
+    assert db._has_column(conn, "historical_matches", "source_match_id")
+    indexes = {
+        row["name"] for row in conn.execute("PRAGMA index_list(historical_matches)").fetchall()
+    }
+    assert "ux_hist_source_match" in indexes
+
+
 def test_fresh_db_rejects_bad_affects(tmp_path):
     conn = db.connect(tmp_path / "fresh.db")
     db.init_schema(conn)

@@ -5,7 +5,7 @@ import time
 
 import pandas as pd
 
-from worldcup_predictor import db, engine
+from worldcup_predictor import db, engine, ingest
 
 
 def test_get_model_fit_lock_serializes_concurrent_cold_fits(tmp_path, monkeypatch):
@@ -48,4 +48,35 @@ def test_get_model_fit_lock_serializes_concurrent_cold_fits(tmp_path, monkeypatc
     assert len(results) == 8
     assert all(r is results[0] for r in results)
 
+    engine._reset_model_cache()
+
+
+def test_get_model_refits_after_finished_match_enters_history(tmp_path, monkeypatch):
+    conn = db.connect(tmp_path / "t.db")
+    db.init_schema(conn)
+    engine._reset_model_cache()
+
+    calls = {"n": 0}
+
+    class _FakeModel:
+        def fit(self, frame: pd.DataFrame, xi: float | None = None) -> "_FakeModel":
+            calls["n"] += 1
+            return self
+
+    monkeypatch.setattr(engine, "GoalModel", _FakeModel)
+    monkeypatch.setattr(engine, "history_frame", lambda c: pd.DataFrame({"x": [1]}))
+    monkeypatch.setattr(engine._tune, "current_xi", lambda c: 0.001)
+
+    engine.get_model(conn)
+    assert calls["n"] == 1
+
+    conn.execute(
+        "INSERT INTO matches(id,stage,home_team,away_team,kickoff,home_score,away_score,status) "
+        "VALUES(1,'group','England','Croatia','2026-06-20T19:00:00Z',3,2,'FINISHED')"
+    )
+    conn.commit()
+    assert ingest.sync_finished_to_history(conn) == 1
+
+    engine.get_model(conn)
+    assert calls["n"] == 2
     engine._reset_model_cache()

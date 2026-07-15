@@ -48,8 +48,11 @@ def test_load_history_skips_unplayed_and_na_rows(tmp_path):
 def test_load_history_is_idempotent(tmp_path):
     conn = db.connect(tmp_path / "t.db")
     db.init_schema(conn)
+    assert db.history_revision(conn) == 0
     first = ingest.load_history_from_text(conn, CSV)
+    assert db.history_revision(conn) == 1
     second = ingest.load_history_from_text(conn, CSV)
     assert first == 2
     assert second == 0  # re-loading the same rows inserts nothing
+    assert db.history_revision(conn) == 1
     assert conn.execute("SELECT COUNT(*) FROM historical_matches").fetchone()[0] == 2

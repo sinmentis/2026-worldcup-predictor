@@ -119,8 +119,8 @@ def test_apply_knockout_penalty_shootout_uses_regulation_score(tmp_path):
 
 def test_apply_knockout_does_not_wipe_finished_on_feed_revert(tmp_path):
     # A feed glitch can transiently revert a played knockout to a non-FINISHED status with a null
-    # score. That must NOT wipe the recorded result (the match happened); only teams/kickoff may
-    # still update. Prevents fetch-fixtures from un-settling a finished knockout every cycle.
+    # score or stale identity. That must NOT wipe/remap the completed tie. Prevents fetch-fixtures
+    # from un-settling a finished knockout every cycle.
     conn = _conn(tmp_path)
     ingest.apply_knockout_fixtures(
         conn,
@@ -139,14 +139,22 @@ def test_apply_knockout_does_not_wipe_finished_on_feed_revert(tmp_path):
             ]
         },
     )
-    # Later fetch: the feed reports the same match as not-yet-finished with a null score.
+    # Later fetch: the feed reports the same match as not-yet-finished with null teams/score.
     ingest.apply_knockout_fixtures(
-        conn, {"matches": [_ko(904, "LAST_16", "Mexico", "England", status="TIMED")]}
+        conn, {"matches": [_ko(904, "LAST_16", None, None, status="TIMED")]}
     )
     r = conn.execute("SELECT * FROM matches WHERE ext_id=904").fetchone()
     assert r["status"] == "FINISHED"  # not downgraded
+    assert (r["home_team"], r["away_team"]) == ("Mexico", "England")
     assert (r["home_score"], r["away_score"]) == (2, 3)  # result preserved
     assert r["winner_team"] == "England"  # winner preserved
+
+    # A stale non-FINISHED row with placeholder teams must not remap the completed tie either.
+    ingest.apply_knockout_fixtures(
+        conn, {"matches": [_ko(904, "LAST_16", "France", "Spain", status="TIMED")]}
+    )
+    r = conn.execute("SELECT * FROM matches WHERE ext_id=904").fetchone()
+    assert (r["home_team"], r["away_team"]) == ("Mexico", "England")
 
 
 def test_group_functions_ignore_knockout_matches(tmp_path):

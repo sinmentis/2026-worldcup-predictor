@@ -7,6 +7,7 @@ from pathlib import Path
 import typer
 
 from worldcup_predictor import db, engine, evaluate, ingest, news, ratings
+from worldcup_predictor import results_refresh as _results_refresh
 
 app = typer.Typer(help="WorldCup Predictor CLI")
 
@@ -63,6 +64,19 @@ def sync_history() -> None:
     conn = _conn()
     n = ingest.sync_finished_to_history(conn)
     typer.echo(f"Synced {n} finished match(es) into history.")
+
+
+@app.command("refresh-results-model")
+def refresh_results_model(n: int = 20_000, seed: int | None = typer.Option(None)) -> None:
+    """Refresh history, ratings, and simulation when match state changed."""
+    result = _results_refresh.refresh_results_model(_conn(), n=n, seed=seed)
+    if result.processed:
+        typer.echo(
+            f"Processed results revision {result.revision}; "
+            f"synced {result.synced_matches} historical match(es)."
+        )
+    else:
+        typer.echo(f"Results revision {result.revision} is already current.")
 
 
 @app.command("fetch-results")

@@ -189,7 +189,11 @@ def _load_played_groups(
 
 
 def simulate_tournament(
-    conn: sqlite3.Connection, model: GoalModel, n: int = 50_000, seed: int | None = None
+    conn: sqlite3.Connection,
+    model: GoalModel,
+    n: int = 50_000,
+    seed: int | None = None,
+    persist: bool = True,
 ) -> dict[str, dict[str, float]]:
     rng = np.random.default_rng(seed)
     teams = [t for ts in config.GROUPS.values() for t in ts]
@@ -264,6 +268,15 @@ def simulate_tournament(
         counts[win[_bt.FINAL_FIXTURE]]["title"] += 1
 
     result = {t: {k: v / n for k, v in counts[t].items()} for t in teams}
+    if persist:
+        store_simulation_results(conn, result, n)
+        conn.commit()
+    return result
+
+
+def store_simulation_results(
+    conn: sqlite3.Connection, result: dict[str, dict[str, float]], n: int
+) -> None:
     now = time.time()
     conn.execute("DELETE FROM sim_results")
     for t, p in result.items():
@@ -272,5 +285,3 @@ def simulate_tournament(
             " sf_prob, final_prob, title_prob, n_iter) VALUES (?,?,?,?,?,?,?,?,?)",
             (now, t, p["advance"], p["r16"], p["qf"], p["sf"], p["final"], p["title"], n),
         )
-    conn.commit()
-    return result

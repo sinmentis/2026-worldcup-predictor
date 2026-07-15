@@ -109,6 +109,26 @@ def test_settle_1x2_win_and_loss(tmp_path):
     assert abs(rows["away"]["pnl_kelly"] - (-0.05 * 100.0)) < 1e-9
 
 
+def test_settle_recomputes_changed_result_without_rewriting_settled_time(tmp_path):
+    conn = _conn(tmp_path)
+    _add_match(conn, 1, "2000-01-01T00:00:00Z", status="FINISHED", hs=2, as_=0)
+    papertrade.log_bets(conn, [_bet(1, outcome="home", best_price=2.0, kelly=0.10)])
+    assert papertrade.settle(conn) == 1
+    before = conn.execute("SELECT * FROM paper_bets").fetchone()
+    assert before["result"] == "win"
+
+    conn.execute("UPDATE matches SET home_score=0, away_score=1 WHERE id=1")
+    conn.commit()
+
+    assert papertrade.settle(conn) == 1
+    corrected = conn.execute("SELECT * FROM paper_bets").fetchone()
+    assert corrected["result"] == "loss"
+    assert corrected["pnl_flat"] == -1.0
+    assert corrected["pnl_kelly"] == -10.0
+    assert corrected["settled_at"] == before["settled_at"]
+    assert papertrade.settle(conn) == 0
+
+
 def test_settle_totals_push_and_win(tmp_path):
     conn = _conn(tmp_path)
     _add_match(conn, 1, "2000-01-01T00:00:00Z", status="FINISHED", hs=1, as_=1)  # total 2

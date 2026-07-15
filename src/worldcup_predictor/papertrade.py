@@ -189,12 +189,13 @@ def _result_dnb(hs: int, as_: int, outcome: str) -> str:
 def settle(
     conn: sqlite3.Connection, *, now_z: str | None = None, bankroll: float = BANKROLL_UNITS
 ) -> int:
-    """Capture closing lines, then settle every open bet whose match has finished."""
+    """Capture closing lines, then settle or reconcile bets whose match has finished."""
     capture_closing(conn, now_z=now_z)
     rows = conn.execute(
         "SELECT p.id, p.market, p.outcome, p.line, p.price_taken, p.kelly_frac, "
+        "p.result, p.pnl_flat, p.pnl_kelly, p.settled_at, "
         "m.home_score, m.away_score FROM paper_bets p JOIN matches m ON m.id=p.match_id "
-        "WHERE p.settled_at IS NULL AND m.status='FINISHED' "
+        "WHERE m.status='FINISHED' "
         "AND m.home_score IS NOT NULL AND m.away_score IS NOT NULL"
     ).fetchall()
     n = 0
@@ -219,8 +220,17 @@ def settle(
         else:
             pnl_flat = -1.0
             pnl_kelly = -(kfrac * bankroll)
+        changed = (
+            r["settled_at"] is None
+            or r["result"] != res
+            or r["pnl_flat"] != pnl_flat
+            or r["pnl_kelly"] != pnl_kelly
+        )
+        if not changed:
+            continue
         conn.execute(
-            "UPDATE paper_bets SET result=?, pnl_flat=?, pnl_kelly=?, settled_at=? WHERE id=?",
+            "UPDATE paper_bets SET result=?, pnl_flat=?, pnl_kelly=?, "
+            "settled_at=COALESCE(settled_at, ?) WHERE id=?",
             (res, pnl_flat, pnl_kelly, time.time(), r["id"]),
         )
         n += 1

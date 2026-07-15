@@ -1,35 +1,47 @@
 #!/usr/bin/env bash
-# Results fetch loop: pull finished results every interval and re-run the simulation when a new
-# result lands, until <end_epoch>. Usage: sched-results.sh <interval_seconds> <end_epoch>
-set -u
+# Results fetch loop: pull results every interval and refresh model state when match content
+# changes, until <end_epoch>. Usage: sched-results.sh <interval_seconds> <end_epoch>
+set -uo pipefail
 interval="$1"
 end_epoch="$2"
 repo="$(cd "$(dirname "$0")/.." && pwd)"
-log="/tmp/wc-sched-results.log"
+log="${WC_SCHED_RESULTS_LOG:-/tmp/wc-sched-results.log}"
+lock="${WC_SCHED_RESULTS_LOCK:-/tmp/wc-sched-results.lock}"
+pid_file="${WC_SCHED_RESULTS_PID:-/tmp/wc-sched-results.pid}"
 db="$repo/data/worldcup.db"
-echo $$ > /tmp/wc-sched-results.pid
+worldcup="${WC_WORLDCUP_BIN:-$repo/.venv/bin/worldcup}"
+
+exec 9>"$lock"
+if ! flock -n 9; then
+  echo "$(date '+%F %T') results schedule already running" >> "$log"
+  exit 0
+fi
+
+echo $$ > "$pid_file"
+trap 'rm -f "$pid_file"' EXIT
 echo "$(date '+%F %T') results schedule started (every ${interval}s until $(date -d @${end_epoch} '+%F %T'))" >> "$log"
 cd "$repo" || exit 1
 export WC_DB_PATH="$db"
-finished_count() {
-  "$repo/.venv/bin/python" -c "import sqlite3;print(sqlite3.connect('$db').execute(\"SELECT COUNT(*) FROM matches WHERE status='FINISHED'\").fetchone()[0])"
-}
+
 while [ "$(date +%s)" -lt "$end_epoch" ]; do
-  before=$(finished_count)
-  "$repo/.venv/bin/worldcup" fetch-fixtures >> "$log" 2>&1
-  # Capture closing lines for kicked-off paper bets and settle any that just finished.
-  "$repo/.venv/bin/worldcup" paper-settle >> "$log" 2>&1
-  after=$(finished_count)
-  if [ "$after" -gt "$before" ]; then
-    echo "$(date '+%F %T') new result(s): $before -> $after, syncing Elo + re-simulating" >> "$log"
-    # Feed the freshly finished match(es) into history and recompute Elo so ratings reflect the
-    # tournament (not just pre-tournament priors) before we re-run the simulation.
-    "$repo/.venv/bin/worldcup" sync-history >> "$log" 2>&1
-    "$repo/.venv/bin/worldcup" rate >> "$log" 2>&1
-    "$repo/.venv/bin/worldcup" simulate --n 20000 >> "$log" 2>&1
+  tick_failed=0
+  if ! "$worldcup" fetch-fixtures >> "$log" 2>&1; then
+    echo "$(date '+%F %T') results tick failed: fetch-fixtures" >> "$log"
+    tick_failed=1
   fi
-  echo "$(date '+%F %T') results tick done (finished=$after)" >> "$log"
+  if ! "$worldcup" paper-settle >> "$log" 2>&1; then
+    echo "$(date '+%F %T') results tick failed: paper-settle" >> "$log"
+    tick_failed=1
+  fi
+  if ! "$worldcup" refresh-results-model --n 20000 >> "$log" 2>&1; then
+    echo "$(date '+%F %T') results tick failed: refresh-results-model (will retry)" >> "$log"
+    tick_failed=1
+  fi
+  if [ "$tick_failed" -eq 0 ]; then
+    echo "$(date '+%F %T') results tick done" >> "$log"
+  else
+    echo "$(date '+%F %T') results tick done with failures" >> "$log"
+  fi
   sleep "$interval"
 done
 echo "$(date '+%F %T') results schedule ended" >> "$log"
-rm -f /tmp/wc-sched-results.pid
