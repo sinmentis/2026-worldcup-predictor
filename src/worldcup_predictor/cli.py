@@ -57,6 +57,14 @@ def rate() -> None:
         typer.echo(f"{team:20s} elo={elo:.0f}")
 
 
+@app.command("sync-history")
+def sync_history() -> None:
+    """Append finished tournament matches into history so Elo can learn from this World Cup."""
+    conn = _conn()
+    n = ingest.sync_finished_to_history(conn)
+    typer.echo(f"Synced {n} finished match(es) into history.")
+
+
 @app.command("fetch-results")
 def fetch_results() -> None:
     """Fetch finished WC results and update the DB."""

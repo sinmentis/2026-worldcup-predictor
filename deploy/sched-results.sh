@@ -21,7 +21,11 @@ while [ "$(date +%s)" -lt "$end_epoch" ]; do
   "$repo/.venv/bin/worldcup" paper-settle >> "$log" 2>&1
   after=$(finished_count)
   if [ "$after" -gt "$before" ]; then
-    echo "$(date '+%F %T') new result(s): $before -> $after, re-simulating" >> "$log"
+    echo "$(date '+%F %T') new result(s): $before -> $after, syncing Elo + re-simulating" >> "$log"
+    # Feed the freshly finished match(es) into history and recompute Elo so ratings reflect the
+    # tournament (not just pre-tournament priors) before we re-run the simulation.
+    "$repo/.venv/bin/worldcup" sync-history >> "$log" 2>&1
+    "$repo/.venv/bin/worldcup" rate >> "$log" 2>&1
     "$repo/.venv/bin/worldcup" simulate --n 20000 >> "$log" 2>&1
   fi
   echo "$(date '+%F %T') results tick done (finished=$after)" >> "$log"

@@ -165,6 +165,46 @@ def load_history(conn: sqlite3.Connection, url: str | None = None) -> int:
     return load_history_from_text(conn, resp.text)
 
 
+def sync_finished_to_history(conn: sqlite3.Connection) -> int:
+    """Append finished tournament matches into ``historical_matches`` so Elo learns from the
+    ongoing World Cup. Idempotent: the ``ux_hist_match`` unique index + ``INSERT OR IGNORE``
+    means already-present rows (e.g. seed data) are skipped, so re-runs add nothing. A
+    shootout-decided knockout is stored as its drawn regulation score, which Elo treats as a
+    draw (the standard eloratings.net convention)."""
+    rows = conn.execute(
+        "SELECT kickoff, home_team, away_team, home_score, away_score FROM matches "
+        "WHERE status='FINISHED' AND home_score IS NOT NULL AND away_score IS NOT NULL "
+        "AND home_team IS NOT NULL AND away_team IS NOT NULL"
+    ).fetchall()
+    count = 0
+    for r in rows:
+        home = config.canonical_team(r["home_team"])
+        away = config.canonical_team(r["away_team"])
+        date = str(r["kickoff"])[:10]
+        # The seed feed and the live feed can disagree on home/away order or on the calendar
+        # day (UTC rollover), so an exact-key match misses those. Skip if the same pairing
+        # already exists in either orientation within a one-day window (teams meet at most once
+        # in this window, so this can't hide a genuinely new game).
+        dup = conn.execute(
+            "SELECT 1 FROM historical_matches WHERE tournament='FIFA World Cup' "
+            "AND ((home_team=? AND away_team=?) OR (home_team=? AND away_team=?)) "
+            "AND ABS(julianday(date) - julianday(?)) <= 1 LIMIT 1",
+            (home, away, away, home, date),
+        ).fetchone()
+        if dup is not None:
+            continue
+        neutral = 0 if home in config.HOSTS else 1
+        cur = conn.execute(
+            "INSERT OR IGNORE INTO historical_matches"
+            "(date, home_team, away_team, home_score, away_score, tournament, neutral)"
+            " VALUES (?,?,?,?,?,?,?)",
+            (date, home, away, r["home_score"], r["away_score"], "FIFA World Cup", neutral),
+        )
+        count += cur.rowcount
+    conn.commit()
+    return count
+
+
 def seed_teams_and_fixtures(conn: sqlite3.Connection) -> None:
     for gid, teams in config.GROUPS.items():
         for team in teams:
